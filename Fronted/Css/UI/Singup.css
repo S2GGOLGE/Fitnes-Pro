@@ -1,0 +1,706 @@
+/* ==========================================
+   FITNESS PRO - SIGNUP
+   ========================================== */
+
+:root {
+
+    /* Background */
+
+    --color-bg: #0B0F0D;
+    --color-surface: #121815;
+    --color-card: #18201B;
+
+
+    /* Primary */
+
+    --color-primary: #22C55E;
+    --color-primary-hover: #16A34A;
+
+
+    /* Text */
+
+    --color-text: #F5F7F6;
+    --color-text-muted: #A7B0AA;
+    --color-link: #F97316;
+
+
+    /* Border */
+
+    --color-border: #29332D;
+
+
+    /* Status */
+
+    --color-success: #22C55E;
+    --color-warning: #F59E0B;
+    --color-error: #EF4444;
+
+
+    /* Radius */
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+
+
+    /* Transition */
+
+    --transition-fast: 150ms ease;
+    --transition-normal: 250ms ease;
+}
+
+
+/* ==========================================
+   RESET
+   ========================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+/* ==========================================
+   BODY
+   ========================================== */
+
+body {
+
+    min-height: 100vh;
+
+    padding: 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background-color: var(--color-bg);
+
+    color: var(--color-text);
+
+    font-family: Arial, sans-serif;
+}
+
+
+/* ==========================================
+   CONTAINER
+   ========================================== */
+
+.container {
+
+    width: 100%;
+    max-width: 440px;
+
+    padding: 38px 32px;
+
+    background-color: var(--color-card);
+
+    border: 1px solid var(--color-border);
+
+    border-radius: var(--radius-xl);
+
+    animation: containerEnter 0.6s ease-out forwards;
+}
+
+
+/* ==========================================
+   HERO
+   ========================================== */
+
+.hero {
+
+    margin-bottom: 28px;
+
+    text-align: center;
+}
+
+
+/* Logo */
+
+.logo-icon {
+
+    width: 60px;
+    height: 60px;
+
+    margin: 0 auto 14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: var(--color-primary);
+
+    background-color: var(--color-surface);
+
+    border: 1px solid var(--color-border);
+
+    border-radius: var(--radius-lg);
+
+    animation: logoEnter 0.7s ease-out 0.15s both;
+
+    transition:
+        transform var(--transition-normal),
+        border-color var(--transition-normal),
+        box-shadow var(--transition-normal);
+}
+
+
+.logo-icon:hover {
+
+    transform: translateY(-3px);
+
+    border-color: var(--color-primary);
+
+    box-shadow:
+        0 0 20px rgba(34, 197, 94, 0.15);
+}
+
+
+/* Title */
+
+.hero h1 {
+
+    color: var(--color-text);
+
+    font-size: 26px;
+    font-weight: 700;
+
+    letter-spacing: 1px;
+
+    animation: textEnter 0.5s ease-out 0.3s both;
+}
+
+
+/* Slogan */
+
+.slogan {
+
+    margin-top: 7px;
+
+    color: var(--color-text-muted);
+
+    font-size: 13px;
+
+    line-height: 1.5;
+
+    animation: textEnter 0.5s ease-out 0.4s both;
+}
+
+
+/* ==========================================
+   FORM
+   ========================================== */
+
+.form {
+
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 13px;
+}
+
+
+/* ==========================================
+   NORMAL INPUT
+   ========================================== */
+
+.form>input {
+
+    width: 100%;
+    height: 48px;
+
+    padding: 0 16px;
+
+    background-color: var(--color-surface);
+
+    color: var(--color-text);
+
+    border: 1px solid var(--color-border);
+
+    border-radius: var(--radius-md);
+
+    outline: none;
+
+    font-size: 14px;
+
+    transition:
+        border-color var(--transition-normal),
+        box-shadow var(--transition-normal),
+        transform var(--transition-fast);
+}
+
+
+.form>input::placeholder,
+.password-wrapper input::placeholder {
+
+    color: var(--color-text-muted);
+}
+
+
+.form>input:focus {
+
+    border-color: var(--color-primary);
+
+    box-shadow:
+        0 0 0 3px rgba(34, 197, 94, 0.12);
+
+    transform: translateY(-1px);
+}
+
+
+/* ==========================================
+   PASSWORD
+   ========================================== */
+
+.password-wrapper {
+
+    position: relative;
+
+    width: 100%;
+}
+
+
+.password-wrapper input {
+
+    width: 100%;
+    height: 48px;
+
+    padding: 0 50px 0 16px;
+
+    background-color: var(--color-surface);
+
+    color: var(--color-text);
+
+    border: 1px solid var(--color-border);
+
+    border-radius: var(--radius-md);
+
+    outline: none;
+
+    font-size: 14px;
+
+    transition:
+        border-color var(--transition-normal),
+        box-shadow var(--transition-normal),
+        transform var(--transition-fast);
+}
+
+
+.password-wrapper input:focus {
+
+    border-color: var(--color-primary);
+
+    box-shadow:
+        0 0 0 3px rgba(34, 197, 94, 0.12);
+
+    transform: translateY(-1px);
+}
+
+
+/* Toggle */
+
+.password-toggle {
+
+    position: absolute;
+
+    top: 50%;
+    right: 12px;
+
+    width: 32px;
+    height: 32px;
+
+    padding: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transform: translateY(-50%);
+
+    background: transparent;
+
+    color: var(--color-text-muted);
+
+    border: none;
+
+    border-radius: 50%;
+
+    cursor: pointer;
+
+    transition:
+        color var(--transition-normal),
+        background-color var(--transition-normal),
+        transform var(--transition-fast);
+}
+
+
+.password-toggle:hover {
+
+    color: var(--color-primary);
+
+    background-color: rgba(34, 197, 94, 0.08);
+}
+
+
+.password-toggle:active {
+
+    transform:
+        translateY(-50%) scale(0.9);
+}
+
+
+.password-toggle.active {
+
+    color: var(--color-primary);
+}
+
+
+/* ==========================================
+   REGISTER BUTTON
+   ========================================== */
+
+.kayıt-btn {
+
+    width: 100%;
+    height: 48px;
+
+    margin-top: 4px;
+
+    background-color: var(--color-primary);
+
+    color: var(--color-bg);
+
+    border: none;
+
+    border-radius: var(--radius-md);
+
+    font-size: 15px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background-color var(--transition-normal),
+        transform var(--transition-fast),
+        box-shadow var(--transition-normal);
+}
+
+
+.kayıt-btn:hover {
+
+    background-color: var(--color-primary-hover);
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 6px 18px rgba(34, 197, 94, 0.18);
+}
+
+
+.kayıt-btn:active {
+
+    transform:
+        translateY(0) scale(0.98);
+}
+
+
+/* ==========================================
+   FOOTER
+   ========================================== */
+
+.footer {
+
+    margin-top: 22px;
+
+    text-align: center;
+
+    animation: textEnter 0.5s ease-out 0.9s both;
+}
+
+
+.footer p {
+
+    color: var(--color-text-muted);
+
+    font-size: 13px;
+}
+
+
+.footer a {
+
+    color: var(--color-link);
+
+    text-decoration: none;
+
+    font-weight: 600;
+
+    transition:
+        color var(--transition-normal);
+}
+
+
+.footer a:hover {
+
+    color: var(--color-primary);
+}
+
+
+.copyright {
+
+    display: block;
+
+    margin-top: 13px;
+
+    color: var(--color-text-muted);
+
+    font-size: 11px;
+
+    opacity: 0.65;
+
+    letter-spacing: 0.2px;
+}
+
+
+/* ==========================================
+   ANIMATIONS
+   ========================================== */
+
+@keyframes containerEnter {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            translateY(25px) scale(0.98);
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            translateY(0) scale(1);
+    }
+}
+
+
+@keyframes logoEnter {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            scale(0.7) rotate(-8deg);
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            scale(1) rotate(0);
+    }
+}
+
+
+@keyframes textEnter {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            translateY(10px);
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            translateY(0);
+    }
+}
+
+
+/* ==========================================
+   FORM ANIMATION
+   ========================================== */
+
+.form>input:nth-child(1) {
+    animation: inputEnter 0.45s ease-out 0.45s both;
+}
+
+.form>input:nth-child(2) {
+    animation: inputEnter 0.45s ease-out 0.52s both;
+}
+
+.form>input:nth-child(3) {
+    animation: inputEnter 0.45s ease-out 0.59s both;
+}
+
+.form>input:nth-child(4) {
+    animation: inputEnter 0.45s ease-out 0.66s both;
+}
+
+.password-wrapper:nth-of-type(1) {
+    animation: inputEnter 0.45s ease-out 0.73s both;
+}
+
+.password-wrapper:nth-of-type(2) {
+    animation: inputEnter 0.45s ease-out 0.80s both;
+}
+
+.kayıt-btn {
+    animation: inputEnter 0.45s ease-out 0.87s both;
+}
+
+
+@keyframes inputEnter {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            translateX(-15px);
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            translateX(0);
+    }
+}
+
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+
+@media (max-width: 480px) {
+
+    body {
+
+        padding: 14px;
+    }
+
+
+    .container {
+
+        padding: 30px 22px;
+
+        border-radius: var(--radius-lg);
+    }
+
+
+    .hero {
+
+        margin-bottom: 24px;
+    }
+
+
+    .logo-icon {
+
+        width: 56px;
+        height: 56px;
+    }
+
+
+    .logo-icon svg {
+
+        width: 34px;
+        height: 34px;
+    }
+
+
+    .hero h1 {
+
+        font-size: 23px;
+    }
+
+
+    .slogan {
+
+        font-size: 12px;
+    }
+
+
+    .form {
+
+        gap: 11px;
+    }
+
+
+    .form>input,
+    .password-wrapper input,
+    .kayıt-btn {
+
+        height: 46px;
+    }
+
+
+    .footer {
+
+        margin-top: 20px;
+    }
+}
+
+
+/* ==========================================
+   SMALL MOBILE
+   ========================================== */
+
+@media (max-width: 360px) {
+
+    body {
+
+        padding: 10px;
+    }
+
+
+    .container {
+
+        padding: 26px 18px;
+    }
+
+
+    .hero h1 {
+
+        font-size: 21px;
+    }
+
+
+    .form>input,
+    .password-wrapper input {
+
+        font-size: 13px;
+    }
+}
+
+
+/* ==========================================
+   REDUCED MOTION
+   ========================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+
+        animation-duration: 0.01ms !important;
+
+        animation-iteration-count: 1 !important;
+
+        transition-duration: 0.01ms !important;
+    }
+}

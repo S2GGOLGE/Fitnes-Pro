@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="../Css/UI/Login.css">
+
+    <title>Fitness Pro | Login</title>
+</head>
+
+<body>
+
+    <main class="container">
+
+        <!-- ==============================
+             HEADER
+             ============================== -->
+
+        <header class="header">
+
+            <div class="logo-icon">
+
+                <svg width="42" height="42" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+                    <path d="M6 9V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+
+                    <path d="M9 7V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+
+                    <path d="M15 7V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+
+                    <path d="M18 9V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+
+                    <path d="M9 12H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+
+                </svg>
+
+            </div>
+
+            <h1>FITNESS PRO</h1>
+
+            <p class="slogan">
+                Daha güçlü bir sen, her gün bir adım daha.
+            </p>
+
+        </header>
+
+
+        <!-- ==============================
+             LOGIN FORM
+             ============================== -->
+
+        <form class="form">
+
+            <!-- Username -->
+
+            <input type="text" id="username" name="username" placeholder="Kullanıcı Adınızı Giriniz..."
+                autocomplete="username" required>
+
+
+            <!-- Password -->
+
+            <div class="password-wrapper">
+
+                <input type="password" id="password" name="password" placeholder="Lütfen Şifrenizi Giriniz..."
+                    autocomplete="current-password" required>
+
+                <button type="button" class="password-toggle" data-password-target="password"
+                    aria-label="Şifreyi göster">
+
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+
+                        <path d="M2 12C2 12 5.5 5 12 5C18.5 5 22 12 22 12C22 12 18.5 19 12 19C5.5 19 2 12 2 12Z"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" />
+
+                    </svg>
+
+                </button>
+
+            </div>
+
+
+            <!-- Login -->
+
+            <button type="submit" class="login-btn">
+
+                Giriş
+
+            </button>
+
+        </form>
+
+
+        <!-- ==============================
+             FOOTER
+             ============================== -->
+
+        <footer class="footer">
+
+            <p>
+                Hesabınız yok ise
+                <a href="../Pages/Singup.html">
+                    Kayıt ol
+                </a>
+            </p>
+
+            <small class="copyright">
+                © 2026 Fitness Pro — Tüm Hakları Saklıdır.
+            </small>
+
+        </footer>
+
+    </main>
+
+
+    <!-- ==============================
+         JAVASCRIPT
+         ============================== -->
+
+    <script src="../JavaScripts/Components/Goster-Gizle.js"></script>
+
+</body>
+
+</html>
