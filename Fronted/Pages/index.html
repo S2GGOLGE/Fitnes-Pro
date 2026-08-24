@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description" content="Fitness Pro kullanıcı dashboardu">
+
+    <title>Fitness Pro | Ana Sayfa</title>
+
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="../Css/UI/index.css">
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- SIDEBAR -->
+
+        <aside class="sidebar" id="sidebar">
+
+            <div class="sidebar-top">
+
+                <div class="brand">
+
+                    <a href="Başlangıç.html" class="brand-logo">
+                        <img src="assets/favicon.svg" alt="Fitness Pro">
+                    </a>
+
+                    <div class="brand-name">
+                        FITNESS<span>PRO</span>
+                    </div>
+
+                </div>
+
+                <button
+                    class="sidebar-toggle"
+                    id="sidebarToggle"
+                    type="button"
+                    aria-label="Menüyü daralt"
+                    title="Menüyü daralt">
+
+                    <span></span>
+                    <span></span>
+                    <span></span>
+
+                </button>
+
+            </div>
+
+
+            <!-- USER PROFILE -->
+
+            <div class="profile-card">
+
+                <div class="profile-avatar">
+                    E
+                </div>
+
+                <div class="profile-info">
+
+                    <strong>Emre</strong>
+
+                    <span>Fitness Level: Pro</span>
+
+                    <a href="Pages/Profile.html">
+                        Profili Gör
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <!-- NAVIGATION -->
+
+            <nav class="sidebar-nav">
+
+                <div class="nav-section">
+
+                    <span class="nav-title">
+                        ANA MENÜ
+                    </span>
+
+                    <a
+                        href="Başlangıç.html"
+                        class="nav-item active"
+                        title="Başlangıç">
+
+                        <span class="nav-icon">⌂</span>
+                        <span class="nav-text">Başlangıç</span>
+
+                    </a>
+
+
+                    <a
+                        href="Pages/Workouts.html"
+                        class="nav-item"
+                        title="İdmanlar">
+
+                        <span class="nav-icon">◆</span>
+                        <span class="nav-text">İdmanlar</span>
+
+                    </a>
+
+
+                    <a
+                        href="Pages/Progress.html"
+                        class="nav-item"
+                        title="İlerleme">
+
+                        <span class="nav-icon">↗</span>
+                        <span class="nav-text">İlerleme</span>
+
+                    </a>
+
+
+                    <a
+                        href="Pages/Goals.html"
+                        class="nav-item"
+                        title="Hedefler">
+
+                        <span class="nav-icon">◎</span>
+                        <span class="nav-text">Hedefler</span>
+
+                    </a>
+
+                </div>
+
+
+                <div class="nav-section">
+
+                    <span class="nav-title">
+                        SİSTEM
+                    </span>
+
+
+                    <a
+                        href="Pages/Settings.html"
+                        class="nav-item"
+                        title="Ayarlar">
+
+                        <span class="nav-icon">⚙</span>
+                        <span class="nav-text">Ayarlar</span>
+
+                    </a>
+
+
+                    <a
+                        href="Pages/Notifications.html"
+                        class="nav-item"
+                        title="Bildirimler">
+
+                        <span class="nav-icon notification-icon">
+                            ♢
+                            <i></i>
+                        </span>
+
+                        <span class="nav-text">
+                            Bildirimler
+                        </span>
+
+                    </a>
+
+                </div>
+
+            </nav>
+
+
+            <!-- LOGOUT -->
+
+            <div class="sidebar-bottom">
+
+                <button
+                    class="logout-btn"
+                    id="logoutBtn"
+                    type="button"
+                    title="Çıkış Yap">
+
+                    <span class="nav-icon">↪</span>
+
+                    <span class="nav-text">
+                        Çıkış Yap
+                    </span>
+
+                </button>
+
+            </div>
+
+        </aside>
+
+
+        <!-- MOBILE OVERLAY -->
+
+        <div
+            class="sidebar-overlay"
+            id="sidebarOverlay">
+        </div>
+
+
+        <!-- MAIN -->
+
+        <main class="main-content">
+
+            <!-- HEADER -->
+
+            <header class="topbar">
+
+                <button
+                    class="mobile-menu-btn"
+                    id="mobileMenuBtn"
+                    type="button"
+                    aria-label="Menüyü aç">
+
+                    <span></span>
+                    <span></span>
+                    <span></span>
+
+                </button>
+
+
+                <div class="topbar-date">
+
+                    <span id="currentDate">
+                        23 Ağustos 2026
+                    </span>
+
+                </div>
+
+
+                <div class="topbar-actions">
+
+                    <button
+                        class="icon-btn"
+                        type="button"
+                        title="Bildirimler">
+
+                        ♢
+
+                        <span class="notification-dot"></span>
+
+                    </button>
+
+
+                    <button
+                        class="topbar-profile"
+                        type="button">
+
+                        <span class="topbar-avatar">
+                            E
+                        </span>
+
+                        <span class="topbar-username">
+                            Emre
+                        </span>
+
+                    </button>
+
+                </div>
+
+            </header>
+
+
+            <!-- PAGE -->
+
+            <div class="page-content">
+
+                <!-- WELCOME -->
+
+                <section class="welcome-section">
+
+                    <div>
+
+                        <span class="welcome-label">
+                            BUGÜN
+                        </span>
+
+                        <h1>
+                            Günaydın, <span>Emre.</span>
+                        </h1>
+
+                        <p>
+                            Bugünkü antrenmanına hazır mısın?
+                        </p>
+
+                    </div>
+
+                    <div class="daily-status">
+
+                        <span class="status-dot"></span>
+
+                        <span>
+                            Günlük hedefin aktif
+                        </span>
+
+                    </div>
+
+                </section>
+
+
+                <!-- MAIN DASHBOARD GRID -->
+
+                <section class="dashboard-grid">
+
+                    <!-- TODAY WORKOUT -->
+
+                    <article class="dashboard-card workout-card">
+
+                        <div class="card-header">
+
+                            <div>
+
+                                <span class="card-label">
+                                    BUGÜNKÜ İDMAN
+                                </span>
+
+                                <h2>
+                                    Push Day
+                                </h2>
+
+                            </div>
+
+                            <div class="card-icon green">
+                                ◆
+                            </div>
+
+                        </div>
+
+
+                        <p class="workout-muscles">
+                            Göğüs · Omuz · Triceps
+                        </p>
+
+
+                        <div class="workout-meta">
+
+                            <div>
+                                <strong>5</strong>
+                                <span>Egzersiz</span>
+                            </div>
+
+                            <div>
+                                <strong>55</strong>
+                                <span>Dakika</span>
+                            </div>
+
+                            <div>
+                                <strong>620</strong>
+                                <span>Kalori</span>
+                            </div>
+
+                        </div>
+
+
+                        <button
+                            class="primary-button workout-start"
+                            id="startWorkoutBtn"
+                            type="button">
+
+                            İDMANI BAŞLAT
+
+                            <span>→</span>
+
+                        </button>
+
+                    </article>
+
+
+                    <!-- STREAK -->
+
+                    <article class="dashboard-card streak-card">
+
+                        <div class="card-header">
+
+                            <div>
+
+                                <span class="card-label">
+                                    GÜNLÜK İDMAN SERİSİ
+                                </span>
+
+                                <h2>
+                                    <span class="streak-number">
+                                        7
+                                    </span>
+
+                                    gün
+                                </h2>
+
+                            </div>
+
+                            <div class="streak-fire">
+                                🔥
+                            </div>
+
+                        </div>
+
+
+                        <p class="streak-message">
+                            Harika gidiyorsun. Seriyi bozma!
+                        </p>
+
+
+                        <div class="week-days">
+
+                            <div class="day completed">
+                                <span>P</span>
+                                <i>✓</i>
+                            </div>
+
+                            <div class="day completed">
+                                <span>S</span>
+                                <i>✓</i>
+                            </div>
+
+                            <div class="day completed">
+                                <span>Ç</span>
+                                <i>✓</i>
+                            </div>
+
+                            <div class="day completed">
+                                <span>P</span>
+                                <i>✓</i>
+                            </div>
+
+                            <div class="day completed">
+                                <span>C</span>
+                                <i>✓</i>
+                            </div>
+
+                            <div class="day completed">
+                                <span>C</span>
+                                <i>✓</i>
+                            </div>
+
+                            <div class="day today">
+                                <span>P</span>
+                                <i>•</i>
+                            </div>
+
+                        </div>
+
+
+                        <div class="streak-footer">
+
+                            <span>
+                                En uzun seri
+                            </span>
+
+                            <strong>
+                                14 gün
+                            </strong>
+
+                        </div>
+
+                    </article>
+
+                </section>
+
+
+                <!-- DAILY PROGRESS -->
+
+                <section class="section-block">
+
+                    <div class="section-header">
+
+                        <div>
+
+                            <span class="section-label">
+                                PERFORMANS
+                            </span>
+
+                            <h2>
+                                Bugünkü İlerleme
+                            </h2>
+
+                        </div>
+
+                        <span class="completion">
+                            %80 tamamlandı
+                        </span>
+
+                    </div>
+
+
+                    <div class="progress-cards">
+
+                        <article class="progress-card">
+
+                            <div class="progress-icon">
+                                ◆
+                            </div>
+
+                            <div>
+
+                                <strong>
+                                    4 / 5
+                                </strong>
+
+                                <span>
+                                    Egzersiz
+                                </span>
+
+                            </div>
+
+                        </article>
+
+
+                        <article class="progress-card">
+
+                            <div class="progress-icon">
+                                ◷
+                            </div>
+
+                            <div>
+
+                                <strong>
+                                    52 dk
+                                </strong>
+
+                                <span>
+                                    Antrenman
+                                </span>
+
+                            </div>
+
+                        </article>
+
+
+                        <article class="progress-card">
+
+                            <div class="progress-icon">
+                                ⚡
+                            </div>
+
+                            <div>
+
+                                <strong>
+                                    620
+                                </strong>
+
+                                <span>
+                                    Kalori
+                                </span>
+
+                            </div>
+
+                        </article>
+
+
+                        <article class="progress-card">
+
+                            <div class="progress-icon">
+                                ↗
+                            </div>
+
+                            <div>
+
+                                <strong>
+                                    +12.8%
+                                </strong>
+
+                                <span>
+                                    Haftalık gelişim
+                                </span>
+
+                            </div>
+
+                        </article>
+
+                    </div>
+
+                </section>
+
+
+                <!-- EXERCISES -->
+
+                <section class="section-block">
+
+                    <div class="section-header">
+
+                        <div>
+
+                            <span class="section-label">
+                                ANTRENMAN
+                            </span>
+
+                            <h2>
+                                Bugünkü Egzersizler
+                            </h2>
+
+                        </div>
+
+                        <a
+                            href="Pages/Workouts.html"
+                            class="view-all">
+
+                            Tümünü Gör →
+
+                        </a>
+
+                    </div>
+
+
+                    <div class="exercise-list">
+
+                        <!-- EXERCISE -->
+
+                        <div class="exercise-item completed">
+
+                            <div class="exercise-status">
+                                ✓
+                            </div>
+
+                            <div class="exercise-info">
+
+                                <strong>
+                                    Bench Press
+                                </strong>
+
+                                <span>
+                                    Göğüs · 4 × 10
+                                </span>
+
+                            </div>
+
+                            <div class="exercise-weight">
+                                80 kg
+                            </div>
+
+                            <div class="exercise-state">
+                                Tamamlandı
+                            </div>
+
+                        </div>
+
+
+                        <!-- EXERCISE -->
+
+                        <div class="exercise-item completed">
+
+                            <div class="exercise-status">
+                                ✓
+                            </div>
+
+                            <div class="exercise-info">
+
+                                <strong>
+                                    Incline Dumbbell Press
+                                </strong>
+
+                                <span>
+                                    Göğüs · 3 × 12
+                                </span>
+
+                            </div>
+
+                            <div class="exercise-weight">
+                                24 kg
+                            </div>
+
+                            <div class="exercise-state">
+                                Tamamlandı
+                            </div>
+
+                        </div>
+
+
+                        <!-- EXERCISE -->
+
+                        <div class="exercise-item current">
+
+                            <div class="exercise-status">
+                                •
+                            </div>
+
+                            <div class="exercise-info">
+
+                                <strong>
+                                    Shoulder Press
+                                </strong>
+
+                                <span>
+                                    Omuz · 3 × 10
+                                </span>
+
+                            </div>
+
+                            <div class="exercise-weight">
+                                20 kg
+                            </div>
+
+                            <div class="exercise-state">
+                                Devam ediyor
+                            </div>
+
+                        </div>
+
+
+                        <!-- EXERCISE -->
+
+                        <div class="exercise-item">
+
+                            <div class="exercise-status">
+                                ○
+                            </div>
+
+                            <div class="exercise-info">
+
+                                <strong>
+                                    Lateral Raise
+                                </strong>
+
+                                <span>
+                                    Omuz · 3 × 15
+                                </span>
+
+                            </div>
+
+                            <div class="exercise-weight">
+                                12 kg
+                            </div>
+
+                            <div class="exercise-state">
+                                Bekliyor
+                            </div>
+
+                        </div>
+
+
+                        <!-- EXERCISE -->
+
+                        <div class="exercise-item">
+
+                            <div class="exercise-status">
+                                ○
+                            </div>
+
+                            <div class="exercise-info">
+
+                                <strong>
+                                    Triceps Pushdown
+                                </strong>
+
+                                <span>
+                                    Triceps · 3 × 12
+                                </span>
+
+                            </div>
+
+                            <div class="exercise-weight">
+                                25 kg
+                            </div>
+
+                            <div class="exercise-state">
+                                Bekliyor
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- QUICK ACTIONS -->
+
+                <section class="quick-actions">
+
+                    <button
+                        class="quick-action"
+                        type="button">
+
+                        <span>+</span>
+
+                        <div>
+                            <strong>
+                                Yeni İdman
+                            </strong>
+
+                            <small>
+                                Antrenman oluştur
+                            </small>
+                        </div>
+
+                    </button>
+
+
+                    <button
+                        class="quick-action"
+                        type="button">
+
+                        <span>◎</span>
+
+                        <div>
+                            <strong>
+                                Hedef Ekle
+                            </strong>
+
+                            <small>
+                                Yeni hedef belirle
+                            </small>
+                        </div>
+
+                    </button>
+
+
+                    <button
+                        class="quick-action"
+                        type="button">
+
+                        <span>↗</span>
+
+                        <div>
+                            <strong>
+                                İlerlemeni Gör
+                            </strong>
+
+                            <small>
+                                Detaylı analiz
+                            </small>
+                        </div>
+
+                    </button>
+
+                </section>
+
+            </div>
+
+        </main>
+
+    </div>
+
+
+    <script src="../JavaScripts/UI/index.js"></script>
+
+</body>
+
+</html>
