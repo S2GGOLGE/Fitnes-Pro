@@ -88,6 +88,13 @@ appsettings.Development.local.json
 docker-compose.override.yml
 
 # ================================
+# ASP.NET Core
+# ================================
+
+wwwroot/uploads/
+Properties/serviceDependencies*.json
+
+# ================================
 # OS
 # ================================
 

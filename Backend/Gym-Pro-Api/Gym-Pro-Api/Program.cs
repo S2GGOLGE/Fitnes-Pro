@@ -5,16 +5,20 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+#region  Add services to the container.
+
 builder.Services.AddControllers();
 
 var defaultConnection =
     builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException(
         "Connection string 'DefaultConnection' bulunamadı.");
+#endregion
 
-// Services DI
+#region  ServicesDı
 builder.Services.AddScoped<RegisterService>(sp => new RegisterService(defaultConnection));
+builder.Services.AddScoped<LoginService>(sp => new LoginService(defaultConnection));
+#endregion
 
 // 
 #region Entity Framework Core + SQL Server
