@@ -1,4 +1,5 @@
 using Apı.Data;
+using Apı.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,6 +34,15 @@ builder.Services.AddCors(options =>
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+// Veritabanı ve temel tablolar (Users, Roles, FK) uygulama başlangıcında hazırlanır.
+// Restart-safe: mevcut tablo/veri varsa dokunulmaz.
+var defaultConnection =
+    builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException(
+        "Connection string 'DefaultConnection' bulunamadı.");
+
+await DatabaseInitializer.InitializeAsync(defaultConnection);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

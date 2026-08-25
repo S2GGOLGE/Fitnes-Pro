@@ -9,6 +9,7 @@
       "Gym-Pro-Api/1.0.0": {
         "dependencies": {
           "Microsoft.AspNetCore.OpenApi": "10.0.11",
+          "Microsoft.Data.SqlClient": "6.1.6",
           "Microsoft.EntityFrameworkCore.Design": "10.0.11",
           "Microsoft.EntityFrameworkCore.SqlServer": "10.0.11"
         },
