@@ -1,5 +1,6 @@
 using Apı.Data;
 using Apı.Helpers;
+using Apı.Service.Authentication;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,44 +8,49 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllers();
 
-// Entity Framework Core + SQL Server
+var defaultConnection =
+    builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException(
+        "Connection string 'DefaultConnection' bulunamadı.");
+
+// Services DI
+builder.Services.AddScoped<RegisterService>(sp => new RegisterService(defaultConnection));
+
+// 
+#region Entity Framework Core + SQL Server
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseSqlServer(defaultConnection);
 });
+#endregion
 
-// CORS
+#region Cors
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy
-            .WithOrigins(
-                "http://localhost:3000",
-                "http://localhost:5173",
-                "https://localhost:5173"
-            )
+            .SetIsOriginAllowed(_ => true)
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
+#endregion
 
-// OpenAPI
+#region OpenApı
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
 // Veritabanı ve temel tablolar (Users, Roles, FK) uygulama başlangıcında hazırlanır.
 // Restart-safe: mevcut tablo/veri varsa dokunulmaz.
-var defaultConnection =
-    builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException(
-        "Connection string 'DefaultConnection' bulunamadı.");
-
 await DatabaseInitializer.InitializeAsync(defaultConnection);
-
-// Configure the HTTP request pipeline.
+#endregion
+// 
+#region Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -52,7 +58,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// CORS
+#endregion
+
+#region CORS
+
 app.UseCors("AllowFrontend");
 
 app.UseAuthorization();
@@ -60,7 +69,9 @@ app.UseAuthorization();
 // Controllers
 app.MapControllers();
 
-// Health Check
+#endregion
+
+#region Health Check
 app.MapGet("/health", () =>
 {
     return Results.Ok(new
@@ -70,5 +81,6 @@ app.MapGet("/health", () =>
         timestamp = DateTime.UtcNow
     });
 });
+#endregion
 
 app.Run();

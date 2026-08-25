@@ -7,8 +7,7 @@ namespace Apı.Model
         public string Surname { get; set; } = string.Empty;
         public string Username { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        public string PasswordHash { get; set; } = string.Empty;
-        public string PasswordHashRepeat { get; set; } = string.Empty;
-        public string Salt{get;set;}=string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public string PasswordRepeat { get; set; } = string.Empty;
     }
 }
