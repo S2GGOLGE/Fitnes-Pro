@@ -103,7 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 // Redirect to Login Page
                 setTimeout(() => {
-                    window.location.href = "../Pages/Login.html";
+                    window.location.href = "Login.html";
                 }, 1500);
             } else {
                 // Error Handling (Backend ApiResponseModel or HTTP Status errors)
