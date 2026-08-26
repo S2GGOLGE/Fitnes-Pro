@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Fitness Pro kullanıcı profili, antrenmanlar, seviye ve gelişim durumu.">
+
+    <title>Fitness Pro | Profilim</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../Css/UI/index.css">
+    <link rel="stylesheet" href="../Css/UI/Profile.css">
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- ==================== SIDEBAR ==================== -->
+        <aside class="sidebar" id="sidebar">
+
+            <div class="sidebar-top">
+
+                <div class="brand">
+                    <a href="../Başlangıc.html" class="brand-logo" title="Başlangıç Sayfası">
+                        <img src="../assets/favicon.svg" alt="Fitness Pro">
+                    </a>
+                    <div class="brand-name">
+                        FITNESS<span>PRO</span>
+                    </div>
+                </div>
+
+                <button
+                    class="sidebar-toggle"
+                    id="sidebarToggle"
+                    type="button"
+                    aria-label="Menüyü daralt"
+                    title="Menüyü daralt">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+            </div>
+
+            <!-- USER PROFILE MINI CARD -->
+            <div class="profile-card">
+                <div class="profile-avatar" id="sidebarAvatar">
+                    E
+                </div>
+                <div class="profile-info">
+                    <strong id="sidebarUsername">Emre</strong>
+                    <span>Fitness Level: Pro</span>
+                    <a href="Profile.html">
+                        Profili Gör
+                    </a>
+                </div>
+            </div>
+
+            <!-- NAVIGATION -->
+            <nav class="sidebar-nav">
+
+                <div class="nav-section">
+
+                    <span class="nav-title">
+                        ANA MENÜ
+                    </span>
+
+                    <a
+                        href="index.html"
+                        class="nav-item"
+                        title="Dashboard">
+                        <span class="nav-icon">⌂</span>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+
+                    <a
+                        href="Workouts.html"
+                        class="nav-item"
+                        title="İdmanlar">
+                        <span class="nav-icon">◆</span>
+                        <span class="nav-text">İdmanlar</span>
+                    </a>
+
+                    <a
+                        href="Progress.html"
+                        class="nav-item"
+                        title="İlerleme">
+                        <span class="nav-icon">↗</span>
+                        <span class="nav-text">İlerleme</span>
+                    </a>
+
+                    <a
+                        href="Goals.html"
+                        class="nav-item"
+                        title="Hedefler">
+                        <span class="nav-icon">◎</span>
+                        <span class="nav-text">Hedefler</span>
+                    </a>
+
+                    <a
+                        href="Profile.html"
+                        class="nav-item active"
+                        title="Profil">
+                        <span class="nav-icon">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </span>
+                        <span class="nav-text">Profil</span>
+                    </a>
+
+                </div>
+
+                <div class="nav-section">
+
+                    <span class="nav-title">
+                        SİSTEM
+                    </span>
+
+                    <a
+                        href="Settings.html"
+                        class="nav-item"
+                        title="Ayarlar">
+                        <span class="nav-icon">⚙</span>
+                        <span class="nav-text">Ayarlar</span>
+                    </a>
+
+                    <a
+                        href="Notifications.html"
+                        class="nav-item"
+                        title="Bildirimler">
+                        <span class="nav-icon notification-icon">
+                            ♢
+                            <i></i>
+                        </span>
+                        <span class="nav-text">
+                            Bildirimler
+                        </span>
+                    </a>
+
+                </div>
+
+            </nav>
+
+            <!-- LOGOUT -->
+            <div class="sidebar-bottom">
+                <button
+                    class="logout-btn"
+                    id="logoutBtn"
+                    type="button"
+                    title="Çıkış Yap">
+                    <span class="nav-icon">↪</span>
+                    <span class="nav-text">
+                        Çıkış Yap
+                    </span>
+                </button>
+            </div>
+
+        </aside>
+
+        <!-- MOBILE OVERLAY -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- ==================== MAIN CONTENT ==================== -->
+        <main class="main-content">
+
+            <!-- HEADER / TOPBAR -->
+            <header class="topbar">
+
+                <button
+                    class="mobile-menu-btn"
+                    id="mobileMenuBtn"
+                    type="button"
+                    aria-label="Menüyü aç">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+                <div class="topbar-date">
+                    <span id="currentDate">
+                        26 Ağustos 2026
+                    </span>
+                </div>
+
+                <div class="topbar-actions">
+
+                    <button
+                        class="icon-btn"
+                        type="button"
+                        title="Bildirimler">
+                        ♢
+                        <span class="notification-dot"></span>
+                    </button>
+
+                    <a href="Profile.html" class="topbar-profile" title="Profilim">
+                        <span class="topbar-avatar" id="topbarAvatar">
+                            E
+                        </span>
+                        <span class="topbar-username" id="topbarUsername">
+                            Emre
+                        </span>
+                    </a>
+
+                </div>
+
+            </header>
+
+            <!-- PAGE CONTENT -->
+            <div class="page-content">
+
+                <!-- ==================== PROFILE HEADER ==================== -->
+                <section class="profile-header-card reveal">
+                    <div class="profile-header-glow"></div>
+
+                    <div class="profile-header-main">
+                        
+                        <!-- Avatar with Hover Actions -->
+                        <div class="avatar-container">
+                            <div class="profile-avatar-large" id="profileAvatar">
+                                <img src="" alt="Profil Fotoğrafı" id="profileAvatarImg" class="avatar-img hidden">
+                                <span class="avatar-initials" id="avatarInitials">ME</span>
+                                
+                                <label for="avatarInput" class="avatar-overlay" title="Fotoğrafı Değiştir" aria-label="Profil fotoğrafını değiştir">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                        <circle cx="12" cy="13" r="4"></circle>
+                                    </svg>
+                                    <span>Değiştir</span>
+                                </label>
+                            </div>
+
+                            <!-- Hidden File Input for Avatar -->
+                            <input type="file" id="avatarInput" accept="image/png, image/jpeg, image/jpg, image/webp" class="sr-only" aria-label="Profil fotoğrafı yükle">
+
+                            <!-- Quick Photo Actions (Remove Photo) -->
+                            <div class="avatar-quick-actions" id="avatarQuickActions">
+                                <button type="button" class="btn-avatar-action" id="btnRemovePhoto" title="Fotoğrafı Kaldır">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    </svg>
+                                    <span>Kaldır</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- User Information -->
+                        <div class="user-details">
+                            <div class="user-name-group">
+                                <h1 class="user-name" id="displayFullName">Mehmet Emre Çetin</h1>
+                                <span class="user-handle" id="displayUsername">@mehmetemre</span>
+                            </div>
+
+                            <p class="user-bio" id="displayBio">
+                                Fitness tutkunu. Her gün bir adım daha ileriye. Kas kazanımı ve güç odaklı antrenman yapıyorum.
+                            </p>
+
+                            <div class="user-badges">
+                                <span class="badge badge-level" id="displayLevelBadge">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="8" r="7"></circle>
+                                        <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+                                    </svg>
+                                    <span>Seviye: Orta</span>
+                                </span>
+                                <span class="badge badge-status">
+                                    <span class="status-pulse"></span>
+                                    <span>Üyelik: Aktif</span>
+                                </span>
+                                <span class="badge badge-date">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                                    </svg>
+                                    <span>Üyelik: Ocak 2026</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Header Action Buttons -->
+                        <div class="profile-header-actions">
+                            <button type="button" class="btn btn-primary" id="btnOpenEditModal">
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                                <span>Profili Düzenle</span>
+                            </button>
+
+                            <a href="Settings.html" class="btn btn-outline">
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                </svg>
+                                <span>Hesap Ayarları</span>
+                            </a>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- ==================== STATS CARDS ==================== -->
+                <section class="stats-grid reveal">
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon-wrapper">
+                            <span class="stat-icon">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"></path>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="stat-info">
+                            <strong class="stat-value" id="statTotalWorkouts">128</strong>
+                            <span class="stat-label">Toplam İdman</span>
+                        </div>
+                        <span class="stat-badge">+8 bu ay</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon-wrapper">
+                            <span class="stat-icon">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="stat-info">
+                            <strong class="stat-value" id="statStreak">12 Gün</strong>
+                            <span class="stat-label">Antrenman Serisi</span>
+                        </div>
+                        <span class="stat-badge active-streak">Aktif Seri</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon-wrapper">
+                            <span class="stat-icon">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="stat-info">
+                            <strong class="stat-value" id="statCalories">48.2K</strong>
+                            <span class="stat-label">Yakılan Kalori</span>
+                        </div>
+                        <span class="stat-badge">kcal</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon-wrapper">
+                            <span class="stat-icon">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <circle cx="12" cy="12" r="6"></circle>
+                                    <circle cx="12" cy="12" r="2"></circle>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="stat-info">
+                            <strong class="stat-value" id="statLevel">Orta</strong>
+                            <span class="stat-label">Fitness Seviyesi</span>
+                        </div>
+                        <span class="stat-badge">Seviye 3 / 5</span>
+                    </div>
+
+                </section>
+
+                <!-- ==================== DASHBOARD 2-COLUMN GRID ==================== -->
+                <div class="profile-dashboard-grid">
+
+                    <!-- LEFT COLUMN: Workouts & Coach Info -->
+                    <div class="dashboard-column">
+
+                        <!-- 1. MEVCUT İDMANLAR -->
+                        <section class="dashboard-card workouts-card reveal">
+                            <div class="card-header">
+                                <div class="card-header-title">
+                                    <span class="card-tag">ANTRENMANLAR</span>
+                                    <h2>Mevcut İdmanlar</h2>
+                                </div>
+                                <span class="card-counter" id="workoutsCounter">5 İdman</span>
+                            </div>
+
+                            <!-- Workouts List Container -->
+                            <div class="workouts-list" id="workoutsList">
+                                <!-- Populated dynamically via JS -->
+                            </div>
+
+                            <!-- Workouts Empty State (Alternative) -->
+                            <div class="empty-state hidden" id="workoutsEmptyState">
+                                <span class="empty-icon">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                                        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                                    </svg>
+                                </span>
+                                <h3>Henüz bir antrenmanın bulunmuyor.</h3>
+                                <p>İlk antrenmanını oluştur ve gelişimini takip etmeye başla.</p>
+                                <a href="Workouts.html" class="btn btn-primary btn-sm">Antrenman Oluştur</a>
+                            </div>
+
+                            <!-- Card Footer -->
+                            <div class="card-footer">
+                                <a href="Workouts.html" class="view-all-link">
+                                    Tüm İdmanları Gör <span>→</span>
+                                </a>
+                            </div>
+                        </section>
+
+                        <!-- 2. HOCA BİLGİLERİ -->
+                        <section class="dashboard-card coach-card reveal">
+                            <div class="card-header">
+                                <div class="card-header-title">
+                                    <span class="card-tag">EĞİTMEN</span>
+                                    <h2>Hoca Bilgileri</h2>
+                                </div>
+                                <span class="coach-badge-status" id="coachStatusBadge">
+                                    <span class="status-pulse green"></span>
+                                    Aktif
+                                </span>
+                            </div>
+
+                            <!-- Coach Info Container -->
+                            <div class="coach-details" id="coachDetails">
+                                <div class="coach-profile-summary">
+                                    <div class="coach-avatar">
+                                        <span class="coach-initials">AY</span>
+                                    </div>
+                                    <div class="coach-main-info">
+                                        <h3 class="coach-name" id="coachName">Ahmet Yılmaz</h3>
+                                        <p class="coach-specialty" id="coachSpecialty">Fitness & Strength Coach</p>
+                                    </div>
+                                </div>
+
+                                <div class="coach-stats-row">
+                                    <div class="coach-stat-item">
+                                        <span class="coach-stat-label">Deneyim</span>
+                                        <strong class="coach-stat-val" id="coachExp">8 Yıl</strong>
+                                    </div>
+                                    <div class="coach-stat-item">
+                                        <span class="coach-stat-label">Seviye</span>
+                                        <strong class="coach-stat-val" id="coachLevel">Uzman Eğitmen</strong>
+                                    </div>
+                                    <div class="coach-stat-item">
+                                        <span class="coach-stat-label">İletişim</span>
+                                        <strong class="coach-stat-val" id="coachChannel">Fitness Pro Chat</strong>
+                                    </div>
+                                </div>
+
+                                <div class="coach-actions">
+                                    <button type="button" class="btn btn-outline btn-full" id="btnContactCoach">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                        </svg>
+                                        <span>Eğitmene Mesaj Gönder</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Coach Empty State (Alternative) -->
+                            <div class="empty-state hidden" id="coachEmptyState">
+                                <span class="empty-icon">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                </span>
+                                <h3>Henüz bir hocan atanmadı.</h3>
+                                <p>Hedeflerine daha hızlı ulaşmak için uzman bir eğitmenle eşleşebilirsin.</p>
+                                <button type="button" class="btn btn-primary btn-sm" id="btnAssignCoach">Hoca Seç</button>
+                            </div>
+                        </section>
+
+                    </div>
+
+                    <!-- RIGHT COLUMN: Fitness Level, Progress & Goals -->
+                    <div class="dashboard-column">
+
+                        <!-- 1. FITNESS SEVİYESİ -->
+                        <section class="dashboard-card level-card reveal">
+                            <div class="card-header">
+                                <div class="card-header-title">
+                                    <span class="card-tag">PERFORMANS</span>
+                                    <h2>Fitness Seviyen</h2>
+                                </div>
+                                <span class="level-badge" id="currentLevelName">ORTA</span>
+                            </div>
+
+                            <div class="level-display">
+                                <div class="level-indicator-info">
+                                    <div>
+                                        <strong class="level-current-title">Seviye 3 / 5</strong>
+                                        <p class="level-subtitle">İleri seviyeye geçmek için 320 XP kaldı</p>
+                                    </div>
+                                    <span class="level-percentage">68%</span>
+                                </div>
+
+                                <!-- Progress Track -->
+                                <div class="level-progress-bar">
+                                    <div class="level-progress-fill" style="width: 68%;"></div>
+                                </div>
+
+                                <!-- Level Milestones -->
+                                <div class="level-milestones">
+                                    <div class="milestone completed">
+                                        <span class="milestone-dot">✓</span>
+                                        <small>Başlangıç</small>
+                                    </div>
+                                    <div class="milestone completed">
+                                        <span class="milestone-dot">✓</span>
+                                        <small>Temel</small>
+                                    </div>
+                                    <div class="milestone active">
+                                        <span class="milestone-dot">3</span>
+                                        <small>Orta</small>
+                                    </div>
+                                    <div class="milestone">
+                                        <span class="milestone-dot">4</span>
+                                        <small>İleri</small>
+                                    </div>
+                                    <div class="milestone">
+                                        <span class="milestone-dot">5</span>
+                                        <small>Uzman</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- 2. İLERLEME DURUMU & HEDEFLER -->
+                        <section class="dashboard-card progress-goals-card reveal">
+                            <div class="card-header">
+                                <div class="card-header-title">
+                                    <span class="card-tag">GELİŞİM ANALİZİ</span>
+                                    <h2>İlerleme Durumu</h2>
+                                </div>
+                                <span class="growth-badge">+12.8% Bu Ay</span>
+                            </div>
+
+                            <!-- Overall Progress Overview -->
+                            <div class="overall-progress-box">
+                                <div class="overall-progress-header">
+                                    <div>
+                                        <span class="progress-box-label">Genel İlerleme</span>
+                                        <h3 class="overall-percent" id="overallPercentVal">%78</h3>
+                                    </div>
+                                    <div class="overall-progress-status">
+                                        <span>Hedef Doğrultusunda</span>
+                                    </div>
+                                </div>
+
+                                <div class="custom-progress-track">
+                                    <div class="custom-progress-fill" id="overallProgressBar" style="width: 78%;"></div>
+                                </div>
+
+                                <!-- Mini Category Progress Rows -->
+                                <div class="category-progress-rows">
+                                    <div class="cat-progress-item">
+                                        <div class="cat-label-row">
+                                            <span class="cat-title-with-icon">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <circle cx="12" cy="12" r="10"></circle>
+                                                    <path d="M12 6v6l4 2"></path>
+                                                </svg>
+                                                <span>Kilo Hedefi</span>
+                                            </span>
+                                            <strong>%82</strong>
+                                        </div>
+                                        <div class="mini-bar">
+                                            <div class="mini-bar-fill" style="width: 82%;"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="cat-progress-item">
+                                        <div class="cat-label-row">
+                                            <span class="cat-title-with-icon">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                                </svg>
+                                                <span>Güç Hedefi</span>
+                                            </span>
+                                            <strong>%74</strong>
+                                        </div>
+                                        <div class="mini-bar">
+                                            <div class="mini-bar-fill" style="width: 74%;"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="cat-progress-item">
+                                        <div class="cat-label-row">
+                                            <span class="cat-title-with-icon">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                                </svg>
+                                                <span>Antrenman Hedefi</span>
+                                            </span>
+                                            <strong>%91</strong>
+                                        </div>
+                                        <div class="mini-bar">
+                                            <div class="mini-bar-fill" style="width: 91%;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Active Goals Section -->
+                            <div class="active-goals-container">
+                                <div class="sub-section-header">
+                                    <h3>Aktif Hedefler</h3>
+                                    <span class="goals-count" id="goalsCount">3 Hedef</span>
+                                </div>
+
+                                <div class="goals-list" id="goalsList">
+                                    <!-- Populated dynamically via JS -->
+                                </div>
+                            </div>
+
+                        </section>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- ==================== EDIT PROFILE MODAL ==================== -->
+    <div class="modal-backdrop" id="editProfileModal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle" aria-hidden="true">
+        <div class="modal-container">
+            
+            <div class="modal-header">
+                <div class="modal-header-text">
+                    <span class="modal-tag">HESAP DÜZENLE</span>
+                    <h2 id="editModalTitle">Profili Düzenle</h2>
+                </div>
+                <button type="button" class="modal-close-btn" id="btnCloseEditModal" aria-label="Modalı Kapat">
+                    ✕
+                </button>
+            </div>
+
+            <form class="modal-form" id="editProfileForm" novalidate>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label for="inputFirstName">Ad <span class="req">*</span></label>
+                        <input type="text" id="inputFirstName" name="firstName" placeholder="Adınız" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inputLastName">Soyad <span class="req">*</span></label>
+                        <input type="text" id="inputLastName" name="lastName" placeholder="Soyadınız" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputUsername">Kullanıcı Adı <span class="req">*</span></label>
+                    <div class="input-prefix-wrapper">
+                        <span class="input-prefix">@</span>
+                        <input type="text" id="inputUsername" name="username" placeholder="kullaniciadi" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputEmail">E-posta Adresi <span class="req">*</span></label>
+                    <input type="email" id="inputEmail" name="email" placeholder="ornek@fitnesspro.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputBio">Hakkımda / Bio</label>
+                    <textarea id="inputBio" name="bio" rows="3" placeholder="Kendiniz ve hedefleriniz hakkında kısa bir bilgi..."></textarea>
+                </div>
+
+                <!-- Password Notice -->
+                <div class="modal-notice">
+                    <span class="notice-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </span>
+                    <p>
+                        Şifre ve güvenlik işlemlerini <a href="Settings.html" class="notice-link">Hesap Ayarları</a> sayfasından yönetebilirsiniz.
+                    </p>
+                </div>
+
+                <div id="modalAlertBox" class="form-alert" role="alert"></div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" id="btnCancelEditModal">
+                        İptal
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="btnSaveProfile">
+                        Değişiklikleri Kaydet
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <!-- ==================== WORKOUT DETAIL MODAL ==================== -->
+    <div class="modal-backdrop" id="workoutDetailModal" role="dialog" aria-modal="true" aria-labelledby="workoutModalTitle" aria-hidden="true">
+        <div class="modal-container modal-container-sm">
+            <div class="modal-header">
+                <div class="modal-header-text">
+                    <span class="modal-tag" id="workoutDetailTag">İDMAN DETAYI</span>
+                    <h2 id="workoutModalTitle">Push Day</h2>
+                </div>
+                <button type="button" class="modal-close-btn" id="btnCloseWorkoutModal" aria-label="Modalı Kapat">✕</button>
+            </div>
+            <div class="workout-modal-body" id="workoutModalBody">
+                <!-- Injected via JS -->
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" id="btnCloseWorkoutDetail">Kapat</button>
+                <a href="Workouts.html" class="btn btn-primary">İdmana Git</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== TOAST NOTIFICATION ==================== -->
+    <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script src="../JavaScripts/UI/Profile.js"></script>
+
+</body>
+
+</html>
