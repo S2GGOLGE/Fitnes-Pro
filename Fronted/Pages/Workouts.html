@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Fitness Pro İdmanlarım - Antrenman geçmişini görüntüle, filtrele, detayları incele ve yeni idmanlar ekle.">
+
+    <title>Fitness Pro | İdmanlarım</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../Css/UI/index.css">
+    <link rel="stylesheet" href="../Css/UI/Workouts.css">
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- ==================== SIDEBAR ==================== -->
+        <aside class="sidebar" id="sidebar">
+
+            <div class="sidebar-top">
+
+                <div class="brand">
+                    <a href="../Başlangıc.html" class="brand-logo" title="Fitness Pro Ana Sayfa">
+                        <img src="../assets/favicon.svg" alt="Fitness Pro">
+                    </a>
+                    <div class="brand-name">
+                        FITNESS<span>PRO</span>
+                    </div>
+                </div>
+
+                <button
+                    class="sidebar-toggle"
+                    id="sidebarToggle"
+                    type="button"
+                    aria-label="Menüyü daralt"
+                    title="Menüyü daralt">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+            </div>
+
+            <!-- USER PROFILE MINI CARD -->
+            <div class="profile-card">
+                <div class="profile-avatar">
+                    E
+                </div>
+                <div class="profile-info">
+                    <strong>Emre</strong>
+                    <span>Fitness Level: Pro</span>
+                    <a href="Profile.html">
+                        Profili Gör
+                    </a>
+                </div>
+            </div>
+
+            <!-- NAVIGATION -->
+            <nav class="sidebar-nav">
+
+                <div class="nav-section">
+
+                    <span class="nav-title">
+                        ANA MENÜ
+                    </span>
+
+                    <a
+                        href="index.html"
+                        class="nav-item"
+                        title="Başlangıç">
+                        <span class="nav-icon">⌂</span>
+                        <span class="nav-text">Başlangıç</span>
+                    </a>
+
+                    <a
+                        href="Workouts.html"
+                        class="nav-item active"
+                        title="İdmanlar">
+                        <span class="nav-icon">◆</span>
+                        <span class="nav-text">İdmanlar</span>
+                    </a>
+
+                    <a
+                        href="Progress.html"
+                        class="nav-item"
+                        title="İlerleme">
+                        <span class="nav-icon">↗</span>
+                        <span class="nav-text">İlerleme</span>
+                    </a>
+
+                    <a
+                        href="Goals.html"
+                        class="nav-item"
+                        title="Hedefler">
+                        <span class="nav-icon">◎</span>
+                        <span class="nav-text">Hedefler</span>
+                    </a>
+
+                    <a
+                        href="Profile.html"
+                        class="nav-item"
+                        title="Profil">
+                        <span class="nav-icon">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </span>
+                        <span class="nav-text">Profil</span>
+                    </a>
+
+                </div>
+
+                <div class="nav-section">
+
+                    <span class="nav-title">
+                        SİSTEM
+                    </span>
+
+                    <a
+                        href="Settings.html"
+                        class="nav-item"
+                        title="Ayarlar">
+                        <span class="nav-icon">⚙</span>
+                        <span class="nav-text">Ayarlar</span>
+                    </a>
+
+                    <a
+                        href="Notifications.html"
+                        class="nav-item"
+                        title="Bildirimler">
+                        <span class="nav-icon notification-icon">
+                            ♢
+                            <i></i>
+                        </span>
+                        <span class="nav-text">
+                            Bildirimler
+                        </span>
+                    </a>
+
+                </div>
+
+            </nav>
+
+            <!-- LOGOUT -->
+            <div class="sidebar-bottom">
+                <button
+                    class="logout-btn"
+                    id="logoutBtn"
+                    type="button"
+                    title="Çıkış Yap">
+                    <span class="nav-icon">↪</span>
+                    <span class="nav-text">
+                        Çıkış Yap
+                    </span>
+                </button>
+            </div>
+
+        </aside>
+
+        <!-- MOBILE OVERLAY -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- ==================== MAIN CONTENT ==================== -->
+        <main class="main-content">
+
+            <!-- HEADER / TOPBAR -->
+            <header class="topbar">
+
+                <button
+                    class="mobile-menu-btn"
+                    id="mobileMenuBtn"
+                    type="button"
+                    aria-label="Menüyü aç">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+                <div class="topbar-date">
+                    <span id="currentDate">
+                        28 Ağustos 2026
+                    </span>
+                </div>
+
+                <div class="topbar-actions">
+
+                    <button
+                        class="icon-btn"
+                        type="button"
+                        title="Bildirimler">
+                        ♢
+                        <span class="notification-dot"></span>
+                    </button>
+
+                    <a href="Profile.html" class="topbar-profile" title="Profilim">
+                        <span class="topbar-avatar">
+                            E
+                        </span>
+                        <span class="topbar-username">
+                            Emre
+                        </span>
+                    </a>
+
+                </div>
+
+            </header>
+
+            <!-- PAGE CONTENT -->
+            <div class="page-content">
+
+                <!-- ==================== PAGE HEADER / WELCOME ==================== -->
+                <section class="workouts-header-section">
+
+                    <div class="workouts-header-title-group">
+                        <span class="section-label">ANTRENMAN DASHBOARD</span>
+                        <h1>İdmanlarım</h1>
+                        <p>Mevcut idmanlarını görüntüle, takip et ve ilerlemeni kontrol et.</p>
+                    </div>
+
+                    <div class="workouts-header-actions">
+                        <button
+                            class="btn btn-primary"
+                            id="btnNewWorkout"
+                            type="button"
+                            aria-label="Yeni idman ekle">
+                            <span class="btn-icon">+</span>
+                            <span>Yeni İdman</span>
+                        </button>
+                    </div>
+
+                </section>
+
+                <!-- ==================== STATS OVERVIEW ==================== -->
+                <section class="workout-stats-grid">
+
+                    <!-- Stat 1: Toplam İdman -->
+                    <div class="stat-card">
+                        <div class="stat-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"></path>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Toplam İdman</span>
+                            <strong class="stat-number" id="statTotalWorkouts">24</strong>
+                        </div>
+                        <span class="stat-badge">+3 bu ay</span>
+                    </div>
+
+                    <!-- Stat 2: Bu Hafta -->
+                    <div class="stat-card">
+                        <div class="stat-icon-box accent-green">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Bu Hafta</span>
+                            <strong class="stat-number" id="statWeeklyWorkouts">4</strong>
+                        </div>
+                        <span class="stat-badge active-tag">Aktif Hafta</span>
+                    </div>
+
+                    <!-- Stat 3: Tamamlanan -->
+                    <div class="stat-card">
+                        <div class="stat-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Tamamlanan</span>
+                            <strong class="stat-number" id="statCompletedWorkouts">18</strong>
+                        </div>
+                        <span class="stat-badge">%75 Başarı</span>
+                    </div>
+
+                    <!-- Stat 4: Toplam Süre -->
+                    <div class="stat-card">
+                        <div class="stat-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Toplam Süre</span>
+                            <strong class="stat-number" id="statTotalDuration">16s 40dk</strong>
+                        </div>
+                        <span class="stat-badge">Ort. 52 dk</span>
+                    </div>
+
+                </section>
+
+                <!-- ==================== FILTER & SEARCH BAR ==================== -->
+                <section class="workout-filter-section">
+
+                    <!-- Filter Pills -->
+                    <div class="filter-pills-wrapper">
+                        <div class="filter-pills" id="filterPills" role="tablist" aria-label="İdman filtreleri">
+                            <button type="button" class="filter-pill active" data-filter="all" role="tab" aria-selected="true">
+                                Tümü
+                            </button>
+                            <button type="button" class="filter-pill" data-filter="this-week" role="tab" aria-selected="false">
+                                Bu Hafta
+                            </button>
+                            <button type="button" class="filter-pill" data-filter="this-month" role="tab" aria-selected="false">
+                                Bu Ay
+                            </button>
+                            <button type="button" class="filter-pill" data-filter="chest" role="tab" aria-selected="false">
+                                Göğüs
+                            </button>
+                            <button type="button" class="filter-pill" data-filter="back" role="tab" aria-selected="false">
+                                Sırt
+                            </button>
+                            <button type="button" class="filter-pill" data-filter="leg" role="tab" aria-selected="false">
+                                Bacak
+                            </button>
+                            <button type="button" class="filter-pill" data-filter="shoulder" role="tab" aria-selected="false">
+                                Omuz
+                            </button>
+                            <button type="button" class="filter-pill" data-filter="arm" role="tab" aria-selected="false">
+                                Kol
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Search and Sort Controls -->
+                    <div class="filter-actions">
+
+                        <!-- Search Input -->
+                        <div class="search-input-box">
+                            <span class="search-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                            </span>
+                            <input
+                                type="text"
+                                id="workoutSearchInput"
+                                placeholder="İdman veya kas grubu ara..."
+                                aria-label="İdman ara">
+                            <button type="button" id="btnClearSearch" class="btn-clear-search hidden" aria-label="Aramayı temizle">
+                                ✕
+                            </button>
+                        </div>
+
+                        <!-- Sort Select Dropdown -->
+                        <div class="sort-select-box">
+                            <label for="workoutSortSelect" class="sr-only">İdmanları Sırala</label>
+                            <div class="select-wrapper">
+                                <select id="workoutSortSelect" aria-label="İdmanları sırala">
+                                    <option value="newest">En Yeni</option>
+                                    <option value="oldest">En Eski</option>
+                                    <option value="longest">En Uzun</option>
+                                    <option value="shortest">En Kısa</option>
+                                </select>
+                                <span class="select-arrow">▼</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <!-- ==================== WORKOUTS LIST SECTION ==================== -->
+                <section class="workouts-content-section">
+
+                    <div class="section-title-row">
+                        <div class="title-with-count">
+                            <h2>İdman Geçmişi</h2>
+                            <span class="count-badge" id="workoutsResultCount">8 İdman</span>
+                        </div>
+                    </div>
+
+                    <!-- Workouts 3-Column Grid -->
+                    <div class="workouts-grid" id="workoutsGrid">
+                        <!-- Populated dynamically via JavaScript -->
+                    </div>
+
+                    <!-- Empty State (Shown when no workouts match filter/search) -->
+                    <div class="workout-empty-state hidden" id="workoutEmptyState">
+                        <div class="empty-icon-circle">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                                <line x1="10" y1="14" x2="14" y2="14"></line>
+                            </svg>
+                        </div>
+                        <h3>Henüz idman bulunamadı</h3>
+                        <p>Bu filtreye veya arama kriterine uygun bir idman bulunmuyor.</p>
+                        <button type="button" class="btn btn-outline btn-sm" id="btnResetFilters">
+                            Filtreleri Temizle
+                        </button>
+                    </div>
+
+                </section>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- ==================== WORKOUT DETAIL MODAL ==================== -->
+    <div class="modal-backdrop" id="workoutDetailModal" role="dialog" aria-modal="true" aria-labelledby="modalWorkoutTitle" aria-hidden="true">
+        <div class="modal-container">
+
+            <div class="modal-header">
+                <div class="modal-header-info">
+                    <span class="modal-tag" id="modalWorkoutTag">İDMAN DETAYI</span>
+                    <h2 id="modalWorkoutTitle">Göğüs & Triceps</h2>
+                </div>
+                <button type="button" class="modal-close-btn" id="btnCloseDetailModal" aria-label="Modalı kapat">
+                    ✕
+                </button>
+            </div>
+
+            <div class="modal-body" id="modalWorkoutBody">
+                <!-- Injected dynamically via JS -->
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" id="btnCloseDetailModalBtn">
+                    Kapat
+                </button>
+                <button type="button" class="btn btn-primary" id="btnRepeatWorkout">
+                    <span>Tekrar Başlat</span>
+                    <span class="btn-arrow">→</span>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ==================== NEW WORKOUT MODAL (UI DEMO) ==================== -->
+    <div class="modal-backdrop" id="newWorkoutModal" role="dialog" aria-modal="true" aria-labelledby="newWorkoutModalTitle" aria-hidden="true">
+        <div class="modal-container">
+
+            <div class="modal-header">
+                <div class="modal-header-info">
+                    <span class="modal-tag">YENİ İDMAN OLUŞTUR</span>
+                    <h2 id="newWorkoutModalTitle">Yeni İdman Ekle</h2>
+                </div>
+                <button type="button" class="modal-close-btn" id="btnCloseNewModal" aria-label="Modalı kapat">
+                    ✕
+                </button>
+            </div>
+
+            <form class="modal-form" id="newWorkoutForm" novalidate>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label for="inputWorkoutName">İdman Adı <span class="req">*</span></label>
+                        <input type="text" id="inputWorkoutName" placeholder="Örn: Omuz & Biceps Patlaması" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inputCategory">Kategori / Kas Grubu <span class="req">*</span></label>
+                        <select id="inputCategory" required>
+                            <option value="chest">Göğüs</option>
+                            <option value="back">Sırt</option>
+                            <option value="leg">Bacak</option>
+                            <option value="shoulder">Omuz</option>
+                            <option value="arm">Kol</option>
+                            <option value="full-body">Tüm Vücut</option>
+                            <option value="core">Core & Kardiyo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid-3">
+                    <div class="form-group">
+                        <label for="inputDuration">Süre (Dk) <span class="req">*</span></label>
+                        <input type="number" id="inputDuration" placeholder="50" min="10" max="180" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inputCalories">Kalori (kcal) <span class="req">*</span></label>
+                        <input type="number" id="inputCalories" placeholder="400" min="50" max="2000" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inputLevel">Seviye</label>
+                        <select id="inputLevel">
+                            <option value="Başlangıç">Başlangıç</option>
+                            <option value="Orta" selected>Orta</option>
+                            <option value="İleri">İleri</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputNotes">İdman Notları</label>
+                    <textarea id="inputNotes" rows="2" placeholder="Örn: Isınma 10 dk yapıldı, son set drop-set uygulandı..."></textarea>
+                </div>
+
+                <div class="modal-notice">
+                    <span class="notice-icon">ℹ</span>
+                    <p>
+                        Şu an ön yüzde (frontend) mock veri üzerinde çalışılmaktadır. Eklediğiniz idman sayfa oturumunuzda anında listeye eklenecektir.
+                    </p>
+                </div>
+
+                <div class="modal-footer form-footer">
+                    <button type="button" class="btn btn-outline" id="btnCancelNewModal">
+                        İptal
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="btnSaveNewWorkout">
+                        İdmanı Kaydet
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <!-- ==================== TOAST NOTIFICATION ==================== -->
+    <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script src="../JavaScripts/UI/Workouts.js"></script>
+
+</body>
+
+</html>
