@@ -7,12 +7,14 @@ namespace Apı.Controller
 {
     [ApiController]
     [Route("api/login")]
+    [Route("api/auth/login")]
     public class LoginControllers : ControllerBase
     {
         private readonly LoginService _loginService;
         public LoginControllers(LoginService loginService)
         {
             _loginService = loginService;
+
         }
         [HttpPost]
         public async Task<IActionResult> Login([FromBody] LoginModels models)

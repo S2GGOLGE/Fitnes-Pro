@@ -11,10 +11,14 @@
  */
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Auth Guard
+    if (window.Auth && !window.Auth.requireAuth()) {
+        return;
+    }
 
-    /* =========================================================
-       1. MOCK DATASET (API READY)
-       ========================================================= */
+    if (window.Auth) {
+        window.Auth.syncAuthUI();
+    }
 
     const initialWorkouts = [
         {
@@ -346,8 +350,14 @@ document.addEventListener("DOMContentLoaded", () => {
         logoutBtn.addEventListener("click", () => {
             const confirmed = confirm("Çıkış yapmak istediğinize emin misiniz?");
             if (confirmed) {
-                showToast("Başarıyla çıkış yapıldı.", "info");
-                console.log("Logout event triggered. Ready for auth/token teardown.");
+                showToast("Başarıyla çıkış yapılıyor...", "info");
+                setTimeout(() => {
+                    if (window.Auth) {
+                        window.Auth.logout(true);
+                    } else {
+                        window.location.href = "Login.html";
+                    }
+                }, 500);
             }
         });
     }

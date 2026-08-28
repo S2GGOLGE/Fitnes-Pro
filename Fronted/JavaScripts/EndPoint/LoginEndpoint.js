@@ -3,8 +3,13 @@
 // =========================================================
 
 document.addEventListener("DOMContentLoaded", () => {
+    // If already logged in, redirect to index
+    if (window.Auth && window.Auth.redirectIfLoggedIn()) {
+        return;
+    }
+
     // API Configuration
-    const API_BASE_URL = window.API_BASE_URL || "http://localhost:8081";
+    const API_BASE_URL = (window.Auth && window.Auth.getBaseUrl()) || window.API_BASE_URL || "http://localhost:8081";
     const LOGIN_ENDPOINT = `${API_BASE_URL}/api/login`;
 
     // Form and Element Selectors
@@ -49,7 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Backend LoginModel Payload (Only username & password)
+        // Backend LoginModel Payload
         const payload = {
             username: username,
             password: password
@@ -80,8 +85,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (response.ok && result && result.success) {
                 // Success Handling
-                const successMsg = result.message || "Giriş başarılı!";
+                const successMsg = (result.message && !result.message.startsWith("ey")) ? result.message : "Giriş başarılı!";
                 showAlert(successMsg, "success");
+
+                // Extract JWT token and user info from backend response
+                const data = result.data;
+                let token = null;
+                let userData = null;
+
+                if (typeof data === "string") {
+                    token = data;
+                } else if (data && typeof data === "object") {
+                    token = data.token;
+                    userData = {
+                        userId: data.userId,
+                        username: data.username || username,
+                        role: data.role || "User"
+                    };
+                } else if (result.token) {
+                    token = result.token;
+                } else if (typeof result.message === "string" && result.message.startsWith("ey")) {
+                    token = result.message;
+                }
+
+                // Save JWT Session
+                if (token && window.Auth) {
+                    window.Auth.saveSession(token, userData || { username });
+                }
+
                 loginForm.reset();
 
                 // Redirect to Dashboard
@@ -92,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Error Handling (Backend ApiResponseModel or HTTP Status errors)
                 let errorMsg = "Giriş işlemi sırasında bir hata oluştu.";
 
-                if (result && result.message) {
+                if (result && result.message && !result.message.startsWith("ey")) {
                     errorMsg = result.message;
                 } else if (response.status === 400 || response.status === 401) {
                     errorMsg = "Kullanıcı adı veya şifre hatalı.";

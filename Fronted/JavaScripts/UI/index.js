@@ -1,4 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
+    // Auth Guard
+    if (window.Auth && !window.Auth.requireAuth()) {
+        return;
+    }
 
     const sidebar = document.getElementById("sidebar");
     const sidebarToggle = document.getElementById("sidebarToggle");
@@ -10,6 +14,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const startWorkoutBtn = document.getElementById("startWorkoutBtn");
 
     const currentDate = document.getElementById("currentDate");
+
+    // Sync logged in user data to DOM
+    if (window.Auth) {
+        window.Auth.syncAuthUI();
+        const user = window.Auth.getUser();
+        if (user && user.username) {
+            const welcomeHeading = document.querySelector(".welcome-section h1 span");
+            if (welcomeHeading) {
+                welcomeHeading.textContent = `${user.username}.`;
+            }
+        }
+    }
 
 
     /* ==========================================
@@ -199,41 +215,20 @@ document.addEventListener("DOMContentLoaded", () => {
        ========================================== */
 
     if (logoutBtn) {
-
-        logoutBtn.addEventListener(
-            "click",
-            () => {
-
-                const confirmed =
-                    confirm(
-                        "Çıkış yapmak istediğine emin misin?"
-                    );
-
-
-                if (!confirmed) {
-                    return;
-                }
-
-
-                /*
-                    Backend/JWT entegrasyonu geldiğinde
-                    burada token temizlenecek.
-
-                    Örnek:
-
-                    localStorage.removeItem("token");
-                    localStorage.removeItem("user");
-                    window.location.href =
-                        "Pages/Login.html";
-                */
-
-                console.log(
-                    "Logout event hazır. Backend entegrasyonu bekleniyor."
-                );
-
+        logoutBtn.addEventListener("click", () => {
+            const confirmed = confirm("Çıkış yapmak istediğinize emin misiniz?");
+            if (!confirmed) {
+                return;
             }
-        );
 
+            if (window.Auth) {
+                window.Auth.logout(true);
+            } else {
+                localStorage.removeItem("fitness_pro_token");
+                localStorage.removeItem("fitness_pro_user");
+                window.location.href = "Login.html";
+            }
+        });
     }
 
 

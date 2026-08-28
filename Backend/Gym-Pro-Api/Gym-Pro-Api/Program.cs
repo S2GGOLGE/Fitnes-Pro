@@ -1,11 +1,17 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Apı.Data;
 using Apı.Helpers;
+using Apı.Model;
+using Apı.Service;
 using Apı.Service.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-#region  Add services to the container.
+#region Add services to the container.
 
 builder.Services.AddControllers();
 
@@ -15,18 +21,48 @@ var defaultConnection =
         "Connection string 'DefaultConnection' bulunamadı.");
 #endregion
 
-#region  ServicesDı
+#region Services DI
+builder.Services.AddSingleton<JwtService>();
 builder.Services.AddScoped<RegisterService>(sp => new RegisterService(defaultConnection));
-builder.Services.AddScoped<LoginService>(sp => new LoginService(defaultConnection));
+builder.Services.AddScoped<LoginService>(sp => new LoginService(defaultConnection, sp.GetRequiredService<JwtService>()));
 #endregion
 
-// 
 #region Entity Framework Core + SQL Server
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseSqlServer(defaultConnection);
 });
+#endregion
+
+#region JWT Authentication
+var jwtConfig = builder.Configuration.GetSection("Jwt");
+var jwtKey = jwtConfig["Key"] ?? throw new InvalidOperationException("Jwt:Key configuration is missing.");
+var keyBytes = Convert.FromBase64String(jwtKey);
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtConfig["Issuer"],
+        ValidAudience = jwtConfig["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+        ClockSkew = TimeSpan.Zero
+    };
+});
+
+builder.Services.AddAuthorization();
 #endregion
 
 #region Cors
@@ -44,16 +80,16 @@ builder.Services.AddCors(options =>
 });
 #endregion
 
-#region OpenApı
+#region OpenApi
 builder.Services.AddOpenApi();
+#endregion
 
 var app = builder.Build();
 
 // Veritabanı ve temel tablolar (Users, Roles, FK) uygulama başlangıcında hazırlanır.
 // Restart-safe: mevcut tablo/veri varsa dokunulmaz.
 await DatabaseInitializer.InitializeAsync(defaultConnection);
-#endregion
-// 
+
 #region Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
@@ -64,10 +100,11 @@ app.UseHttpsRedirection();
 
 #endregion
 
-#region CORS
+#region CORS & Auth Pipeline
 
 app.UseCors("AllowFrontend");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 // Controllers
@@ -75,7 +112,7 @@ app.MapControllers();
 
 #endregion
 
-#region Health Check
+#region Health & Auth Me Check
 app.MapGet("/health", () =>
 {
     return Results.Ok(new
@@ -84,6 +121,26 @@ app.MapGet("/health", () =>
         service = "Gym-Pro-Api",
         timestamp = DateTime.UtcNow
     });
+});
+
+app.MapGet("/api/auth/me", [Microsoft.AspNetCore.Authorization.Authorize] (ClaimsPrincipal user) =>
+{
+    var userIdStr = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                    ?? user.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+    int.TryParse(userIdStr, out var parsedUserId);
+
+    var username = user.FindFirst(ClaimTypes.Name)?.Value
+                   ?? user.FindFirst(JwtRegisteredClaimNames.UniqueName)?.Value
+                   ?? string.Empty;
+    var role = user.FindFirst(ClaimTypes.Role)?.Value ?? "User";
+
+    return Results.Ok(ApiResponseModel.Ok("Kullanıcı doğrulandı.", new
+    {
+        authenticated = true,
+        userId = parsedUserId > 0 ? parsedUserId : (object?)userIdStr,
+        username = username,
+        role = role
+    }));
 });
 #endregion
 

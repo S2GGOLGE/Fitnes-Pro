@@ -12,10 +12,14 @@
  */
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Auth Guard
+    if (window.Auth && !window.Auth.requireAuth()) {
+        return;
+    }
 
-    /* =========================================================
-       1.  MOCK DATA  (replace with API response when ready)
-       ========================================================= */
+    if (window.Auth) {
+        window.Auth.syncAuthUI();
+    }
 
     const progressData = {
 
@@ -314,7 +318,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (logoutBtn) {
         logoutBtn.addEventListener("click", () => {
             if (confirm("Çıkış yapmak istediğinize emin misiniz?")) {
-                console.log("Logout triggered. Ready for auth teardown.");
+                if (window.Auth) {
+                    window.Auth.logout(true);
+                } else {
+                    window.location.href = "Login.html";
+                }
             }
         });
     }

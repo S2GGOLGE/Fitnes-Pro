@@ -8,6 +8,12 @@
  */
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Auth Guard
+    if (window.Auth && !window.Auth.requireAuth()) {
+        return;
+    }
+
+    const authUser = window.Auth ? window.Auth.getUser() : null;
 
     /* =========================================================
        1. CENTRAL DATA MODEL (API READY)
@@ -15,12 +21,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const profileState = {
         user: {
-            firstName: "Mehmet Emre",
-            lastName: "Çetin",
-            username: "mehmetemre",
-            email: "emre@fitnesspro.com",
+            firstName: (authUser && authUser.username) ? authUser.username : "Mehmet Emre",
+            lastName: "",
+            username: (authUser && authUser.username) ? authUser.username : "mehmetemre",
+            email: (authUser && authUser.email) ? authUser.email : "user@fitnesspro.com",
             bio: "Fitness tutkunu. Her gün bir adım daha ileriye. Kas kazanımı ve güç odaklı antrenman yapıyorum.",
-            level: "Orta",
+            level: (authUser && authUser.role === "Admin") ? "Admin" : "Orta",
             levelNumber: 3,
             maxLevel: 5,
             levelProgressPercent: 68,
@@ -341,8 +347,12 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!confirmed) return;
             showToast("Çıkış yapılıyor...");
             setTimeout(() => {
-                window.location.href = "Login.html";
-            }, 800);
+                if (window.Auth) {
+                    window.Auth.logout(true);
+                } else {
+                    window.location.href = "Login.html";
+                }
+            }, 500);
         });
     }
 
