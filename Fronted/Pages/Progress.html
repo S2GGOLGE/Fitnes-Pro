@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Fitness Pro İlerlemem - İlk ölçümünden bugüne fiziksel gelişimini takip et.">
+
+    <title>Fitness Pro | İlerlemem</title>
+
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../Css/UI/index.css">
+    <link rel="stylesheet" href="../Css/UI/Progress.css">
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- ==================== SIDEBAR ==================== -->
+        <aside class="sidebar" id="sidebar">
+
+            <div class="sidebar-top">
+                <div class="brand">
+                    <a href="../Başlangıc.html" class="brand-logo" title="Fitness Pro Ana Sayfa">
+                        <img src="../assets/favicon.svg" alt="Fitness Pro">
+                    </a>
+                    <div class="brand-name">FITNESS<span>PRO</span></div>
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Menüyü daralt" title="Menüyü daralt">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+
+            <div class="profile-card">
+                <div class="profile-avatar">E</div>
+                <div class="profile-info">
+                    <strong>Emre</strong>
+                    <span>Fitness Level: Pro</span>
+                    <a href="Profile.html">Profili Gör</a>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <span class="nav-title">ANA MENÜ</span>
+
+                    <a href="index.html" class="nav-item" title="Başlangıç">
+                        <span class="nav-icon">⌂</span>
+                        <span class="nav-text">Başlangıç</span>
+                    </a>
+
+                    <a href="Workouts.html" class="nav-item" title="İdmanlar">
+                        <span class="nav-icon">◆</span>
+                        <span class="nav-text">İdmanlar</span>
+                    </a>
+
+                    <a href="Progress.html" class="nav-item active" title="İlerleme">
+                        <span class="nav-icon">↗</span>
+                        <span class="nav-text">İlerleme</span>
+                    </a>
+
+                    <a href="Goals.html" class="nav-item" title="Hedefler">
+                        <span class="nav-icon">◎</span>
+                        <span class="nav-text">Hedefler</span>
+                    </a>
+
+                    <a href="Profile.html" class="nav-item" title="Profil">
+                        <span class="nav-icon">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </span>
+                        <span class="nav-text">Profil</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <span class="nav-title">SİSTEM</span>
+
+                    <a href="Settings.html" class="nav-item" title="Ayarlar">
+                        <span class="nav-icon">⚙</span>
+                        <span class="nav-text">Ayarlar</span>
+                    </a>
+
+                    <a href="Notifications.html" class="nav-item" title="Bildirimler">
+                        <span class="nav-icon notification-icon">♢<i></i></span>
+                        <span class="nav-text">Bildirimler</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <button class="logout-btn" id="logoutBtn" type="button" title="Çıkış Yap">
+                    <span class="nav-icon">↪</span>
+                    <span class="nav-text">Çıkış Yap</span>
+                </button>
+            </div>
+
+        </aside>
+
+        <!-- MOBILE OVERLAY -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- ==================== MAIN ==================== -->
+        <main class="main-content">
+
+            <header class="topbar">
+                <button class="mobile-menu-btn" id="mobileMenuBtn" type="button" aria-label="Menüyü aç">
+                    <span></span><span></span><span></span>
+                </button>
+                <div class="topbar-date">
+                    <span id="currentDate">28 Ağustos 2026</span>
+                </div>
+                <div class="topbar-actions">
+                    <button class="icon-btn" type="button" title="Bildirimler">
+                        ♢<span class="notification-dot"></span>
+                    </button>
+                    <a href="Profile.html" class="topbar-profile" title="Profilim">
+                        <span class="topbar-avatar">E</span>
+                        <span class="topbar-username">Emre</span>
+                    </a>
+                </div>
+            </header>
+
+            <div class="page-content">
+
+                <!-- ==================== PAGE HEADER ==================== -->
+                <section class="prog-page-header">
+                    <div class="prog-header-text">
+                        <span class="section-label">FİZİKSEL GELİŞİM</span>
+                        <h1>İlerlemem</h1>
+                        <p>İlk ölçümünden bugüne fiziksel gelişimini takip et.</p>
+                    </div>
+                    <div class="prog-date-filter" role="tablist" aria-label="Dönem filtresi">
+                        <button type="button" class="date-filter-btn" data-period="30d" role="tab" aria-selected="false">Son 30 Gün</button>
+                        <button type="button" class="date-filter-btn" data-period="3m" role="tab" aria-selected="false">Son 3 Ay</button>
+                        <button type="button" class="date-filter-btn" data-period="6m" role="tab" aria-selected="false">Son 6 Ay</button>
+                        <button type="button" class="date-filter-btn active" data-period="all" role="tab" aria-selected="true">Tümü</button>
+                    </div>
+                </section>
+
+                <!-- ==================== MAIN BODY SECTION (3-col) ==================== -->
+                <section class="prog-main-grid">
+
+                    <!-- LEFT: Initial Measurements -->
+                    <aside class="prog-measure-panel prog-panel-left">
+                        <div class="panel-tag">
+                            <span class="tag-dot"></span>
+                            <span>İLK ÖLÇÜM</span>
+                        </div>
+                        <div class="panel-date" id="panelInitialDate">01 Temmuz 2026</div>
+
+                        <div class="panel-main-weight">
+                            <span class="weight-num" id="panelInitialWeight">78.5</span>
+                            <span class="weight-unit">kg</span>
+                        </div>
+
+                        <div class="panel-metrics">
+                            <div class="metric-row">
+                                <span class="metric-label">Yağ Oranı</span>
+                                <span class="metric-val" id="initFat">%24</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Kas Kütlesi</span>
+                                <span class="metric-val" id="initMuscle">56.2 kg</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Göğüs</span>
+                                <span class="metric-val" id="initChest">98 cm</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Bel</span>
+                                <span class="metric-val" id="initWaist">91 cm</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Kol</span>
+                                <span class="metric-val" id="initArm">32 cm</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Bacak</span>
+                                <span class="metric-val" id="initLeg">54 cm</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Omuz</span>
+                                <span class="metric-val" id="initShoulder">112 cm</span>
+                            </div>
+                        </div>
+                    </aside>
+
+                    <!-- CENTER: Body Silhouette -->
+                    <div class="prog-body-center">
+
+                        <!-- Weight Delta -->
+                        <div class="weight-delta-banner">
+                            <span class="delta-from" id="deltaFrom">78.5 kg</span>
+                            <span class="delta-arrow">→</span>
+                            <span class="delta-to" id="deltaTo">74.2 kg</span>
+                        </div>
+                        <div class="weight-delta-value negative" id="deltaValue">−4.3 kg</div>
+
+                        <!-- Body SVG Container -->
+                        <div class="body-svg-wrap" id="bodySvgWrap">
+
+                            <svg
+                                viewBox="0 0 260 508"
+                                class="body-svg"
+                                aria-label="İnsan vücudu ölçüm görseli — bölgelere tıklayarak ölçüm detaylarını görüntüleyin"
+                                role="img">
+
+                                <defs>
+                                    <filter id="hotspot-glow" x="-50%" y="-50%" width="200%" height="200%">
+                                        <feGaussianBlur stdDeviation="3.5" result="blur"/>
+                                        <feMerge>
+                                            <feMergeNode in="blur"/>
+                                            <feMergeNode in="SourceGraphic"/>
+                                        </feMerge>
+                                    </filter>
+                                    <filter id="body-shadow" x="-10%" y="-5%" width="120%" height="115%">
+                                        <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="rgba(34,197,94,0.15)"/>
+                                    </filter>
+                                    <radialGradient id="bodyGrad" cx="50%" cy="40%" r="55%">
+                                        <stop offset="0%" stop-color="#223328"/>
+                                        <stop offset="100%" stop-color="#172218"/>
+                                    </radialGradient>
+                                </defs>
+
+                                <!-- ====== BODY SILHOUETTE ====== -->
+                                <g class="body-silhouette" filter="url(#body-shadow)">
+
+                                    <!-- Head -->
+                                    <ellipse cx="130" cy="44" rx="29" ry="33" fill="url(#bodyGrad)" stroke="#2D4535" stroke-width="1.2"/>
+
+                                    <!-- Neck -->
+                                    <rect x="118" y="74" width="24" height="26" rx="6" fill="url(#bodyGrad)" stroke="#2D4535" stroke-width="1.2"/>
+
+                                    <!-- Shoulders bridge -->
+                                    <ellipse cx="130" cy="105" rx="64" ry="19" fill="url(#bodyGrad)" stroke="#2D4535" stroke-width="1.2"/>
+
+                                    <!-- Left upper arm -->
+                                    <ellipse cx="59" cy="163" rx="14" ry="53" fill="url(#bodyGrad)" stroke="#2D4535" stroke-width="1.2" transform="rotate(-9 59 163)"/>
+
+                                    <!-- Left forearm -->
+                                    <ellipse cx="46" cy="248" rx="11" ry="43" fill="url(#bodyGrad)" stroke="#2D4535" stroke-width="1.2" transform="rotate(-4 46 248)"/>
+
+                                    <!-- Left hand -->
+                                    <ellipse cx="44" cy="300" rx="13" ry="16" fill="url(#bodyGrad)" stroke="#2D4535" stroke-width="1.2"/>
+
+                                    <!-- Right upper arm -->
+                                    <ellipse cx="201" cy="163" rx="14" ry="53" fill="url(#bodyGrad)" stroke="#2D4535" stroke-width="1.2" transform="rotate(9 201 163)"/>
+
+                                    <!-- Right forearm -->
+                                    <ellipse cx="214" cy="248" rx="11" ry="43" fill="url(#bodyGrad)" stroke="#2D4535" stroke-width="1.2" transform="rotate(4 214 248)"/>
+
+                                    <!-- Right hand -->
+                                    <ellipse cx="216" cy="300" rx="13" ry="16" fill="url(#bodyGrad)" stroke="#2D4535" stroke-width="1.2"/>
+
+                                    <!-- Torso (chest → waist → hips) -->
+                                    <path d="M 76,103 C 63,118 61,148 63,178 L 65,214 Q 66,234 72,248 L 79,282 L 181,282 L 188,248 Q 194,234 195,214 L 197,178 C 199,148 197,118 184,103 Z" fill="url(#bodyGrad)" stroke="#2D4535" stroke-width="1.2"/>
+
+                                    <!-- Left leg -->
+                                    <path d="M 79,280 L 69,367 Q 67,398 69,432 L 71,462 Q 73,474 83,478 Q 95,482 103,474 Q 107,468 105,454 L 101,422 Q 99,390 101,358 L 113,280 Z" fill="url(#bodyGrad)" stroke="#2D4535" stroke-width="1.2"/>
+
+                                    <!-- Right leg -->
+                                    <path d="M 147,280 L 159,358 Q 161,390 159,422 L 155,454 Q 153,468 157,474 Q 165,482 177,478 Q 187,474 189,462 L 191,432 Q 193,398 191,367 L 181,280 Z" fill="url(#bodyGrad)" stroke="#2D4535" stroke-width="1.2"/>
+
+                                </g>
+
+                                <!-- ====== INTERACTIVE HOTSPOTS ====== -->
+
+                                <!-- Chest / Göğüs -->
+                                <g class="hotspot-group" data-region="chest" tabindex="0" role="button" aria-label="Göğüs ölçüm noktası" transform="translate(130,152)">
+                                    <circle class="hs-pulse" r="14" fill="rgba(34,197,94,0.15)" stroke="none"/>
+                                    <circle class="hs-ring" r="9" fill="none" stroke="#22C55E" stroke-width="1" opacity="0.5"/>
+                                    <circle class="hs-dot" r="5.5" fill="#22C55E" filter="url(#hotspot-glow)"/>
+                                </g>
+
+                                <!-- Waist / Bel -->
+                                <g class="hotspot-group" data-region="waist" tabindex="0" role="button" aria-label="Bel ölçüm noktası" transform="translate(130,232)">
+                                    <circle class="hs-pulse" r="14" fill="rgba(34,197,94,0.15)" stroke="none"/>
+                                    <circle class="hs-ring" r="9" fill="none" stroke="#22C55E" stroke-width="1" opacity="0.5"/>
+                                    <circle class="hs-dot" r="5.5" fill="#22C55E" filter="url(#hotspot-glow)"/>
+                                </g>
+
+                                <!-- Left Arm / Sol Kol -->
+                                <g class="hotspot-group" data-region="arm" tabindex="0" role="button" aria-label="Kol ölçüm noktası" transform="translate(46,230)">
+                                    <circle class="hs-pulse" r="14" fill="rgba(34,197,94,0.15)" stroke="none"/>
+                                    <circle class="hs-ring" r="9" fill="none" stroke="#22C55E" stroke-width="1" opacity="0.5"/>
+                                    <circle class="hs-dot" r="5.5" fill="#22C55E" filter="url(#hotspot-glow)"/>
+                                </g>
+
+                                <!-- Right Arm / Sağ Kol -->
+                                <g class="hotspot-group" data-region="arm" tabindex="0" role="button" aria-label="Kol ölçüm noktası (sağ)" transform="translate(214,230)">
+                                    <circle class="hs-pulse" r="14" fill="rgba(34,197,94,0.15)" stroke="none"/>
+                                    <circle class="hs-ring" r="9" fill="none" stroke="#22C55E" stroke-width="1" opacity="0.5"/>
+                                    <circle class="hs-dot" r="5.5" fill="#22C55E" filter="url(#hotspot-glow)"/>
+                                </g>
+
+                                <!-- Left Leg / Sol Bacak -->
+                                <g class="hotspot-group" data-region="leg" tabindex="0" role="button" aria-label="Bacak ölçüm noktası" transform="translate(91,385)">
+                                    <circle class="hs-pulse" r="14" fill="rgba(34,197,94,0.15)" stroke="none"/>
+                                    <circle class="hs-ring" r="9" fill="none" stroke="#22C55E" stroke-width="1" opacity="0.5"/>
+                                    <circle class="hs-dot" r="5.5" fill="#22C55E" filter="url(#hotspot-glow)"/>
+                                </g>
+
+                                <!-- Right Leg / Sağ Bacak -->
+                                <g class="hotspot-group" data-region="leg" tabindex="0" role="button" aria-label="Bacak ölçüm noktası (sağ)" transform="translate(169,385)">
+                                    <circle class="hs-pulse" r="14" fill="rgba(34,197,94,0.15)" stroke="none"/>
+                                    <circle class="hs-ring" r="9" fill="none" stroke="#22C55E" stroke-width="1" opacity="0.5"/>
+                                    <circle class="hs-dot" r="5.5" fill="#22C55E" filter="url(#hotspot-glow)"/>
+                                </g>
+
+                                <!-- Shoulder / Omuz label connector line & dot -->
+                                <g class="hotspot-group" data-region="shoulder" tabindex="0" role="button" aria-label="Omuz ölçüm noktası" transform="translate(130,108)">
+                                    <circle class="hs-pulse" r="14" fill="rgba(34,197,94,0.15)" stroke="none"/>
+                                    <circle class="hs-ring" r="9" fill="none" stroke="#22C55E" stroke-width="1" opacity="0.5"/>
+                                    <circle class="hs-dot" r="5.5" fill="#22C55E" filter="url(#hotspot-glow)"/>
+                                </g>
+
+                            </svg>
+
+                        </div>
+                        <!-- /body-svg-wrap -->
+
+                        <p class="hotspot-hint">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                            Vücut bölgelerine tıklayarak ölçüm detaylarını gör
+                        </p>
+
+                    </div>
+                    <!-- /prog-body-center -->
+
+                    <!-- RIGHT: Current Measurements -->
+                    <aside class="prog-measure-panel prog-panel-right">
+                        <div class="panel-tag current">
+                            <span class="tag-dot current-dot"></span>
+                            <span>GÜNCEL DURUM</span>
+                        </div>
+                        <div class="panel-date" id="panelCurrentDate">28 Ağustos 2026</div>
+
+                        <div class="panel-main-weight">
+                            <span class="weight-num current-weight" id="panelCurrentWeight">74.2</span>
+                            <span class="weight-unit">kg</span>
+                        </div>
+
+                        <div class="panel-metrics">
+                            <div class="metric-row">
+                                <span class="metric-label">Yağ Oranı</span>
+                                <span class="metric-val improvement" id="curFat">%19</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Kas Kütlesi</span>
+                                <span class="metric-val improvement" id="curMuscle">57.8 kg</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Göğüs</span>
+                                <span class="metric-val improvement" id="curChest">103 cm</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Bel</span>
+                                <span class="metric-val improvement" id="curWaist">84 cm</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Kol</span>
+                                <span class="metric-val improvement" id="curArm">36 cm</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Bacak</span>
+                                <span class="metric-val improvement" id="curLeg">58 cm</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Omuz</span>
+                                <span class="metric-val improvement" id="curShoulder">116 cm</span>
+                            </div>
+                        </div>
+                    </aside>
+
+                </section>
+                <!-- /prog-main-grid -->
+
+                <!-- ==================== CHANGE SUMMARY CARDS ==================== -->
+                <section class="change-summary-section">
+                    <div class="change-section-title">
+                        <span class="section-label">ÖZET</span>
+                        <h2>Genel Değişim</h2>
+                    </div>
+                    <div class="change-cards-grid">
+
+                        <div class="change-card">
+                            <div class="change-card-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"></path>
+                                </svg>
+                            </div>
+                            <div class="change-card-content">
+                                <span class="change-label">Kilo</span>
+                                <div class="change-from-to" id="summaryWeight">78.5 kg → 74.2 kg</div>
+                                <div class="change-delta negative-delta" id="summaryWeightDelta">−4.3 kg</div>
+                            </div>
+                        </div>
+
+                        <div class="change-card">
+                            <div class="change-card-icon orange">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                                </svg>
+                            </div>
+                            <div class="change-card-content">
+                                <span class="change-label">Vücut Yağ Oranı</span>
+                                <div class="change-from-to" id="summaryFat">%24 → %19</div>
+                                <div class="change-delta negative-delta" id="summaryFatDelta">−5 puan</div>
+                            </div>
+                        </div>
+
+                        <div class="change-card">
+                            <div class="change-card-icon blue">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M12 6v6l4 2"></path>
+                                </svg>
+                            </div>
+                            <div class="change-card-content">
+                                <span class="change-label">Bel Ölçüsü</span>
+                                <div class="change-from-to" id="summaryWaist">91 cm → 84 cm</div>
+                                <div class="change-delta negative-delta" id="summaryWaistDelta">−7 cm</div>
+                            </div>
+                        </div>
+
+                        <div class="change-card">
+                            <div class="change-card-icon green">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                            </div>
+                            <div class="change-card-content">
+                                <span class="change-label">Kas Kütlesi</span>
+                                <div class="change-from-to" id="summaryMuscle">56.2 kg → 57.8 kg</div>
+                                <div class="change-delta positive-delta" id="summaryMuscleDelta">+1.6 kg</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- ==================== BODY STATUS ==================== -->
+                <section class="body-status-section">
+                    <div class="body-status-card">
+
+                        <div class="status-header">
+                            <div>
+                                <span class="section-label">DEĞERLENDİRME</span>
+                                <h2>Vücut Durumu</h2>
+                            </div>
+                            <span class="status-label-badge" id="statusLabel">İyi Gelişim</span>
+                        </div>
+
+                        <div class="status-bar-wrap">
+                            <div class="status-bar-track">
+                                <div class="status-bar-fill" id="statusBarFill" style="width: 84%"></div>
+                            </div>
+                            <span class="status-percent" id="statusPercent">84%</span>
+                        </div>
+
+                        <p class="status-desc" id="statusDesc">
+                            Başlangıç ölçümüne göre fiziksel gelişimin hedeflerine doğru ilerliyor.
+                        </p>
+
+                    </div>
+                </section>
+
+                <!-- ==================== TIMELINE ==================== -->
+                <section class="timeline-section">
+                    <div class="timeline-header">
+                        <span class="section-label">SÜREÇ</span>
+                        <h2>Gelişim Zaman Çizelgesi</h2>
+                        <p>Bir noktaya tıklayarak o tarihin ölçümlerini görüntüle.</p>
+                    </div>
+
+                    <div class="timeline-scroll-wrap">
+                        <div class="timeline-track" id="timelineTrack">
+
+                            <div class="timeline-item active" data-point="0" role="button" tabindex="0" aria-label="01 Temmuz 2026 ölçümü">
+                                <div class="timeline-dot"></div>
+                                <div class="timeline-date">01 Tem</div>
+                                <div class="timeline-weight">78.5 kg</div>
+                            </div>
+
+                            <div class="timeline-connector"></div>
+
+                            <div class="timeline-item" data-point="1" role="button" tabindex="0" aria-label="15 Temmuz 2026 ölçümü">
+                                <div class="timeline-dot"></div>
+                                <div class="timeline-date">15 Tem</div>
+                                <div class="timeline-weight">77.1 kg</div>
+                            </div>
+
+                            <div class="timeline-connector"></div>
+
+                            <div class="timeline-item" data-point="2" role="button" tabindex="0" aria-label="01 Ağustos 2026 ölçümü">
+                                <div class="timeline-dot"></div>
+                                <div class="timeline-date">01 Ağu</div>
+                                <div class="timeline-weight">75.8 kg</div>
+                            </div>
+
+                            <div class="timeline-connector"></div>
+
+                            <div class="timeline-item" data-point="3" role="button" tabindex="0" aria-label="15 Ağustos 2026 ölçümü">
+                                <div class="timeline-dot"></div>
+                                <div class="timeline-date">15 Ağu</div>
+                                <div class="timeline-weight">74.8 kg</div>
+                            </div>
+
+                            <div class="timeline-connector"></div>
+
+                            <div class="timeline-item last-point" data-point="4" role="button" tabindex="0" aria-label="28 Ağustos 2026 ölçümü">
+                                <div class="timeline-dot current-dot-tl"></div>
+                                <div class="timeline-date">28 Ağu</div>
+                                <div class="timeline-weight">74.2 kg</div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Selected point detail card -->
+                    <div class="timeline-detail-card" id="timelineDetailCard">
+                        <div class="tl-detail-date" id="tlDetailDate">01 Temmuz 2026</div>
+                        <div class="tl-detail-metrics">
+                            <div class="tl-metric">
+                                <span>Kilo</span>
+                                <strong id="tlDetailWeight">78.5 kg</strong>
+                            </div>
+                            <div class="tl-metric">
+                                <span>Yağ Oranı</span>
+                                <strong id="tlDetailFat">%24</strong>
+                            </div>
+                            <div class="tl-metric">
+                                <span>Bel</span>
+                                <strong id="tlDetailWaist">91 cm</strong>
+                            </div>
+                            <div class="tl-metric">
+                                <span>Kas Kütlesi</span>
+                                <strong id="tlDetailMuscle">56.2 kg</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- ==================== BEFORE / AFTER ==================== -->
+                <section class="before-after-section">
+                    <div class="ba-header">
+                        <span class="section-label">GÖRSEL KARŞILAŞTIRMA</span>
+                        <h2>Vücut Değişimi</h2>
+                        <p>Başlangıç ve güncel fotoğraflarını karşılaştır.</p>
+                    </div>
+
+                    <div class="ba-grid">
+
+                        <div class="ba-card">
+                            <div class="ba-photo-placeholder" aria-label="Başlangıç fotoğrafı alanı">
+                                <div class="ba-icon">
+                                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                </div>
+                                <span>Fotoğraf Yükle</span>
+                                <small>Backend entegrasyonu bekleniyor</small>
+                            </div>
+                            <div class="ba-card-label">
+                                <span class="ba-tag">Başlangıç</span>
+                                <span class="ba-date">01 Temmuz 2026</span>
+                            </div>
+                        </div>
+
+                        <div class="ba-separator">
+                            <span class="ba-arrow">→</span>
+                        </div>
+
+                        <div class="ba-card">
+                            <div class="ba-photo-placeholder current-placeholder" aria-label="Güncel fotoğraf alanı">
+                                <div class="ba-icon">
+                                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                        <circle cx="12" cy="13" r="4"></circle>
+                                    </svg>
+                                </div>
+                                <span>Fotoğraf Çek / Yükle</span>
+                                <small>Backend entegrasyonu bekleniyor</small>
+                            </div>
+                            <div class="ba-card-label">
+                                <span class="ba-tag current-tag">Güncel</span>
+                                <span class="ba-date">28 Ağustos 2026</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+            </div>
+            <!-- /page-content -->
+
+        </main>
+
+    </div>
+
+    <!-- ==================== HOTSPOT TOOLTIP ==================== -->
+    <div class="measurement-tooltip hidden" id="measurementTooltip" role="tooltip">
+        <div class="tooltip-region" id="tooltipRegion">Göğüs</div>
+        <div class="tooltip-rows">
+            <div class="tooltip-row">
+                <span class="tooltip-label">Başlangıç</span>
+                <span class="tooltip-val" id="tooltipInitVal">98 cm</span>
+            </div>
+            <div class="tooltip-row">
+                <span class="tooltip-label">Güncel</span>
+                <span class="tooltip-val" id="tooltipCurVal">103 cm</span>
+            </div>
+            <div class="tooltip-separator"></div>
+            <div class="tooltip-row">
+                <span class="tooltip-label">Değişim</span>
+                <span class="tooltip-delta" id="tooltipDelta">+5 cm</span>
+            </div>
+        </div>
+        <div class="tooltip-arrow" id="tooltipArrow"></div>
+    </div>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script src="../JavaScripts/UI/Progress.js"></script>
+
+</body>
+</html>
