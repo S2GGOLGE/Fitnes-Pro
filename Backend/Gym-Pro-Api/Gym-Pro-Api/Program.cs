@@ -20,20 +20,19 @@ var defaultConnection =
     ?? throw new InvalidOperationException(
         "Connection string 'DefaultConnection' bulunamadı.");
 #endregion
-
 #region Services DI
+
 builder.Services.AddSingleton<JwtService>();
+
+builder.Services.AddScoped<RoleService>(sp => new RoleService(defaultConnection));
+
 builder.Services.AddScoped<RegisterService>(sp => new RegisterService(defaultConnection));
-builder.Services.AddScoped<LoginService>(sp => new LoginService(defaultConnection, sp.GetRequiredService<JwtService>()));
-builder.Services.AddScoped<PasswordupdateService>(sp => new PasswordupdateService(defaultConnection));
-#endregion
 
-#region Entity Framework Core + SQL Server
+builder.Services.AddScoped<LoginService>(sp => new LoginService(defaultConnection, sp.GetRequiredService<JwtService>(), sp.GetRequiredService<RoleService>()));
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-{
-    options.UseSqlServer(defaultConnection);
-});
+builder.Services.AddScoped<PasswordupdateService>(sp =>
+    new PasswordupdateService(defaultConnection));
+
 #endregion
 
 #region JWT Authentication
@@ -81,8 +80,9 @@ builder.Services.AddCors(options =>
 });
 #endregion
 
-#region OpenApi
-builder.Services.AddOpenApi();
+#region Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 #endregion
 
 var app = builder.Build();
@@ -94,7 +94,11 @@ await DatabaseInitializer.InitializeAsync(defaultConnection);
 #region Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Fitness Pro API v1");
+    });
 }
 
 app.UseHttpsRedirection();

@@ -2,41 +2,85 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using Apı.Model;
+
 namespace Apı.Service;
 
 public class JwtService
 {
-    public IConfiguration _configuration;
+    private readonly IConfiguration _configuration;
+
     public JwtService(IConfiguration configuration)
     {
-        _configuration = configuration;
+        _configuration = configuration
+            ?? throw new ArgumentNullException(nameof(configuration));
     }
+
     public string CreateToken(JwtModel model)
     {
         var jwt = _configuration.GetSection("jwt");
+
         var key = new SymmetricSecurityKey(
-                Convert.FromBase64String(jwt["Key"]!)
-            );
+            Convert.FromBase64String(jwt["Key"]!)
+        );
+
         var credentials = new SigningCredentials(
             key,
             SecurityAlgorithms.HmacSha256
         );
-        var claims = new[]
+
+        var claims = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.Sub, model.UserId.ToString()),
-            new Claim(ClaimTypes.NameIdentifier,model.UserId.ToString()),
-            new Claim(JwtRegisteredClaimNames.UniqueName,model.Username),
-            new Claim(ClaimTypes.Name,model.Username),
-            new Claim(ClaimTypes.Role,model.Role)
-       };
+            new Claim(
+                JwtRegisteredClaimNames.Sub,
+                model.UserId.ToString()
+            ),
+
+            new Claim(
+                ClaimTypes.NameIdentifier,
+                model.UserId.ToString()
+            ),
+
+            new Claim(
+                JwtRegisteredClaimNames.UniqueName,
+                model.Username
+            ),
+
+            new Claim(
+                ClaimTypes.Name,
+                model.Username
+            )
+        };
+
+        // =========================================================
+        // ROLE CLAIMLERİ
+        // =========================================================
+
+        foreach (var role in model.Roles)
+        {
+            if (!string.IsNullOrWhiteSpace(role))
+            {
+                claims.Add(
+                    new Claim(
+                        ClaimTypes.Role,
+                        role.Trim()
+                    )
+                );
+            }
+        }
+
         var token = new JwtSecurityToken(
-         issuer: jwt["Issuer"],
-         audience: jwt["Audience"],
-         claims: claims,
-         expires: DateTime.UtcNow.AddMinutes(
-             Convert.ToDouble(jwt["ExpireMinutes"] ?? "60")),
-        signingCredentials: credentials
+            issuer: jwt["Issuer"],
+            audience: jwt["Audience"],
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(
+                Convert.ToDouble(
+                    jwt["ExpireMinutes"] ?? "60"
+                )
+            ),
+            signingCredentials: credentials
         );
-        return new JwtSecurityTokenHandler().WriteToken(token);
+
+        return new JwtSecurityTokenHandler()
+            .WriteToken(token);
     }
 }

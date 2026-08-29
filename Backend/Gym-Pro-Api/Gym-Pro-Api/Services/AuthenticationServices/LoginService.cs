@@ -9,63 +9,52 @@ public class LoginService
 {
     private readonly string _connectionString;
     private readonly JwtService _jwtService;
+    private readonly RoleService _roleService;
 
-    public LoginService(string connectionString, JwtService jwtService)
+    public LoginService(string connectionString, JwtService jwtService, RoleService roleService)
     {
-        _connectionString = connectionString;
-        _jwtService = jwtService;
+        _connectionString = connectionString ?? throw new ArgumentException(nameof(connectionString));
+        _jwtService = jwtService ?? throw new ArgumentException(nameof(jwtService));
+        _roleService = roleService ?? throw new ArgumentException(nameof(roleService));
     }
 
     public async Task<ApiResponseModel> LoginAsync(LoginModels models)
     {
         var validationError = EmptyspaceHelpers.Validate(models);
-
         if (validationError != null)
         {
             return ApiResponseModel.Fail(validationError);
         }
-
         const string query = """
-            SELECT
-                u.Id,
-                u.Username,
-                u.PasswordHash,
-                u.Salt,
-                ISNULL(r.RoleName, 'User') AS Role
-            FROM Users u
-            LEFT JOIN Roles r ON r.UserId = u.Id
-            WHERE u.Username = @Username
-            """;
-
+         SELECT
+                Id,
+                Username,
+                PasswordHash,
+                Salt
+            FROM dbo.Users
+            WHERE Username = @Username
+        """;
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync();
-
         await using var command = new SqlCommand(query, connection);
-        command.Parameters.AddWithValue("@Username", models.Username);
-
+        command.Parameters.Add(
+            "@Username",
+            System.Data.SqlDbType.NVarChar, 100
+        ).Value = models.Username;
         await using var reader = await command.ExecuteReaderAsync();
-
         if (!await reader.ReadAsync())
         {
-            return ApiResponseModel.Fail(
-                "Kullanıcı Adı veya Şifre Yanlış Tekrar Deneyiniz"
-            );
+            return ApiResponseModel.Fail("Kullanıcı adı veya şifre Yanlış");
         }
-
-        int userId = reader.GetInt32(
+        int UserId = reader.GetInt32(
             reader.GetOrdinal("Id")
         );
-
         string passwordHash = reader.GetString(
-            reader.GetOrdinal("PasswordHash")
-        );
+           reader.GetOrdinal("PasswordHash")
+       );
 
         string salt = reader.GetString(
             reader.GetOrdinal("Salt")
-        );
-
-        string storedRole = reader.GetString(
-            reader.GetOrdinal("Role")
         );
 
         var hash = new HashModel
@@ -82,22 +71,32 @@ public class LoginService
                 "Kullanıcı Adı veya Şifre Yanlış Tekrar Deneyiniz"
             );
         }
-
+        //Kullanıcı Rollerini Getir
+        var roles = await _roleService.GetUserRolesAsync(UserId);
+        // Kullanıcının hiç rolü yoksa varsayılan rol
+        if (roles.Count == 0)
+        {
+            roles.Add("User");
+        }
+        // JWT TOKEN
         var token = _jwtService.CreateToken(
-            new JwtModel
+                   new JwtModel
+                   {
+                       UserId = UserId,
+                       Username = models.Username,
+                       Roles = roles
+                   }
+               );
+
+        return ApiResponseModel.Ok(
+            "Giriş Başarılı",
+            new
             {
-                UserId = userId,
-                Username = models.Username,
-                Role = storedRole
+                token = token,
+                userId = UserId,
+                username = models.Username,
+                roles = roles
             }
         );
-
-        return ApiResponseModel.Ok("Giriş Başarılı", new
-        {
-            token = token,
-            userId = userId,
-            username = models.Username,
-            role = storedRole
-        });
     }
 }
