@@ -83,6 +83,12 @@
 
             </div>
 
+            <!-- Forgot Password Link -->
+            <div class="forgot-password-wrapper">
+                <a href="#" id="forgotPasswordLink" class="forgot-password-link">
+                    Şifreni mi unuttun?
+                </a>
+            </div>
 
             <div id="formAlert" class="form-alert" role="alert"></div>
 
@@ -96,6 +102,63 @@
             </button>
 
         </form>
+
+
+        <!-- ==============================
+             PASSWORD UPDATE MODAL
+             ============================== -->
+
+        <div id="passwordUpdateModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
+            <div class="modal-overlay" id="modalOverlay"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Şifre Güncelle</h2>
+                    <p class="modal-description">Şifrenizi güncellemek için mevcut bilgilerinizi girin.</p>
+                </div>
+
+                <form id="passwordUpdateForm" class="modal-form">
+                    <div class="form-group">
+                        <label for="updateUsername">Kullanıcı Adı</label>
+                        <input type="text" id="updateUsername" name="username" autocomplete="username" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="oldPassword">Mevcut Şifre</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="oldPassword" name="oldPassword" autocomplete="current-password" required>
+                            <button type="button" class="password-toggle" data-password-target="oldPassword" aria-label="Şifreyi göster">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M2 12C2 12 5.5 5 12 5C18.5 5 22 12 22 12C22 12 18.5 19 12 19C5.5 19 2 12 2 12Z"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="newPassword">Yeni Şifre</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="newPassword" name="password" autocomplete="new-password" required>
+                            <button type="button" class="password-toggle" data-password-target="newPassword" aria-label="Şifreyi göster">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M2 12C2 12 5.5 5 12 5C18.5 5 22 12 22 12C22 12 18.5 19 12 19C5.5 19 2 12 2 12Z"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="modalAlert" class="form-alert" role="alert"></div>
+
+                    <div class="modal-actions">
+                        <button type="button" id="cancelPasswordUpdate" class="btn-secondary">İptal</button>
+                        <button type="submit" id="submitPasswordUpdate" class="btn-primary">Şifreyi Güncelle</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
 
         <!-- ==============================
@@ -127,6 +190,7 @@
     <script src="../JavaScripts/Core/auth.js"></script>
     <script src="../JavaScripts/Components/Goster-Gizle.js"></script>
     <script src="../JavaScripts/EndPoint/LoginEndpoint.js"></script>
+    <script src="../JavaScripts/EndPoint/PasswordUpdateEndpoint.js"></script>
 </body>
 
 </html>

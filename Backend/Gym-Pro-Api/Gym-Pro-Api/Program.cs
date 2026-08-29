@@ -25,6 +25,7 @@ var defaultConnection =
 builder.Services.AddSingleton<JwtService>();
 builder.Services.AddScoped<RegisterService>(sp => new RegisterService(defaultConnection));
 builder.Services.AddScoped<LoginService>(sp => new LoginService(defaultConnection, sp.GetRequiredService<JwtService>()));
+builder.Services.AddScoped<PasswordupdateService>(sp => new PasswordupdateService(defaultConnection));
 #endregion
 
 #region Entity Framework Core + SQL Server
