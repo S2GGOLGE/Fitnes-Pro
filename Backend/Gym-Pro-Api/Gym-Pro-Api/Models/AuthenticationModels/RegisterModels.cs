@@ -9,5 +9,9 @@ namespace Apı.Model
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
         public string PasswordRepeat { get; set; } = string.Empty;
+
+        // Kullanıcı fitness seviyesi (Role sisteminden bağımsız).
+        // Varsayılan: "Acemi". Sadece "Acemi", "Orta", "Uzman" kabul edilir.
+        public string Level { get; set; } = "Acemi";
     }
 }

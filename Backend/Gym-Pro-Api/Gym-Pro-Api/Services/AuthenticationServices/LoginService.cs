@@ -30,7 +30,8 @@ public class LoginService
                 Id,
                 Username,
                 PasswordHash,
-                Salt
+                Salt,
+                Level
             FROM dbo.Users
             WHERE Username = @Username
         """;
@@ -57,6 +58,17 @@ public class LoginService
             reader.GetOrdinal("Salt")
         );
 
+        // Level kolonu migration ile geldi; geriye dönük satırlarda NULL
+        // olmaması gerekir (DEFAULT 'Acemi'). Yine de güvenli oku.
+        var levelOrdinal = reader.GetOrdinal("Level");
+        string level = reader.IsDBNull(levelOrdinal)
+            ? "Acemi"
+            : reader.GetString(levelOrdinal);
+        if (string.IsNullOrWhiteSpace(level))
+        {
+            level = "Acemi";
+        }
+
         var hash = new HashModel
         {
             Password = models.Password,
@@ -78,6 +90,8 @@ public class LoginService
         {
             roles.Add("User");
         }
+        // Birincil rol (geriye dönük uyumluluk için dizi de korunuyor)
+        var primaryRole = roles.FirstOrDefault() ?? "User";
         // JWT TOKEN
         var token = _jwtService.CreateToken(
                    new JwtModel
@@ -95,6 +109,8 @@ public class LoginService
                 token = token,
                 userId = UserId,
                 username = models.Username,
+                role = primaryRole,
+                level = level,
                 roles = roles
             }
         );

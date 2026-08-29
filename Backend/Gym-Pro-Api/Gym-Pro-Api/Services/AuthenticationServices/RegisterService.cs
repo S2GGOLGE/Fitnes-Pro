@@ -1,3 +1,4 @@
+using System.Globalization;
 using Apı.Helpers;
 using Apı.Model;
 using Apı.Service;
@@ -29,10 +30,20 @@ public class RegisterService
             return ApiResponseModel.Fail("Şifreler Eşleşmiyor Kontrol Edin");
         }
 
+        // 3. Level Normalizasyon + Validasyon
+        //    Sadece "Acemi", "Orta", "Uzman" kabul edilir.
+        //    Trim + Türkçe case-insensitive normalize edilir.
+        var normalizedLevel = NormalizeLevel(model.Level);
+        if (normalizedLevel is null)
+        {
+            return ApiResponseModel.Fail("Geçersiz seviye. Acemi, Orta veya Uzman seçiniz.");
+        }
+        model.Level = normalizedLevel;
+
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync();
 
-        // 3. Username ve Email Kontrolü
+        // 4. Username ve Email Kontrolü
         const string checkUserQuery = "SELECT COUNT(1) FROM Users WHERE Username = @Username OR Email = @Email";
         await using (var checkCommand = new SqlCommand(checkUserQuery, connection))
         {
@@ -45,7 +56,7 @@ public class RegisterService
             }
         }
 
-        // 4. Password Hash ve Salt Üretimi (Plaintext password DB'ye yazılmaz)
+        // 5. Password Hash ve Salt Üretimi (Plaintext password DB'ye yazılmaz)
         var salt = HashService.GenerateSalt();
         var hashModel = new HashModel
         {
@@ -54,7 +65,7 @@ public class RegisterService
         };
         var passwordHash = HashService.Hash(hashModel);
 
-        // 5. Transaction ile Kullanıcı ve Rol Kaydı
+        // 6. Transaction ile Kullanıcı ve Rol Kaydı
         await using var transaction = (SqlTransaction)await connection.BeginTransactionAsync();
 
         try
@@ -69,6 +80,7 @@ public class RegisterService
                 Email,
                 PasswordHash,
                 Salt,
+                Level,
                 CreatedAt
             )
             OUTPUT INSERTED.Id
@@ -80,6 +92,7 @@ public class RegisterService
                 @Email,
                 @PasswordHash,
                 @Salt,
+                @Level,
                 GETUTCDATE()
             )
             """;
@@ -93,6 +106,7 @@ public class RegisterService
                 command.Parameters.AddWithValue("@Email", model.Email);
                 command.Parameters.AddWithValue("@PasswordHash", passwordHash);
                 command.Parameters.AddWithValue("@Salt", salt);
+                command.Parameters.AddWithValue("@Level", model.Level);
 
                 userId = Convert.ToInt32(await command.ExecuteScalarAsync());
             }
@@ -126,5 +140,32 @@ public class RegisterService
             await transaction.RollbackAsync();
             throw;
         }
+    }
+
+    /// <summary>
+    /// Kullanıcıdan gelen seviye değerini güvenli şekilde normalize eder.
+    /// - Baştaki/sondaki boşlukları temizler.
+    /// - Türkçe büyük/küçük harf farkını (I/ı, İ/i) dikkate alır.
+    /// - Sadece üç standart değerden birine eşitse o standart değeri döner;
+    ///   aksi durumda null (validasyon başarısız) döner.
+    /// </summary>
+    private static string? NormalizeLevel(string? input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return null;
+        }
+
+        var trimmed = input.Trim();
+        var trCulture = CultureInfo.GetCultureInfo("tr-TR");
+        var lower = trimmed.ToLower(trCulture);
+
+        return lower switch
+        {
+            "acemi" => "Acemi",
+            "orta" => "Orta",
+            "uzman" => "Uzman",
+            _ => null
+        };
     }
 }

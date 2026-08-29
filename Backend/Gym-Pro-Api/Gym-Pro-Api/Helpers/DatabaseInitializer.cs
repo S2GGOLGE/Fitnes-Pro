@@ -107,6 +107,8 @@ namespace Apı.Helpers
                         [Email]        NVARCHAR(255)   NOT NULL,
                         [PasswordHash] NVARCHAR(255)   NOT NULL,
                         [Salt]         NVARCHAR(255)   NOT NULL,
+                        [Level]        NVARCHAR(20)    NOT NULL
+                            CONSTRAINT [DF_Users_Level] DEFAULT N'Acemi',
                         [CreatedAt]    DATETIME2       NOT NULL DEFAULT GETUTCDATE(),
                         CONSTRAINT [PK_Users] PRIMARY KEY CLUSTERED ([Id] ASC),
                         CONSTRAINT [UQ_Users_Username] UNIQUE ([Username]),
@@ -234,6 +236,20 @@ namespace Apı.Helpers
                 const string addSql = @"
                     ALTER TABLE [dbo].[Users]
                     ADD [CreatedAt] DATETIME2 NOT NULL CONSTRAINT [DF_Users_CreatedAt] DEFAULT GETUTCDATE();
+                ";
+                using var cmd = new SqlCommand(addSql, connection);
+                await cmd.ExecuteNonQueryAsync();
+            }
+
+            // 7) Level (Rol sisteminden bağımsız fitness seviyesi).
+            //    Mevcut kayıtlar default 'Acemi' ile dolar; sonradan değiştirilemez
+            //    (bu initializer yalnızca şema migration yapar).
+            if (!await ColumnExistsAsync(connection, "Users", "Level"))
+            {
+                const string addSql = @"
+                    ALTER TABLE [dbo].[Users]
+                    ADD [Level] NVARCHAR(20) NOT NULL
+                    CONSTRAINT [DF_Users_Level] DEFAULT N'Acemi';
                 ";
                 using var cmd = new SqlCommand(addSql, connection);
                 await cmd.ExecuteNonQueryAsync();

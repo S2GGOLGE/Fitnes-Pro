@@ -13,10 +13,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const lastNameInput = document.getElementById("lastName");
     const emailInput = document.getElementById("email");
     const usernameInput = document.getElementById("username");
+    const levelInput = document.getElementById("level");
     const passwordInput = document.getElementById("password");
     const confirmPasswordInput = document.getElementById("confirmPassword");
     const submitButton = registerForm ? registerForm.querySelector(".kayıt-btn") : null;
     const alertBox = document.getElementById("formAlert");
+
+    // İzin verilen fitness seviyeleri (backend ile aynı küme).
+    const ALLOWED_LEVELS = ["Acemi", "Orta", "Uzman"];
 
     if (!registerForm) {
         return;
@@ -48,12 +52,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const surname = lastNameInput ? lastNameInput.value.trim() : "";
         const email = emailInput ? emailInput.value.trim() : "";
         const username = usernameInput ? usernameInput.value.trim() : "";
+        const level = levelInput ? levelInput.value.trim() : "";
         const password = passwordInput ? passwordInput.value : "";
         const passwordRepeat = confirmPasswordInput ? confirmPasswordInput.value : "";
 
         // Client-side Validation
         if (!name || !surname || !email || !username || !password || !passwordRepeat) {
             showAlert("Lütfen tüm alanları doldurunuz.", "error");
+            return;
+        }
+
+        if (!ALLOWED_LEVELS.includes(level)) {
+            showAlert("Geçersiz seviye. Acemi, Orta veya Uzman seçiniz.", "error");
             return;
         }
 
@@ -69,7 +79,8 @@ document.addEventListener("DOMContentLoaded", () => {
             username: username,
             email: email,
             password: password,
-            passwordRepeat: passwordRepeat
+            passwordRepeat: passwordRepeat,
+            level: level
         };
 
         // Loading State
