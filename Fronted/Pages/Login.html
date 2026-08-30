@@ -54,6 +54,87 @@
 
         <form class="form">
 
+            <!-- Rate Limit Lock UI
+                 Sadece backend 429 döndüğünde görünür.
+                 Formun ÜSTÜNDE yer alır, inputlar arasına girmez.
+                 Normal durumda hidden olduğu için boşluk bırakmaz. -->
+
+            <div
+                class="login-rate-limit"
+                id="loginRateLimit"
+                aria-live="polite"
+                hidden
+            >
+
+                <div
+                    class="login-rate-limit-icon"
+                    aria-hidden="true"
+                >
+
+                    <svg
+                        width="36"
+                        height="36"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+
+                        <rect
+                            x="4"
+                            y="11"
+                            width="16"
+                            height="10"
+                            rx="2"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        />
+
+                        <path
+                            d="M8 11V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7V11"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                        />
+
+                        <circle
+                            cx="12"
+                            cy="16"
+                            r="1.5"
+                            fill="currentColor"
+                        />
+
+                        <path
+                            d="M12 16V18"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                        />
+
+                    </svg>
+
+                </div>
+
+                <div class="login-rate-limit-title">
+                    Çok Fazla Deneme
+                </div>
+
+                <div class="login-rate-limit-message">
+                    Tekrar giriş yapabilmek için bekleyin.
+                </div>
+
+                <div
+                    class="login-rate-limit-timer"
+                    id="loginRateLimitTimer"
+                    aria-label="Kalan bekleme süresi"
+                >
+
+                    05:00
+
+                </div>
+
+            </div>
+
+
             <!-- Username -->
 
             <input type="text" id="username" name="username" placeholder="Kullanıcı Adınızı Giriniz..."

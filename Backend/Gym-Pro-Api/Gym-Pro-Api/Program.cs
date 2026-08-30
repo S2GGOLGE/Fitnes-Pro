@@ -19,16 +19,51 @@ var defaultConnection =
     builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException(
         "Connection string 'DefaultConnection' bulunamadı.");
-#endregion
+
 #region Services DI
+
+// =========================================================
+// CORE SERVICES
+// =========================================================
 
 builder.Services.AddSingleton<JwtService>();
 
-builder.Services.AddScoped<RoleService>(sp => new RoleService(defaultConnection));
+// =========================================================
+// ROLE SERVICE
+// =========================================================
 
-builder.Services.AddScoped<RegisterService>(sp => new RegisterService(defaultConnection));
+builder.Services.AddScoped<RoleService>(sp =>
+    new RoleService(defaultConnection));
 
-builder.Services.AddScoped<LoginService>(sp => new LoginService(defaultConnection, sp.GetRequiredService<JwtService>(), sp.GetRequiredService<RoleService>()));
+// =========================================================
+// AUTHENTICATION RATE LIMITING
+// =========================================================
+
+// 5 başarısız login -> 5 dakika blok
+builder.Services.AddSingleton<LoginRateLimitingService>();
+
+// =========================================================
+// REGISTER
+// =========================================================
+
+builder.Services.AddScoped<RegisterService>(sp =>
+    new RegisterService(defaultConnection));
+
+// =========================================================
+// LOGIN
+// =========================================================
+
+builder.Services.AddScoped<LoginService>(sp =>
+    new LoginService(
+        defaultConnection,
+        sp.GetRequiredService<JwtService>(),
+        sp.GetRequiredService<RoleService>(),
+        sp.GetRequiredService<LoginRateLimitingService>()
+    ));
+
+// =========================================================
+// PASSWORD
+// =========================================================
 
 builder.Services.AddScoped<PasswordupdateService>(sp =>
     new PasswordupdateService(defaultConnection));
@@ -150,3 +185,4 @@ app.MapGet("/api/auth/me", [Microsoft.AspNetCore.Authorization.Authorize] (Claim
 #endregion
 
 app.Run();
+#endregion
