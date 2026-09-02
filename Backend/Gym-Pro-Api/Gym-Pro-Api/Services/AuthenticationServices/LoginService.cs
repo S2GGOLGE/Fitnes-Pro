@@ -1,7 +1,5 @@
-using System.Threading.RateLimiting;
 using Apı.Helpers;
 using Apı.Model;
-using Apı.Service;
 using Microsoft.Data.SqlClient;
 
 namespace Apı.Service.Authentication;
@@ -11,16 +9,35 @@ public class LoginService
     private readonly string _connectionString;
     private readonly JwtService _jwtService;
     private readonly RoleService _roleService;
-    private readonly LoginRateLimitingService __rateLimitService;
+    private readonly LoginRateLimitingService _rateLimitService;
 
-    public LoginService(string connectionString, JwtService jwtService, RoleService roleService, LoginRateLimitingService rateLimitingService)
+    public LoginService(
+        string connectionString,
+        JwtService jwtService,
+        RoleService roleService,
+        LoginRateLimitingService rateLimitingService)
     {
-        _connectionString = connectionString ?? throw new ArgumentException(nameof(connectionString));
-        _jwtService = jwtService ?? throw new ArgumentException(nameof(jwtService));
-        _roleService = roleService ?? throw new ArgumentException(nameof(roleService));
-        __rateLimitService = rateLimitingService ?? throw new ArgumentException(nameof(rateLimitingService));
+        _connectionString =
+            connectionString
+            ?? throw new ArgumentNullException(nameof(connectionString));
 
+        _jwtService =
+            jwtService
+            ?? throw new ArgumentNullException(nameof(jwtService));
+
+        _roleService =
+            roleService
+            ?? throw new ArgumentNullException(nameof(roleService));
+
+        _rateLimitService =
+            rateLimitingService
+            ?? throw new ArgumentNullException(nameof(rateLimitingService));
     }
+
+    // =========================================================
+    // LOGIN
+    // =========================================================
+
     public async Task<ApiResponseModel> LoginAsync(
         LoginModels models,
         string clientIp)
@@ -29,7 +46,8 @@ public class LoginService
         // VALIDATION
         // =========================================================
 
-        var validationError = EmptyspaceHelpers.Validate(models);
+        var validationError =
+            EmptyspaceHelpers.Validate(models);
 
         if (validationError != null)
         {
@@ -37,21 +55,44 @@ public class LoginService
         }
 
         // =========================================================
-        // RATE LIMIT KONTROLÜ
-        // 5 başarısız denemeden sonra 5 dakika blok
+        // RATE LIMIT - KALICI BLOK
         // =========================================================
 
-        if (__rateLimitService.IsBlocked(
+        if (_rateLimitService.IsPermanentlyLocked(clientIp))
+        {
+            return ApiResponseModel.FailLocked(
+                "Güvenlik nedeniyle erişiminiz kalıcı olarak bloke edilmiştir."
+            );
+        }
+
+        // =========================================================
+        // RATE LIMIT - GEÇİCİ BLOK
+        // =========================================================
+
+        if (_rateLimitService.IsBlocked(
             clientIp,
             out var remaining))
         {
-            var minutes = Math.Ceiling(
-                remaining.TotalMinutes
-            );
+            var remainingSeconds =
+                Math.Max(
+                    1,
+                    (int)Math.Ceiling(
+                        remaining.TotalSeconds
+                    )
+                );
 
-            return ApiResponseModel.Fail(
+            var minutes =
+                Math.Max(
+                    1,
+                    (int)Math.Ceiling(
+                        remaining.TotalMinutes
+                    )
+                );
+
+            return ApiResponseModel.FailRateLimited(
                 $"Çok fazla başarısız giriş denemesi. " +
-                $"{minutes} dakika sonra tekrar deneyiniz."
+                $"{minutes} dakika sonra tekrar deneyiniz.",
+                remainingSeconds
             );
         }
 
@@ -60,15 +101,15 @@ public class LoginService
         // =========================================================
 
         const string query = """
-        SELECT
-            Id,
-            Username,
-            PasswordHash,
-            Salt,
-            Level
-        FROM dbo.Users
-        WHERE Username = @Username
-        """;
+            SELECT
+                Id,
+                Username,
+                PasswordHash,
+                Salt,
+                Level
+            FROM dbo.Users
+            WHERE Username = @Username
+            """;
 
         await using var connection =
             new SqlConnection(_connectionString);
@@ -93,37 +134,27 @@ public class LoginService
 
         if (!await reader.ReadAsync())
         {
-            var attempts =
-                __rateLimitService.RegisterFailedAttempt(clientIp);
-
-            if (attempts >= 5)
-            {
-                return ApiResponseModel.Fail(
-                    "Çok fazla başarısız giriş denemesi. " +
-                    "Hesabınıza erişim 5 dakika süreyle engellendi."
-                );
-            }
-
-            return ApiResponseModel.Fail(
-                "Kullanıcı adı veya şifre yanlış."
-            );
+            return RegisterFailedLogin(clientIp);
         }
 
         // =========================================================
         // KULLANICI BİLGİLERİ
         // =========================================================
 
-        int userId = reader.GetInt32(
-            reader.GetOrdinal("Id")
-        );
+        var userId =
+            reader.GetInt32(
+                reader.GetOrdinal("Id")
+            );
 
-        string passwordHash = reader.GetString(
-            reader.GetOrdinal("PasswordHash")
-        );
+        var passwordHash =
+            reader.GetString(
+                reader.GetOrdinal("PasswordHash")
+            );
 
-        string salt = reader.GetString(
-            reader.GetOrdinal("Salt")
-        );
+        var salt =
+            reader.GetString(
+                reader.GetOrdinal("Salt")
+            );
 
         // =========================================================
         // LEVEL
@@ -132,9 +163,10 @@ public class LoginService
         var levelOrdinal =
             reader.GetOrdinal("Level");
 
-        string level = reader.IsDBNull(levelOrdinal)
-            ? "Acemi"
-            : reader.GetString(levelOrdinal);
+        var level =
+            reader.IsDBNull(levelOrdinal)
+                ? "Acemi"
+                : reader.GetString(levelOrdinal);
 
         if (string.IsNullOrWhiteSpace(level))
         {
@@ -145,68 +177,57 @@ public class LoginService
         // ŞİFRE KONTROLÜ
         // =========================================================
 
-        var hash = new HashModel
+        var hashModel = new HashModel
         {
             Password = models.Password,
             Salt = salt
         };
 
         var generatedHash =
-            HashService.Hash(hash);
+            HashService.Hash(hashModel);
 
-        if (generatedHash != passwordHash)
+        if (!string.Equals(
+                generatedHash,
+                passwordHash,
+                StringComparison.Ordinal))
         {
-            var attempts =
-                __rateLimitService.RegisterFailedAttempt(clientIp);
-
-            if (attempts >= 5)
-            {
-                return ApiResponseModel.Fail(
-                    "Çok fazla başarısız giriş denemesi. " +
-                    "Hesabınıza erişim 5 dakika süreyle engellendi."
-                );
-            }
-
-            return ApiResponseModel.Fail(
-                "Kullanıcı adı veya şifre yanlış."
-            );
+            return RegisterFailedLogin(clientIp);
         }
 
         // =========================================================
-        // BAŞARILI GİRİŞ
+        // BAŞARILI LOGIN
         // =========================================================
 
-        __rateLimitService.reset(clientIp);
+        _rateLimitService.Reset(clientIp);
 
         // =========================================================
-        // KULLANICI ROLLERİNİ GETİR
+        // ROLLER
         // =========================================================
 
         var roles =
             await _roleService.GetUserRolesAsync(userId);
 
-        // Kullanıcının rolü yoksa User
         if (roles.Count == 0)
         {
             roles.Add("User");
         }
 
-        // Birincil rol
         var primaryRole =
             roles.FirstOrDefault() ?? "User";
 
         // =========================================================
-        // JWT TOKEN
+        // JWT
         // =========================================================
 
-        var token = _jwtService.CreateToken(
-            new JwtModel
-            {
-                UserId = userId,
-                Username = models.Username,
-                Roles = roles
-            }
-        );
+        var token =
+            _jwtService.CreateToken(
+                new JwtModel
+                {
+                    UserId = userId,
+                    Username = models.Username,
+                    Roles = roles
+                }
+            );
 
         // =========================================================
         // RESPONSE
@@ -216,14 +237,68 @@ public class LoginService
             "Giriş Başarılı",
             new
             {
-                token = token,
-                userId = userId,
+                token,
+                userId,
                 username = models.Username,
                 role = primaryRole,
-                level = level,
-                roles = roles
+                level,
+                roles
             }
         );
     }
 
+    // =========================================================
+    // BAŞARISIZ LOGIN MERKEZİ
+    // =========================================================
+
+    private ApiResponseModel RegisterFailedLogin(string clientIp)
+    {
+        var attempts =
+            _rateLimitService.RegisterFailedAttempt(clientIp);
+
+        // =========================================================
+        // 15 → KALICI BLOK
+        // =========================================================
+
+        if (attempts >= 15)
+        {
+            return ApiResponseModel.FailLocked(
+                "Güvenlik nedeniyle erişiminiz kalıcı olarak bloke edilmiştir."
+            );
+        }
+
+        // =========================================================
+        // 10 → 10 DAKİKA
+        // =========================================================
+
+        if (attempts == 10)
+        {
+            return ApiResponseModel.FailRateLimited(
+                "Çok fazla başarısız giriş denemesi. " +
+                "Erişiminiz 10 dakika süreyle engellendi.",
+                600
+            );
+        }
+
+        // =========================================================
+        // 5 → 5 DAKİKA
+        // =========================================================
+
+        if (attempts == 5)
+        {
+            return ApiResponseModel.FailRateLimited(
+                "Çok fazla başarısız giriş denemesi. " +
+                "Erişiminiz 5 dakika süreyle engellendi.",
+                300
+            );
+        }
+
+        // =========================================================
+        // NORMAL HATA
+        // =========================================================
+
+        return ApiResponseModel.Fail(
+            "Kullanıcı adı veya şifre yanlış."
+        );
+    }
 }

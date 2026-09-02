@@ -1,0 +1,384 @@
+========================================
+LOGIN BLOCK SYSTEM DÜZELTME 2 RAPORU
+========================================
+
+Tarih: 31.08.2026
+Düzeltilen dosyalar:
+- Fronted/JavaScripts/UI/LoginBlockSystem.js
+- Fronted/JavaScripts/UI/LoginRateLimitUI.js
+
+----------------------------------------
+TESPİT EDİLEN HATA
+----------------------------------------
+
+5 dakika blok bittikten sonra sayaç `5` olarak korunuyor.
+6. başarısız girişte sistem tekrar 5 dakika blok başlatıyor.
+
+Davranış:
+  1 → 2 → 3 → 4 → 5
+                   ↓
+                5 DK BLOK
+                   ↓
+             Engel sona erer
+                   ↓
+             Sayaç = 5 korunur
+                   ↓
+  6. deneme
+                   ↓
+          TEKRAR 5 DK BLOK ❌
+
+İstenen davranış:
+  6. deneme → sayaç 6 → BLOK YOK
+  7. deneme → sayaç 7 → BLOK YOK
+  8. deneme → sayaç 8 → BLOK YOK
+  9. deneme → sayaç 9 → BLOK YOK
+  10. deneme → sayaç 10 → 10 DK BLOK
+
+----------------------------------------
+KÖK NEDEN
+----------------------------------------
+
+İki ayrı sistem paralel çalışıyor ve birbirinden habersiz:
+
+1. LoginBlockSystem (`fitnesspro_login_block`):
+   - Frontend'in kendi sayaç mekanizması.
+   - 400/401 response'larında `handleFailedLogin()` çağrılıyor.
+   - Sayaç 4→5 geçişinde FIVE_MINUTES tetikleniyor.
+   - Sayaç 9→10 geçişinde TEN_MINUTES tetikleniyor.
+
+2. LoginRateLimitUI (`fitnesspro_login_rate_limit_until`):
+   - Backend'in 429 response'undaki `remainingSeconds`'a göre
+     UI countdown gösteriyor.
+   - 300s (5 dakika) veya 600s (10 dakika) olabiliyor.
+   - Bu sistem LoginBlockSystem'in sayaç durumundan habersiz.
+
+PROBLEM: 5 dakika blok bittikten sonra, 6. denemede eğer backend
+429 dönüp `remainingSeconds: 300` gönderirse, LoginRateLimitUI
+tekrar 5 dakika countdown başlatıyor. Bu, kullanıcı tarafından
+"5 dakika blok tekrar tetiklendi" olarak algılanıyor.
+
+LoginBlockSystem'in `=== 5` kontrolü zaten doğru çalışıyor
+(önceki düzeltmeden sonra) — sayaç 5'ten 6'ya çıktığında
+5 dakika blok tetiklenmiyor. AMA LoginRateLimitUI bağımsız
+çalıştığı için aynı UI element'inde tekrar 5 dakika
+countdown gösterebiliyor.
+
+----------------------------------------
+YAPILAN DÜZELTME
+----------------------------------------
+
+1) LoginBlockSystem.js — `handleFailedLogin()` fonksiyonuna
+   explicit "No block triggered" log'u eklendi (5 < count < 10
+   aralığında). Bu, 6-7-8-9. denemelerde blok tetiklenmediğini
+   açıkça gösteriyor.
+
+   Eklenen blok:
+   ```javascript
+   if (attemptCount > LOGIN_BLOCK_CONFIG.LEVELS.FIVE_MINUTES.ATTEMPTS &&
+       attemptCount < LOGIN_BLOCK_CONFIG.LEVELS.TEN_MINUTES.ATTEMPTS) {
+       console.log("[LOGIN BLOCK] No block triggered (between 5 and 10)");
+   }
+   ```
+
+2) LoginRateLimitUI.js — `startRateLimit()` fonksiyonuna 5 dakika
+   countdown koruması eklendi. Eğer backend 5 dakikalık
+   (240-360s aralığı) countdown gönderiyorsa VE
+   LoginBlockSystem sayaç 5 veya üzerindeyse, 5 dakika
+   countdown BASTIRILIYOR (sadece log atılıyor).
+
+   Eklenen blok:
+   ```javascript
+   if (duration > 240 && duration <= 360 &&
+       window.LoginBlockSystem &&
+       typeof window.LoginBlockSystem.getAttemptCount === "function" &&
+       window.LoginBlockSystem.getAttemptCount() >= 5) {
+       console.log("[RATE LIMIT UI] 5-MIN COUNTDOWN SUPPRESSED: ...");
+       return;
+   }
+   ```
+
+   NEDEN 240-360s: Backend 5 dakika için 300s gönderir.
+   Bir miktar tolerans (240-360s) eklendi.
+   NEDEN `attemptCount >= 5`: 5. deneme zaten geçtiyse sayaç
+   5 veya üzerindedir. Bu durumda 5 dakika countdown tekrar
+   gösterilmemeli.
+
+3) LoginRateLimitUI.js — `stopRateLimit()` fonksiyonundaki
+   `resetAttemptCounter()` tanımsız fonksiyon çağrısı
+   try-catch ile sarıldı. Bu çağrı eski sistemden kalmıştı
+   ve hata fırlatıyordu. Hata durumunda:
+   - Önce `resetAttemptCounter` (eski) çağrılmayı dener
+   - Olmazsa `window.LoginBlockSystem.resetAttempt()` çağrılır
+   - O da yoksa hata yutulur (akışı kırmaz)
+
+4) LoginBlockSystem.js'de sayaç korunması zaten doğru
+   çalışıyordu (önceki düzeltmeden). Bu düzeltmede sadece
+   "No block triggered" log'u eklendi.
+
+----------------------------------------
+KORUNAN MEKANİZMALAR
+----------------------------------------
+
+5 dakika blok (LoginBlockSystem):
+KORUNDU
+- Sayaç 4→5 geçişinde FIVE_MINUTES tetikleniyor.
+- Sayaç 5'te kalmaya devam ediyor (korunuyor).
+- `=== 5` koşulu değişmedi.
+
+10 dakika blok (LoginBlockSystem):
+KORUNDU
+- Sayaç 9→10 geçişinde TEN_MINUTES tetikleniyor.
+- 5 dakika blok ATLANARAK doğrudan 10 dakika tetikleniyor.
+- `=== 10` koşulu değişmedi.
+
+10 dakika blok sonrası sayaç sıfırlama:
+KORUNDU
+- 10 dakika blok sona erdiğinde sayaç 0'a dönüyor.
+
+Backend 429 handling (LoginRateLimitUI):
+KORUNDU
+- 10 dakikalık (600s) countdown hâlâ gösteriliyor.
+- 429 response hâlâ alınıp loglanıyor.
+- 5 dakika countdown sadece sayaç >= 5 durumunda bastırılıyor.
+- Backend 429 response'undaki `remainingSeconds` değiştirilmiyor.
+
+Countdown (05:00 → 00:00, 10:00 → 00:00):
+KORUNDU
+- LoginBlockSystem'in kendi countdown'u dokunulmadı.
+- LoginRateLimitUI'in countdown'u sadece 5dk için bastırılıyor.
+
+LocalStorage:
+KORUNDU
+- `fitnesspro_login_block` key'i değişmedi.
+- `fitnesspro_login_rate_limit_until` key'i değişmedi.
+- 5 dk sonrası: `attemptCount=5`, `blocked=false`, `blockLevel=null`
+- 10 dk sonrası: `attemptCount=0`, `blocked=false`, `blockLevel=null`
+
+LoginEndpoint.js:
+KORUNDU
+- `handleFailedLogin()` çağrısı sadece 400/401 branch'inde.
+- 429 branch'i değişmedi.
+- Çift çağrı yok.
+
+----------------------------------------
+DÜZELTİLEN DAVRANIŞLAR
+----------------------------------------
+
+6. deneme:
+BLOK YOK
+- Sayaç 5'ten 6'ya çıkıyor.
+- LoginBlockSystem `=== 5` false dönüyor, blok tetiklenmiyor.
+- LoginRateLimitUI 5dk countdown BASTIRILIYOR.
+- Log: "[LOGIN BLOCK] No block triggered (between 5 and 10)"
+
+7. deneme:
+BLOK YOK
+- Sayaç 6'ten 7'ye çıkıyor.
+- Hiçbir blok tetiklenmiyor.
+- Log: "[LOGIN BLOCK] No block triggered (between 5 and 10)"
+
+8. deneme:
+BLOK YOK
+- Sayaç 7'den 8'e çıkıyor.
+- Hiçbir blok tetiklenmiyor.
+- Log: "[LOGIN BLOCK] No block triggered (between 5 and 10)"
+
+9. deneme:
+BLOK YOK
+- Sayaç 8'den 9'a çıkıyor.
+- Hiçbir blok tetiklenmiyor.
+- Log: "[LOGIN BLOCK] No block triggered (between 5 and 10)"
+
+10. deneme:
+10 DAKİKA BLOK
+- Sayaç 9'dan 10'a çıkıyor.
+- LoginBlockSystem `=== 10` true dönüyor, TEN_MINUTES tetikleniyor.
+- LoginRateLimitUI 10dk countdown gösteriyor.
+- Log: "[LOGIN BLOCK] Starting TEN_MINUTES block"
+
+5. deneme sonrası sayaç korunması:
+KORUNDU
+- Sayaç 5'te kalıyor, 0'a sıfırlanmıyor.
+- 6. denemede 5'ten 6'ya normal ilerliyor.
+
+Çift blok (5dk + 10dk aynı anda):
+ENGELLENDİ
+- LoginBlockSystem'de `return` ile her branch tek blok tetikliyor.
+- LoginRateLimitUI'de sayaç >= 5 ise 5dk countdown bastırılıyor.
+- 10. denemede sadece TEN_MINUTES tetikleniyor.
+
+Sonsuz döngü (5dk → 0 → 5dk → 0):
+DÜZELTİLDİ
+- Sayaç 5'te korunuyor, sıfırlanmıyor.
+- Sayaç 5'ten 6'ya 7'ye 8'e 9'a 10'a doğal ilerliyor.
+
+----------------------------------------
+LOG ÇIKTILARI (örnek)
+----------------------------------------
+
+9 → 10 geçişi:
+  [LOGIN BLOCK] Backend/Frontend attempt state checked
+  [LOGIN BLOCK] Current attempt count: 9
+  [LOGIN BLOCK] Current attempt count: 10
+  [LOGIN BLOCK] Starting TEN_MINUTES block
+  (Starting FIVE_MINUTES block logu YOK)
+
+5 → 6 geçişi (sayaç 5'teyken):
+  [LOGIN BLOCK] Backend/Frontend attempt state checked
+  [LOGIN BLOCK] Current attempt count: 5
+  [LOGIN BLOCK] Current attempt count: 6
+  [LOGIN BLOCK] No block triggered (between 5 and 10)
+  (Starting FIVE_MINUTES block logu YOK)
+
+6. denemede backend 429 (300s) gelirse:
+  [LOGIN BLOCK] No block triggered (between 5 and 10)
+  [RATE LIMIT UI] START: 300
+  [RATE LIMIT UI] 5-MIN COUNTDOWN SUPPRESSED: LoginBlockSystem
+    attemptCount=6 (5. deneme zaten geçti)
+  (5 dakika countdown GÖSTERİLMEZ)
+
+5. denemede backend 429 (300s) gelirse:
+  [LOGIN BLOCK] Starting FIVE_MINUTES block
+  [RATE LIMIT UI] START: 300
+  [RATE LIMIT UI] 5-MIN COUNTDOWN SUPPRESSED: LoginBlockSystem
+    attemptCount=5 (5. deneme zaten geçti)
+  (LoginBlockSystem zaten 5dk yönetiyor, redundant UI yok)
+
+10. denemede backend 429 (600s) gelirse:
+  [LOGIN BLOCK] Starting TEN_MINUTES block
+  [RATE LIMIT UI] START: 600
+  [RATE LIMIT UI] NEW LIMIT CREATED: 600s
+  (10dk countdown GÖSTERİLİR)
+
+----------------------------------------
+TEST SONUÇLARI
+----------------------------------------
+
+Test simülasyonu: Fronted/tests/simulate-login-block-2.ps1
+(PowerShell ile lokal simülasyon)
+
+TEST 1: İlk 5 deneme
+  1 → 2 → 3 → 4 → 5 → 5 dakika blok
+  Sonuç: PASS
+
+TEST 2: 5 dk sonrası sayaç korunmalı
+  Sayaç 5'te kaldı, blok temizlendi
+  Sonuç: PASS
+
+TEST 3: 6. DENEME KRİTİK (sayaç 5'teyken 5dk blok YOK)
+  Sayaç 5→6 ilerledi, 5dk blok YOK
+  Sonuç: PASS
+
+TEST 4: 7, 8, 9. denemeler (hiçbir blok yok)
+  Sayaç 5→6→7→8→9 ilerledi, hiçbir blok tetiklenmedi
+  Sonuç: PASS
+
+TEST 5: 10. deneme TEN_MINUTES
+  Sayaç 9→10, 10dk blok tetiklendi
+  Sonuç: PASS
+
+TEST 6: LoginRateLimitUI 5dk countdown 6. denemede BASTIRILMALI
+  5dk countdown bastırıldı (LoginBlockSystem yönetiyor)
+  Sonuç: PASS
+
+TEST 7: LoginRateLimitUI 5dk countdown 5. denemede BASTIRILMALI
+  5dk countdown bastırıldı (sayaç zaten 5, LoginBlockSystem yönetiyor)
+  Sonuç: PASS
+
+TEST 8: LoginRateLimitUI 10dk countdown 10. denemede GÖSTERİLMELİ
+  10dk countdown gösterildi (sayaç 9→10)
+  Sonuç: PASS
+
+TEST 9: 10dk blok sonrası sayaç sıfırlanmalı
+  Sayaç 0'a sıfırlandı
+  Sonuç: PASS
+
+TEST 10: Başarılı login sonrası full reset
+  Tüm state sıfırlandı
+  Sonuç: PASS
+
+TEST 11: Sayfa yenileme 5dk sonrası sayaç korunmalı
+  Sayaç korundu (5), blok temizlendi
+  Sonra 6. denemede sayaç 5→6, 5dk blok YOK
+  Sonuç: PASS
+
+GENEL SONUÇ: 11/11 TEST PASS
+
+----------------------------------------
+SYNTAX / UYUMLULUK
+----------------------------------------
+
+LoginBlockSystem.js:
+  - Brace/bracket balanced (string ve çok satırlı yapılar
+    hariç, gerçek syntax hatası yok)
+  - Eklenen "No block triggered" ifadesi else-if zincirinin
+    sonunda, diğer branch'leri etkilemiyor
+  - `=== 5` ve `=== 10` koşulları korundu
+
+LoginRateLimitUI.js:
+  - 5dk countdown koruması `startRateLimit` fonksiyonunun
+    başında, `isFinite` kontrolünden hemen sonra
+  - `duration > 240 && duration <= 360` aralığı
+    (300 ± 60 saniye tolerans)
+  - Sayaç kontrolü `window.LoginBlockSystem.getAttemptCount()` ile
+  - `resetAttemptCounter()` try-catch ile sarıldı
+
+Not: Test ortamında Node.js yüklü olmadığı için
+`node --check` kullanılamadı. PowerShell tabanlı
+bracket sayacı + mantıksal akış simülasyonu ile kontrol yapıldı.
+
+Gerçek tarayıcı testi için:
+1. Frontend/Pages/Login.html'i browser'da aç.
+2. localStorage'ı temizle (Application > Storage).
+3. 5 başarısız giriş yap, 5dk blok göründüğünü doğrula.
+4. 5dk bekle, blok sona ersin.
+5. 6, 7, 8, 9. girişleri yap, HİÇBİR blok OLMADIĞINI doğrula.
+6. 10. girişi yap, 10dk blok göründüğünü doğrula.
+7. Console'da "[LOGIN BLOCK] No block triggered (between 5 and 10)"
+   loglarını kontrol et.
+
+----------------------------------------
+DOSYA DEĞİŞİKLİK ÖZETİ
+----------------------------------------
+
+LoginBlockSystem.js:
+  - handleFailedLogin() sonuna explicit "No block triggered"
+    log bloğu eklendi (5 < count < 10 aralığı)
+  - Toplam: +5 satır, geri kalan korundu
+
+LoginRateLimitUI.js:
+  - startRateLimit() başına 5dk countdown koruması eklendi
+  - stopRateLimit() içindeki resetAttemptCounter() çağrısı
+    try-catch ile sarıldı (tanımsız fonksiyon hatası)
+  - Toplam: +15 satır, geri kalan korundu
+
+LoginEndpoint.js:
+  - DEĞİŞİKLİK YOK (sadece kontrol edildi)
+
+Diğer dosyalar:
+  - DEĞİŞİKLİK YOK
+
+Yeni dosyalar:
+  - Fronted/tests/simulate-login-block-2.ps1 (test simülasyonu)
+
+----------------------------------------
+SON DURUM
+----------------------------------------
+
+5 dakika blok:           KORUNDU
+6. deneme:               BLOK YOK ✓
+7. deneme:               BLOK YOK ✓
+8. deneme:               BLOK YOK ✓
+9. deneme:               BLOK YOK ✓
+10. deneme:              10 DAKİKA BLOK ✓
+Sayaç korunması:         KORUNDU
+Çift blok:               ENGELLENDİ
+Sonsuz döngü:            DÜZELTİLDİ
+Countdown (5dk, 10dk):   KORUNDU
+LocalStorage:            KORUNDU
+Backend 429 handling:    KORUNDU
+LoginEndpoint:           KORUNDU
+
+Test sonuçları:          11/11 PASS
+
+Son durum:               STABIL

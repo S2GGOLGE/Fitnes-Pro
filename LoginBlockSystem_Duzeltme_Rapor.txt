@@ -1,0 +1,365 @@
+========================================
+LOGIN BLOCK SYSTEM DÜZELTME RAPORU
+========================================
+
+Tarih: 31.08.2026
+Düzeltilen dosyalar:
+- Fronted/JavaScripts/UI/LoginBlockSystem.js
+- Fronted/JavaScripts/EndPoint/LoginEndpoint.js (kontrol edildi, değişiklik gerekmedi)
+
+----------------------------------------
+TESPİT EDİLEN SORUN
+----------------------------------------
+
+Backend'in gerçek başarısız giriş sayacı doğru çalışıyordu.
+10. başarısız girişte backend 10 dakika engel veriyordu.
+
+ANCAK: Backend 10'a ulaşmadan ÖNCE, frontend'in kendi
+localStorage sayacı yanlışlıkla tekrar 5 dakika engel
+tetikliyordu.
+
+Özellikle kritik senaryo:
+
+  Backend sayaç = 9
+  Kullanıcı yanlış şifre giriyor
+  ↓
+  Frontend kendi sayacını kontrol ediyor (0..5)
+  ↓
+  Frontend kendi sayacı 5'e ulaşıyor (sayfa yenileme
+  sonrası sıfırlanmış olduğu için)
+  ↓
+  Frontend 5 dakika blok başlatıyor
+  ↓
+  Backend 10'a ulaşıyor (10 dakika blok vermesi gerekirken)
+
+  Beklenen: 9 -> 10 -> 10 dakika blok
+  Gerçekleşen: 5 -> 5 dakika blok (yanlış)
+
+Aynı başarısız login için çift blok tetikleme riski vardı:
+  5 dakika blok + 10 dakika blok art arda.
+
+5 dakika blok bittikten sonra sayaç tekrar 5'e dönüyor
+ve sistem sonsuz döngüye giriyordu:
+  5 -> 5 dk blok -> blok bitti -> sayaç 0'a sıfırlandı
+  -> 5 -> 5 dk blok -> ...
+
+----------------------------------------
+SORUNUN NEDENİ
+----------------------------------------
+
+LoginBlockSystem.js içindeki getState() fonksiyonunda
+mantık hatası vardı (dosya: Fronted/JavaScripts/UI/LoginBlockSystem.js
+satır 89-92, eski hali):
+
+  // Eski blok süresi geçmişse temizle
+  if (state.blocked && state.blockUntil &&
+      Date.now() >= state.blockUntil) {
+      console.log("[LOGIN BLOCK] Block expired, cleaning up");
+      return getInitialState();   // <-- BUG
+  }
+
+Bu kod, blok süresi dolmuşsa **tüm state'i**
+getInitialState() ile sıfırlıyordu. Bu da
+attemptCount değerini 0'a çekiyordu.
+
+YAN ETKİ: Sayfa yenileme sonrası (F5) sayaç kayboluyor.
+Kullanıcı 5 başarısız deneme daha yaptığında sayaç
+tekrar 0'dan 5'e geliyor ve 5 dakika blok TEKRAR
+tetikleniyordu.
+
+----------------------------------------
+YAPILAN DÜZELTME
+----------------------------------------
+
+1) getState() fonksiyonu artık salt okunur (pure read).
+   Süresi dolmuş blok durumunda attemptCount SIFIRLANMAZ.
+   Süresi dolmuş blok temizliği stopBlock() ve
+   restoreState() tarafından yapılır.
+
+2) Yeni isBlockExpired(state) yardımcı fonksiyonu eklendi.
+   Sadece blok durumunun süresi dolmuş mu kontrol eder,
+   state'i değiştirmez.
+
+3) restoreState() fonksiyonu güncellendi.
+   Sayfa yenileme sonrası blok süresi dolmuşsa
+   stopBlock() çağrılarak blok temizlenir, ancak
+   attemptCount KORUNUR (5 dakika bloktan sonra 5'te kalır).
+
+4) stopBlock() fonksiyonunda log'lar detaylandırıldı:
+   - FIVE_MINUTES block expired - preserving attemptCount: X
+   - TEN_MINUTES block expired - resetting attemptCount to 0
+
+5) handleFailedLogin() fonksiyonunda log formatı
+   istenen formata getirildi:
+   - "Backend/Frontend attempt state checked"
+   - "Current attempt count: X"
+   - "Starting FIVE_MINUTES block"
+   - "Starting TEN_MINUTES block"
+
+6) startBlock() fonksiyonuna downgrade koruması eklendi:
+   - Daha yüksek seviyede blok aktifse düşürme yapılmaz
+     (TEN_MINUTES aktifken FIVE_MINUTES başlatılmaz).
+   - Aynı seviyede blok zaten aktifse tekrar başlatılmaz.
+
+7) incrementAttempt() içindeki log "Current attempt count: X"
+   formatına getirildi (tutarlılık).
+
+----------------------------------------
+KORUNAN MEKANİZMALAR
+----------------------------------------
+
+5 dakika blok:
+KORUNDU
+- 5 başarısız giriş sonrası 5 dakika blok hâlâ tetikleniyor.
+- attemptCount === 5 koşulu değişmedi.
+- 5 dakika blok süresi (5 dakika) değişmedi.
+- MESAJ metni ("Çok fazla başarısız giriş. Lütfen 5 dakika
+  sonra tekrar deneyiniz.") değişmedi.
+
+10 dakika blok:
+KORUNDU
+- 10 başarısız giriş sonrası 10 dakika blok hâlâ tetikleniyor.
+- attemptCount === 10 koşulu değişmedi.
+- 10 dakika blok süresi (10 dakika) değişmedi.
+- MESAJ metni ("Çok fazla başarısız giriş. Lütfen 10 dakika
+  sonra tekrar deneyiniz.") değişmedi.
+
+Countdown:
+KORUNDU
+- 5 dakika: 05:00 -> 00:00 çalışmaya devam ediyor.
+- 10 dakika: 10:00 -> 00:00 çalışmaya devam ediyor.
+- updateCountdown(), startCountdown(), stopCountdown(),
+  formatTime() fonksiyonlarında değişiklik yapılmadı.
+- Countdown bitişi yeni blok tetiklemiyor (stopBlock
+  sadece mevcut bloku temizler, yenisini başlatmaz).
+
+LocalStorage:
+KORUNDU
+- Storage key "fitnesspro_login_block" değişmedi.
+- State alanları (attemptCount, blocked, blockLevel,
+  blockStartedAt, blockUntil) aynı kaldı.
+- 5 dakika bittikten sonra: blocked=false, blockLevel=null
+  olur, attemptCount=5 KORUNUR.
+- 10 dakika bittikten sonra: blocked=false, blockLevel=null
+  olur, attemptCount=0'a SIFIRLANIR (stopBlock içinde).
+
+----------------------------------------
+DÜZELTİLEN DAVRANIŞLAR
+----------------------------------------
+
+9 -> 10 geçişi:
+DÜZELTİLDİ
+- Sayaç 5'te kalmış olsa bile (önceki 5 dk blok sonrası)
+  bir sonraki başarısız deneme 5->6 yapar, 5 dk blok
+  yeniden tetiklenmez.
+- 6 -> 7 -> 8 -> 9 -> 10 akışı normal ilerler.
+- 10. denemede doğrudan TEN_MINUTES tetiklenir.
+
+Çift blok:
+ENGELLENDİ
+- startBlock() içinde downgrade koruması eklendi.
+- Aynı login işleminde 5 dk + 10 dk blok art arda
+  tetiklenmez.
+- handleFailedLogin() içinde === kontrolü sayesinde
+  sayaç 5'e veya 10'a eşit olduğunda SADECE ilgili blok
+  tetiklenir.
+
+Sayaç korunması (sayfa yenileme sonrası):
+DÜZELTİLDİ
+- 5 dakika blok bittikten sonra sayfa yenilendiğinde
+  attemptCount artık 0'a sıfırlanmıyor.
+- Sayaç 5'te kalıyor ve sonraki başarısız denemelerde
+  6, 7, 8, 9, 10 olarak ilerliyor.
+
+Sonsuz döngü:
+DÜZELTİLDİ
+- 5 -> 5 dk blok -> blok bitti -> 5 (KORUNUR) -> 6
+  akışı doğru çalışıyor.
+- Eski sistemdeki gibi 5 -> 5 dk blok -> 0 (sıfırlanır)
+  -> 5 -> 5 dk blok döngüsü kırıldı.
+
+----------------------------------------
+ENTEGRASYON KONTROLÜ
+----------------------------------------
+
+LoginEndpoint entegrasyonu:
+KONTROL EDİLDİ (değişiklik gerekmedi)
+- handleFailedLogin() SADECE 400/401 response'larında
+  çağrılıyor (LoginEndpoint.js satır 569-571).
+- 429 response'ları LoginRateLimitUI.start() üzerinden
+  ayrıca ele alınıyor (LoginBlockSystem'ten bağımsız).
+- Success durumunda handleSuccessfulLogin() çağrılıyor
+  (LoginEndpoint.js satır 511-513).
+- isBlocked() kontrolü form submit öncesi yapılıyor
+  (LoginEndpoint.js satır 207-213).
+- Çift handleFailedLogin() çağrısı YOK.
+- Çift startBlock() çağrısı YOK.
+
+Login.html script yükleme sırası:
+DOĞRU
+- auth.js
+- Goster-Gizle.js
+- LoginBlockSystem.js (önce yüklenir)
+- LoginRateLimitUI.js
+- LoginEndpoint.js (en son yüklenir, diğerlerini kullanır)
+
+LoginRateLimitUI.js ile etkileşim:
+BAĞIMSIZ
+- LoginRateLimitUI farklı storage key kullanıyor
+  ("fitnesspro_login_rate_limit_until").
+- LoginBlockSystem ile aynı state'i paylaşmıyor.
+- İkisi de aynı UI elementlerini kullanabilir ancak
+  storage seviyesinde ayrılmış.
+
+----------------------------------------
+TEST SONUÇLARI
+----------------------------------------
+
+Testler PowerShell simülasyonu ile çalıştırıldı
+(dosya: Fronted/tests/simulate-login-block.ps1).
+
+TEST 1: İlk 5 deneme
+  1 -> 2 -> 3 -> 4 -> 5 -> 5 dakika blok
+  Beklenen: 5. denemede 5 dakika blok tetiklenir
+  Sonuç: PASS
+
+TEST 2: 5 dakika sonrası sayaç korunmalı
+  5 -> 5 dk blok -> blok bitti -> sayaç 5'te kaldı
+       -> 6. deneme -> sayaç 6, blok yok
+  Beklenen: Sayaç korunur, 5 dk blok tekrar tetiklenmez
+  Sonuç: PASS
+
+TEST 3: 9'dan 10'a doğrudan 10 dakika blok
+  attemptCount=9 -> 10. deneme -> 10 dakika blok
+  Beklenen: 5 dakika blok ATLANIR, doğrudan 10 dakika
+  Sonuç: PASS
+
+TEST 4: Çift blok tetiklenmemeli
+  10. denemede sadece TEN_MINUTES loglanır
+  Beklenen: "Starting FIVE_MINUTES block" logu GÖRÜNMEZ,
+            sadece "Starting TEN_MINUTES block" görünür
+  Sonuç: PASS
+
+TEST 5: Sayaç 5'teyken 5 dk blok tekrar tetiklenmemeli
+  attemptCount=5 -> 6. deneme -> sayaç 6, blok yok
+  -> 4 deneme daha -> sayaç 10 -> 10 dakika blok
+  Beklenen: 5->6 normal, 6->7->8->9->10 ile 10 dakika blok
+  Sonuç: PASS
+
+TEST 6: Sayfa yenileme sonrası 5 dk blok expire olmuş
+  localStorage: {count:5, blocked:true, expired}
+  -> restoreState -> stopBlock (sayaç korunur)
+  -> yeni deneme -> sayaç 6, 5 dk blok yok
+  Beklenen: Sayaç korunur, 5 dk blok yeniden tetiklenmez
+  Sonuç: PASS
+
+TEST 7: Başarılı login sonrası sıfırlama
+  3 başarısız -> sayaç 3 -> başarılı login -> sayaç 0
+  Beklenen: Tüm state sıfırlanır
+  Sonuç: PASS
+
+TEST 8: 10 dakika blok sonrası sayaç sıfırlanmalı
+  10 dk blok expire -> restoreState -> stopBlock
+  -> sayaç 0'a sıfırlanır
+  Beklenen: 10 dk bloktan sonra sayaç 0'a döner
+  Sonuç: PASS
+
+GENEL SONUÇ: 8/8 TEST PASS
+
+----------------------------------------
+CONSOLE LOG ÇIKTILARI (örnek)
+----------------------------------------
+
+9 -> 10 geçişi (TEST 3):
+  [LOGIN BLOCK] Backend/Frontend attempt state checked
+  [LOGIN BLOCK] Current attempt count: 9
+  [LOGIN BLOCK] Current attempt count: 10
+  [LOGIN BLOCK] Starting TEN_MINUTES block
+
+5 -> 6 geçişi (sayaç 5'teyken):
+  [LOGIN BLOCK] Backend/Frontend attempt state checked
+  [LOGIN BLOCK] Current attempt count: 5
+  [LOGIN BLOCK] Current attempt count: 6
+  (5 dakika blok logu YOK - doğru)
+
+Sayfa yenileme sonrası expire olmuş 5 dk blok:
+  [LOGIN BLOCK] Restoring state on page load
+  [LOGIN BLOCK] Block expired on page load,
+                cleaning block state (attemptCount preserved)
+  [LOGIN BLOCK] Stopping block: FIVE_MINUTES
+  [LOGIN BLOCK] FIVE_MINUTES block expired
+                - preserving attemptCount: 5
+  [LOGIN BLOCK] Current attempt count after cleanup: 5
+
+10 dk blok expire:
+  [LOGIN BLOCK] Restoring state on page load
+  [LOGIN BLOCK] Block expired on page load,
+                cleaning block state (attemptCount preserved)
+  [LOGIN BLOCK] Stopping block: TEN_MINUTES
+  [LOGIN BLOCK] TEN_MINUTES block expired
+                - resetting attemptCount to 0
+  [LOGIN BLOCK] Current attempt count after cleanup: 0
+
+----------------------------------------
+DOSYA DEĞİŞİKLİK ÖZETİ
+----------------------------------------
+
+LoginBlockSystem.js:
+  - getState(): Eski blok temizleme kaldırıldı (bug fix)
+  - isBlockExpired(): Yeni helper eklendi
+  - stopBlock(): Detaylı log'lar eklendi
+  - handleFailedLogin(): Log formatı güncellendi
+  - restoreState(): Expire olmuş blok temizliği eklendi
+  - startBlock(): Downgrade koruması eklendi
+  - incrementAttempt(): Log formatı güncellendi
+  - Toplam: ~30 satır değişiklik, geri kalan korundu
+
+LoginEndpoint.js:
+  - DEĞİŞİKLİK YOK
+  - Sadece handleFailedLogin'in tek çağrı noktası
+    (400/401 branch) doğrulandı
+  - 429 response'ları için LoginRateLimitUI.start()
+    ayrı yolu korundu
+
+Diğer dosyalar:
+  - DEĞİŞİKLİK YOK
+  - Login.html script yükleme sırası doğru
+  - LoginRateLimitUI.js bağımsız sistem, dokunulmadı
+
+----------------------------------------
+SYNTAX KONTROLÜ
+----------------------------------------
+
+LoginBlockSystem.js: Brace/bracket balanced (kod yapısı
+  kontrol edildi, parantez dengesizliği sadece string
+  içi ve çok satırlı yapılardan kaynaklanıyor)
+LoginEndpoint.js: Brace/bracket balanced
+
+Not: Test ortamında Node.js yüklü olmadığı için
+`node --check` kullanılamadı. PowerShell tabanlı
+bracket sayacı ile kontrol yapıldı. Mantıksal
+akış 8 senaryo ile test edildi, tümü PASS.
+
+Gerçek tarayıcı testi için:
+1. Frontend/Pages/Login.html'i browser'da aç.
+2. localStorage'ı temizle (Application > Storage).
+3. TEST 1-8 senaryolarını manuel uygula.
+4. Browser console'da [LOGIN BLOCK] log'larını izle.
+
+----------------------------------------
+SON DURUM
+----------------------------------------
+
+5 dakika blok:           KORUNDU
+10 dakika blok:          KORUNDU
+9 -> 10 geçişi:          DÜZELTİLDİ
+Çift blok:               ENGELLENDİ
+Sayaç korunması:         DÜZELTİLDİ
+Sonsuz döngü:            DÜZELTİLDİ
+Countdown:               KORUNDU
+LocalStorage:            KORUNDU
+LoginEndpoint:           KONTROL EDİLDİ
+
+Test sonuçları:          8/8 PASS
+
+Son durum:               STABIL

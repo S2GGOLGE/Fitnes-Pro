@@ -55,9 +55,10 @@
         <form class="form">
 
             <!-- Rate Limit Lock UI
-                 Sadece backend 429 döndüğünde görünür.
-                 Formun ÜSTÜNDE yer alır, inputlar arasına girmez.
-                 Normal durumda hidden olduğu için boşluk bırakmaz. -->
+                 Backend 429 / accountLocked:true döndüğünde aktif olur.
+                 Geçici blokta: kilit ikonu + başlık + mesaj + MM:SS sayaç.
+                 Kalıcı blokta:  sayaç gizlenir, başvuru butonu görünür.
+                 Normal durumda tamamen hidden → boşluk bırakmaz. -->
 
             <div
                 class="login-rate-limit"
@@ -114,14 +115,23 @@
 
                 </div>
 
-                <div class="login-rate-limit-title">
-                    Çok Fazla Deneme
+                <!-- Geçici blok başlığı -->
+                <div
+                    class="login-rate-limit-title"
+                    id="loginRateLimitTitle"
+                >
+                    Hesap Geçici Olarak Kilitlendi
                 </div>
 
-                <div class="login-rate-limit-message">
-                    Tekrar giriş yapabilmek için bekleyin.
+                <!-- Geçici blok mesajı -->
+                <div
+                    class="login-rate-limit-message"
+                    id="loginRateLimitMessage"
+                >
+                    Lütfen süre dolana kadar bekleyin.
                 </div>
 
+                <!-- Sayaç: sadece geçici blokta görünür -->
                 <div
                     class="login-rate-limit-timer"
                     id="loginRateLimitTimer"
@@ -129,6 +139,38 @@
                 >
 
                     05:00
+
+                </div>
+
+                <!-- Kalıcı bloke için ek bilgi + başvuru butonu.
+                     Sadece accountLocked:true durumunda görünür. -->
+                <div
+                    class="login-rate-limit-permanent"
+                    id="loginRateLimitPermanent"
+                    hidden
+                >
+
+                    <p class="login-rate-limit-permanent-text">
+                        Hesabınıza tekrar erişebilmek için
+                        hesap açtırma başvurusu göndermeniz gerekmektedir.
+                    </p>
+
+                    <!--
+                        TODO: Başvuru sayfası URL'si
+                        Projede mevcut bir başvuru/reapply sayfası yok.
+                        Aşağıdaki href değerini mevcut sayfanın yoluna göre güncelle.
+                        Örn: "../Pages/Basvuru.html" veya "Basvuru.html"
+                    -->
+                    <a
+                        href="#"
+                        class="login-rate-limit-permanent-btn"
+                        id="loginRateLimitPermanentBtn"
+                        data-basvuru-url="#"
+                    >
+
+                        Hesap Açtırma Başvurusu
+
+                    </a>
 
                 </div>
 
@@ -270,6 +312,7 @@
 
     <script src="../JavaScripts/Core/auth.js"></script>
     <script src="../JavaScripts/Components/Goster-Gizle.js"></script>
+    <script src="../JavaScripts/UI/LoginRateLimitUI.js"></script>
     <script src="../JavaScripts/EndPoint/LoginEndpoint.js"></script>
     <script src="../JavaScripts/EndPoint/PasswordUpdateEndpoint.js"></script>
 </body>

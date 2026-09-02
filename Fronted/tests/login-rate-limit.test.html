@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Rate Limit - Smoke Test</title>
+    <link rel="stylesheet" href="../Css/UI/Login.css">
+    <style>
+        body {
+            padding: 24px;
+            background-color: #0B0F0D;
+            color: #F5F7F6;
+            font-family: Consolas, monospace;
+            font-size: 13px;
+        }
+
+        .test-panel {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #18201B;
+            border: 1px solid #29332D;
+            border-radius: 14px;
+        }
+
+        h2 {
+            color: #22C55E;
+            margin-bottom: 16px;
+            font-size: 18px;
+        }
+
+        .test-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .test-btn {
+            padding: 8px 14px;
+            background-color: #22C55E;
+            color: #0B0F0D;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .test-btn.danger {
+            background-color: #EF4444;
+            color: #fff;
+        }
+
+        .test-btn.warn {
+            background-color: #F59E0B;
+            color: #0B0F0D;
+        }
+
+        .test-btn.secondary {
+            background-color: transparent;
+            color: #A7B0AA;
+            border: 1px solid #29332D;
+        }
+
+        .test-btn:hover {
+            opacity: 0.85;
+        }
+
+        .iframe-wrap {
+            margin-top: 24px;
+            border: 1px solid #29332D;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #0B0F0D;
+        }
+
+        iframe {
+            width: 100%;
+            height: 720px;
+            border: none;
+            display: block;
+        }
+
+        .log {
+            margin-top: 16px;
+            padding: 12px;
+            background-color: #0B0F0D;
+            border: 1px solid #29332D;
+            border-radius: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .log-line {
+            margin-bottom: 4px;
+        }
+
+        .log-line.ok {
+            color: #22C55E;
+        }
+
+        .log-line.err {
+            color: #EF4444;
+        }
+
+        .log-line.info {
+            color: #A7B0AA;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="test-panel">
+
+        <h2>🧪 Login Rate Limit — Smoke Test</h2>
+
+        <p style="color:#A7B0AA;margin-bottom:16px;">
+            Aşağıdaki butonlar Login.html içindeki LoginEndpoint.js'i tetikler.
+            Senaryolar: <strong>5dk geçici</strong>, <strong>10dk geçici</strong>,
+            <strong>kalıcı bloke</strong>, <strong>normal başarılı/hatalı giriş</strong>.
+        </p>
+
+        <div class="test-row">
+            <button class="test-btn" data-test="temp-5min">
+                1) 429 + remainingSeconds:300 (5dk)
+            </button>
+
+            <button class="test-btn" data-test="temp-10min">
+                2) 429 + remainingSeconds:600 (10dk)
+            </button>
+
+            <button class="test-btn danger" data-test="permanent">
+                3) 429 + accountLocked:true (kalıcı)
+            </button>
+
+            <button class="test-btn warn" data-test="normal-401">
+                4) 401 normal hata
+            </button>
+
+            <button class="test-btn warn" data-test="normal-200-success">
+                5) 200 başarılı login
+            </button>
+
+            <button class="test-btn warn" data-test="network-error">
+                6) Network hatası
+            </button>
+
+            <button class="test-btn secondary" data-test="reset">
+                ↻ Reset / localStorage temizle
+            </button>
+
+            <button class="test-btn secondary" data-test="restore-permanent">
+                7) Sayfa yenile + kalıcı bloke flag'i var (restore testi)
+            </button>
+
+            <button class="test-btn secondary" data-test="restore-temp">
+                8) Sayfa yenile + kalan rate-limit (restore testi)
+            </button>
+        </div>
+
+        <div class="iframe-wrap">
+            <iframe id="loginFrame" src="../Pages/Login.html"></iframe>
+        </div>
+
+        <div class="log" id="log"></div>
+
+    </div>
+
+
+    <script>
+        const logEl = document.getElementById("log");
+        const frame = document.getElementById("loginFrame");
+
+        function log(msg, type = "info") {
+            const div = document.createElement("div");
+            div.className = `log-line ${type}`;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            logEl.appendChild(div);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        // Override fetch in the iframe context for each scenario
+        function runTest(scenario) {
+            const win = frame.contentWindow;
+            if (!win) {
+                log("Iframe henüz hazır değil", "err");
+                return;
+            }
+
+            // Save the real fetch so we can restore it
+            if (!win.__realFetch) {
+                win.__realFetch = win.fetch.bind(win);
+            }
+
+            const LOGIN_ENDPOINT = "/api/login";
+
+            win.fetch = async (url, options) => {
+                if (typeof url === "string" && url.includes(LOGIN_ENDPOINT)) {
+                    log(`→ fetch ${url} (senaryo: ${scenario})`, "info");
+
+                    switch (scenario) {
+                        case "temp-5min":
+                            return new Response(JSON.stringify({
+                                success: false,
+                                isBlocked: true,
+                                accountLocked: false,
+                                remainingSeconds: 300,
+                                message: "Çok fazla başarısız giriş denemesi."
+                            }), {
+                                status: 429,
+                                headers: { "Content-Type": "application/json" }
+                            });
+
+                        case "temp-10min":
+                            return new Response(JSON.stringify({
+                                success: false,
+                                isBlocked: true,
+                                accountLocked: false,
+                                remainingSeconds: 600,
+                                message: "Çok fazla başarısız giriş denemesi."
+                            }), {
+                                status: 429,
+                                headers: { "Content-Type": "application/json" }
+                            });
+
+                        case "permanent":
+                            return new Response(JSON.stringify({
+                                success: false,
+                                isBlocked: true,
+                                accountLocked: true,
+                                message: "Hesabınız güvenlik nedeniyle bloke edilmiştir."
+                            }), {
+                                status: 429,
+                                headers: { "Content-Type": "application/json" }
+                            });
+
+                        case "normal-401":
+                            return new Response(JSON.stringify({
+                                success: false,
+                                message: "Kullanıcı adı veya şifre hatalı."
+                            }), {
+                                status: 401,
+                                headers: { "Content-Type": "application/json" }
+                            });
+
+                        case "normal-200-success":
+                            return new Response(JSON.stringify({
+                                success: true,
+                                message: "Giriş başarılı!",
+                                data: {
+                                    token: "eyJhbGciOiJIUzI1NiJ9.fake.token",
+                                    userId: 1,
+                                    username: "test",
+                                    role: "User"
+                                }
+                            }), {
+                                status: 200,
+                                headers: { "Content-Type": "application/json" }
+                            });
+
+                        case "network-error":
+                            throw new TypeError("NetworkError: backend kapalı");
+
+                        default:
+                            return win.__realFetch(url, options);
+                    }
+                }
+
+                // For other URLs (auth/me etc.) use real fetch
+                return win.__realFetch(url, options);
+            };
+
+            // Fill in test credentials
+            const doc = win.document;
+            const username = doc.getElementById("username");
+            const password = doc.getElementById("password");
+            if (username) username.value = "testuser";
+            if (password) password.value = "wrongpw";
+
+            // Submit the form
+            const form = doc.querySelector(".form");
+            if (form) {
+                // Simulate real submit event
+                const event = new win.Event("submit", { cancelable: true, bubbles: true });
+                form.dispatchEvent(event);
+            }
+
+            // Special: for reset we don't want a submit
+            if (scenario === "reset") {
+                win.localStorage.clear();
+                frame.src = frame.src;
+                log("↻ localStorage temizlendi, sayfa yeniden yüklendi", "ok");
+                return;
+            }
+
+            if (scenario === "restore-permanent") {
+                win.localStorage.setItem("fitnesspro_login_account_locked", "1");
+                frame.src = frame.src;
+                log("↻ permanent lock flag set edildi, sayfa yenileniyor...", "ok");
+                return;
+            }
+
+            if (scenario === "restore-temp") {
+                const future = Date.now() + 125 * 1000; // 2:05 kaldı
+                win.localStorage.setItem("fitnesspro_login_rate_limit_until", String(future));
+                frame.src = frame.src;
+                log("↻ temp rate-limit 2dk 5sn'ye set edildi, sayfa yenileniyor...", "ok");
+                return;
+            }
+
+            log(`✓ Senaryo '${scenario}' tetiklendi`, "ok");
+        }
+
+        document.querySelectorAll("[data-test]").forEach(btn => {
+            btn.addEventListener("click", () => runTest(btn.dataset.test));
+        });
+
+        // Wait for iframe to load before initial message
+        frame.addEventListener("load", () => {
+            log("Login.html yüklendi", "info");
+        });
+    </script>
+
+</body>
+
+</html>

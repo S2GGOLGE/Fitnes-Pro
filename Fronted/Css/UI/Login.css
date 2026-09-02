@@ -1247,3 +1247,168 @@ body {
 
     letter-spacing: 2px;
 }
+
+
+/* ==========================================
+   PERMANENT LOCK VARIANT
+   accountLocked:true → sayaç gizlenir,
+   başvuru butonu görünür.
+   ========================================== */
+
+/* Sayaç gizli, başlık ve bilgi mesajı daha küçük ve net */
+
+.login-rate-limit.is-permanent .login-rate-limit-timer {
+
+    display: none;
+}
+
+
+.login-rate-limit.is-permanent .login-rate-limit-title {
+
+    font-size: 15px;
+    margin-bottom: 6px;
+}
+
+
+.login-rate-limit.is-permanent .login-rate-limit-message {
+
+    display: none;
+}
+
+
+/* Kalıcı bloke içerik alanı (buton + metin) */
+
+.login-rate-limit-permanent {
+
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+
+    margin-top: 4px;
+
+    animation: inputEnter 0.4s ease-out both;
+}
+
+
+.login-rate-limit-permanent[hidden] {
+
+    display: none;
+}
+
+
+.login-rate-limit-permanent-text {
+
+    color: var(--color-text-muted);
+
+    font-size: 13px;
+    line-height: 1.5;
+    text-align: center;
+
+    max-width: 320px;
+}
+
+
+/* Başvuru butonu — primary CTA stili */
+
+.login-rate-limit-permanent-btn {
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 220px;
+    height: 44px;
+    padding: 0 20px;
+
+    background-color: var(--color-primary);
+    color: var(--color-bg);
+
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-md);
+
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+
+    cursor: pointer;
+
+    transition:
+        background-color var(--transition-normal),
+        transform var(--transition-fast),
+        box-shadow var(--transition-normal);
+}
+
+
+.login-rate-limit-permanent-btn:hover {
+
+    background-color: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+    color: var(--color-bg);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(34, 197, 94, 0.18);
+}
+
+
+.login-rate-limit-permanent-btn:active {
+
+    transform: translateY(0) scale(0.98);
+    box-shadow: none;
+}
+
+
+.login-rate-limit-permanent-btn:focus-visible {
+
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
+}
+
+
+/* Kalıcı bloke varyantında ikon biraz daha büyük ve belirgin */
+
+.login-rate-limit.is-permanent .login-rate-limit-icon {
+
+    width: 64px;
+    height: 64px;
+    margin-bottom: 14px;
+}
+
+
+.login-rate-limit.is-permanent .login-rate-limit-icon svg {
+
+    width: 34px;
+    height: 34px;
+}
+
+
+/* Kalıcı bloke mobilde buton tam genişlik */
+
+@media (max-width: 480px) {
+
+    .login-rate-limit-permanent-btn {
+
+        width: 100%;
+        min-width: 0;
+    }
+
+    .login-rate-limit-permanent-text {
+
+        font-size: 12px;
+    }
+}
+
+
+/* Reduced motion uyumu */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .login-rate-limit-permanent,
+    .login-rate-limit-permanent-btn {
+
+        animation: none;
+        transition: none;
+    }
+}

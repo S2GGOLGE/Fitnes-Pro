@@ -1,400 +1,590 @@
-// =========================================================
-// FITNESS PRO - LOGIN ENDPOINT INTEGRATION
-// =========================================================
-
-document.addEventListener("DOMContentLoaded", () => {
-    // If already logged in, redirect to index
-    if (window.Auth && window.Auth.redirectIfLoggedIn()) {
-        return;
-    }
-
-    // API Configuration
-    const API_BASE_URL = (window.Auth && window.Auth.getBaseUrl()) || window.API_BASE_URL || "http://localhost:8081";
-    const LOGIN_ENDPOINT = `${API_BASE_URL}/api/login`;
-
-    // Form and Element Selectors
-    const loginForm = document.querySelector(".form");
-    const usernameInput = document.getElementById("username");
-    const passwordInput = document.getElementById("password");
-    const submitButton = loginForm ? loginForm.querySelector(".login-btn") : null;
-    const alertBox = document.getElementById("formAlert");
-    const forgotPasswordLink = document.getElementById("forgotPasswordLink");
-
-    if (!loginForm) {
-        return;
-    }
 
     // =========================================================
-    // RATE LIMIT (Backend 429 yönetimi - frontend UI only)
+    // FITNESS PRO - LOGIN ENDPOINT INTEGRATION
     // =========================================================
     //
-    // Backend rate limit güvenliğinin yerine geçmez.
-    // Sadece backend'in 429 döndüğü durumda UI feedback sağlar.
+    // Backend yeni response yapısı (ApiResponseModel):
+    // {
+    //   success:          boolean,
+    //   message:          string,
+    //   data:             object | null,
+    //   rateLimited:      boolean,
+    //   remainingSeconds: number | null,
+    //   accountLocked:    boolean
+    // }
     //
+    // Backend kararları (frontend tarafından üretilmez):
+    // 5  başarısız deneme -> rateLimited:true,  remainingSeconds: 300
+    // 10 başarısız deneme -> rateLimited:true,  remainingSeconds: 600
+    // 15 başarısız deneme -> accountLocked:true (kalıcı blok)
+    //
+    // Frontend karar sırası (sadece body alanlarına göre):
+    //  1) accountLocked === true   -> kalıcı blok
+    //  2) rateLimited  === true    -> geçici rate limit (countdown)
+    //  3) success      === true    -> başarılı login
+    //  4) diğer                    -> normal hata (result.message)
+    //
+    // HTTP 429 sadece fallback olarak handle edilir.
+    // Mesaj metni analiz edilmez, frontend kendi mesajını üretmez.
+    // =========================================================
 
-    const RATE_LIMIT_STORAGE_KEY = "fitnesspro_login_rate_limit_until";
-    const RATE_LIMIT_DEFAULT_DURATION = 300; // saniye (5 dakika)
-    const RATE_LIMIT_FALLBACK_MESSAGE = "Çok fazla başarısız giriş denemesi. Lütfen 5 dakika sonra tekrar deneyiniz.";
+    document.addEventListener("DOMContentLoaded", () => {
 
-    let rateLimitIntervalId = null;
+        // =========================================================
+        // ALREADY LOGGED IN
+        // =========================================================
 
-    // localStorage'dan bitiş timestamp'ini (ms) al
-    function getRateLimitUntil() {
-        const raw = localStorage.getItem(RATE_LIMIT_STORAGE_KEY);
-        if (!raw) return 0;
-        const value = parseInt(raw, 10);
-        return Number.isFinite(value) && value > 0 ? value : 0;
-    }
-
-    // Kalan süreyi saniye cinsinden hesapla
-    function getRateLimitRemainingSeconds() {
-        const until = getRateLimitUntil();
-        if (!until) return 0;
-        const remainingMs = until - Date.now();
-        return remainingMs > 0 ? Math.ceil(remainingMs / 1000) : 0;
-    }
-
-    // Rate-limit aktif mi?
-    function isLoginRateLimitActive() {
-        return getRateLimitRemainingSeconds() > 0;
-    }
-
-    // Saniyeyi MM:SS formatına çevir
-    function formatRateLimitTimer(totalSeconds) {
-        const safe = Math.max(0, Math.floor(totalSeconds));
-        const minutes = Math.floor(safe / 60);
-        const seconds = safe % 60;
-        return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-    }
-
-    // Rate-limit UI elemanlarını al
-    function getRateLimitElements() {
-        return {
-            container: document.getElementById("loginRateLimit"),
-            timer: document.getElementById("loginRateLimitTimer")
-        };
-    }
-
-    // Login formunun alanlarını kilitle / aç
-    function setLoginFormDisabled(disabled) {
-        const targets = [
-            usernameInput,
-            passwordInput,
-            forgotPasswordLink
-        ];
-
-        targets.forEach((el) => {
-            if (!el) return;
-            if (disabled) {
-                el.setAttribute("disabled", "true");
-                el.setAttribute("aria-disabled", "true");
-            } else {
-                el.removeAttribute("disabled");
-                el.removeAttribute("aria-disabled");
-            }
-        });
-
-        // Şifre göster / gizle toggle'ları da kilitlenir
-        const toggleButtons = loginForm.querySelectorAll(".password-toggle");
-        toggleButtons.forEach((btn) => {
-            if (disabled) {
-                btn.setAttribute("disabled", "true");
-                btn.setAttribute("aria-disabled", "true");
-            } else {
-                btn.removeAttribute("disabled");
-                btn.removeAttribute("aria-disabled");
-            }
-        });
-
-        if (submitButton) {
-            submitButton.disabled = !!disabled;
-        }
-
-        // Rate-limit aktifken form'a özel görsel state class'ı
-        if (loginForm) {
-            loginForm.classList.toggle("rate-limited", !!disabled);
-        }
-    }
-
-    // Response'tan rate-limit süresini belirle
-    // Öncelik: Retry-After header > response body > varsayılan 300
-    function getRateLimitDuration(response, result) {
-        // 1) Retry-After header
-        if (response && response.headers && typeof response.headers.get === "function") {
-            const retryAfter = response.headers.get("Retry-After");
-            if (retryAfter) {
-                const parsed = parseInt(retryAfter, 10);
-                if (Number.isFinite(parsed) && parsed > 0) {
-                    return parsed;
-                }
-                // HTTP-date formatı da olabilir
-                const dateMs = Date.parse(retryAfter);
-                if (Number.isFinite(dateMs)) {
-                    const diff = Math.ceil((dateMs - Date.now()) / 1000);
-                    if (diff > 0) return diff;
-                }
-            }
-        }
-
-        // 2) Backend response body içindeki süre bilgisi
-        if (result && typeof result === "object") {
-            const candidates = [
-                result.retryAfter,
-                result.retryAfterSeconds,
-                result.retry_after,
-                result.data && result.data.retryAfter,
-                result.data && result.data.retryAfterSeconds,
-                result.data && result.data.retry_after
-            ];
-            for (const candidate of candidates) {
-                if (candidate === undefined || candidate === null) continue;
-                const num = Number(candidate);
-                if (Number.isFinite(num) && num > 0) return num;
-            }
-        }
-
-        // 3) Varsayılan
-        return RATE_LIMIT_DEFAULT_DURATION;
-    }
-
-    // Rate-limit geri sayımını başlat
-    function startLoginRateLimit(durationSeconds) {
-        const safeDuration = Math.max(1, Math.floor(durationSeconds || RATE_LIMIT_DEFAULT_DURATION));
-        const until = Date.now() + safeDuration * 1000;
-        localStorage.setItem(RATE_LIMIT_STORAGE_KEY, String(until));
-
-        const { container, timer } = getRateLimitElements();
-        if (container) {
-            container.hidden = false;
-        }
-
-        // Form kilitlenir
-        setLoginFormDisabled(true);
-
-        // İlk frame'i hemen yaz
-        updateLoginRateLimit();
-
-        if (rateLimitIntervalId) {
-            clearInterval(rateLimitIntervalId);
-        }
-
-        rateLimitIntervalId = setInterval(() => {
-            updateLoginRateLimit();
-        }, 1000);
-    }
-
-    // Her saniye çalışır, kalan süreyi yazar, 0 olunca durdurur
-    function updateLoginRateLimit() {
-        const { timer } = getRateLimitElements();
-        const remaining = getRateLimitRemainingSeconds();
-
-        if (timer) {
-            timer.textContent = formatRateLimitTimer(remaining);
-        }
-
-        if (remaining <= 0) {
-            stopLoginRateLimit();
-        }
-    }
-
-    // Rate-limit'i temizler, UI gizler, formu açar
-    function stopLoginRateLimit() {
-        if (rateLimitIntervalId) {
-            clearInterval(rateLimitIntervalId);
-            rateLimitIntervalId = null;
-        }
-        localStorage.removeItem(RATE_LIMIT_STORAGE_KEY);
-
-        const { container, timer } = getRateLimitElements();
-        if (container) {
-            container.hidden = true;
-        }
-        if (timer) {
-            timer.textContent = formatRateLimitTimer(RATE_LIMIT_DEFAULT_DURATION);
-        }
-
-        setLoginFormDisabled(false);
-        clearAlert();
-    }
-
-    // Sayfa yüklendiğinde localStorage'dan rate-limit durumunu geri yükle
-    function restoreLoginRateLimit() {
-        const until = getRateLimitUntil();
-        if (!until) return;
-
-        const remaining = getRateLimitRemainingSeconds();
-        if (remaining <= 0) {
-            stopLoginRateLimit();
+        if (window.Auth && window.Auth.redirectIfLoggedIn()) {
             return;
         }
 
-        const { container, timer } = getRateLimitElements();
-        if (container) container.hidden = false;
-        if (timer) timer.textContent = formatRateLimitTimer(remaining);
+        // =========================================================
+        // API CONFIGURATION
+        // =========================================================
 
-        setLoginFormDisabled(true);
+        const API_BASE_URL =
+            (window.Auth && window.Auth.getBaseUrl()) ||
+            window.API_BASE_URL ||
+            "http://localhost:8081";
 
-        if (rateLimitIntervalId) {
-            clearInterval(rateLimitIntervalId);
-        }
+        const LOGIN_ENDPOINT = `${API_BASE_URL}/api/login`;
 
-        rateLimitIntervalId = setInterval(() => {
-            updateLoginRateLimit();
-        }, 1000);
-    }
+        // =========================================================
+        // FORM ELEMENTS (mevcut ID'ler korunur)
+        // =========================================================
 
-    // Helper: Show Alert Message (Success / Error)
-    function showAlert(message, type = "error") {
-        if (!alertBox) return;
+        const loginForm = document.querySelector(".form");
 
-        alertBox.textContent = message;
-        alertBox.className = `form-alert show ${type}`;
-    }
+        const usernameInput =
+            document.getElementById("username");
 
-    // Helper: Clear Alert Message
-    function clearAlert() {
-        if (!alertBox) return;
+        const passwordInput =
+            document.getElementById("password");
 
-        alertBox.textContent = "";
-        alertBox.className = "form-alert";
-    }
+        const submitButton =
+            loginForm
+                ? loginForm.querySelector(".login-btn")
+                : null;
 
-    // Submit Event Listener
-    loginForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
+        const alertBox =
+            document.getElementById("formAlert");
 
-        // Rate-limit aktifken submit'i engelle
-        if (isLoginRateLimitActive()) {
+        const forgotPasswordLink =
+            document.getElementById("forgotPasswordLink");
+
+        if (!loginForm) {
             return;
         }
 
-        clearAlert();
+        // =========================================================
+        // RESPONSE HELPERS
+        // =========================================================
 
-        // Form Values
-        const username = usernameInput ? usernameInput.value.trim() : "";
-        const password = passwordInput ? passwordInput.value : "";
-
-        // Client-side Validation
-        if (!username || !password) {
-            showAlert("Lütfen kullanıcı adı ve şifrenizi giriniz.", "error");
-            return;
-        }
-
-        // Backend LoginModel Payload
-        const payload = {
-            username: username,
-            password: password
-        };
-
-        // Loading State & Prevent Double Submit
-        const originalBtnText = submitButton ? submitButton.textContent : "Giriş";
-        if (submitButton) {
-            submitButton.disabled = true;
-            submitButton.textContent = "Giriş yapılıyor...";
-        }
-
-        try {
-            const response = await fetch(LOGIN_ENDPOINT, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            });
-
-            let result = null;
+        async function parseResponseBody(response) {
             try {
-                result = await response.json();
+                return await response.json();
             } catch {
-                result = null;
+                return null;
+            }
+        }
+
+        function getBackendMessage(result) {
+            if (
+                result &&
+                typeof result.message === "string" &&
+                result.message.trim()
+            ) {
+                return result.message;
+            }
+            return null;
+        }
+
+        function getRemainingSeconds(result) {
+            if (!result || typeof result !== "object") {
+                return 0;
             }
 
-            // 429 Too Many Requests — Rate limit aktif
-            if (response.status === 429) {
-                const duration = getRateLimitDuration(response, result);
-                startLoginRateLimit(duration);
+            const value = Number(result.remainingSeconds);
 
-                const backendMessage = result && typeof result.message === "string" && result.message.trim()
-                    ? result.message
-                    : RATE_LIMIT_FALLBACK_MESSAGE;
+            if (Number.isFinite(value) && value > 0) {
+                return Math.ceil(value);
+            }
 
-                showAlert(backendMessage, "error");
+            return 0;
+        }
+
+        // =========================================================
+        // ALERT (mevcut frontend hata sistemi korunur)
+        // =========================================================
+
+        function showAlert(
+            message,
+            type = "error"
+        ) {
+            if (!alertBox) {
                 return;
             }
 
-            if (response.ok && result && result.success) {
-                // Success Handling
-                const successMsg = (result.message && !result.message.startsWith("ey")) ? result.message : "Giriş başarılı!";
-                showAlert(successMsg, "success");
+            alertBox.textContent = message;
 
-                // Extract JWT token and user info from backend response
-                const data = result.data;
-                let token = null;
-                let userData = null;
-
-                if (typeof data === "string") {
-                    token = data;
-                } else if (data && typeof data === "object") {
-                    token = data.token;
-                    userData = {
-                        userId: data.userId,
-                        username: data.username || username,
-                        role: data.role || "User"
-                    };
-                } else if (result.token) {
-                    token = result.token;
-                } else if (typeof result.message === "string" && result.message.startsWith("ey")) {
-                    token = result.message;
-                }
-
-                // Save JWT Session
-                if (token && window.Auth) {
-                    window.Auth.saveSession(token, userData || { username });
-                }
-
-                // Başarılı login sonrası rate-limit kaydı temizlenir
-                if (getRateLimitUntil() > 0) {
-                    localStorage.removeItem(RATE_LIMIT_STORAGE_KEY);
-                }
-
-                loginForm.reset();
-
-                // Redirect to Dashboard
-                setTimeout(() => {
-                    window.location.href = "index.html";
-                }, 1000);
-            } else {
-                // Error Handling (Backend ApiResponseModel or HTTP Status errors)
-                let errorMsg = "Giriş işlemi sırasında bir hata oluştu.";
-
-                if (result && result.message && !result.message.startsWith("ey")) {
-                    errorMsg = result.message;
-                } else if (response.status === 400 || response.status === 401) {
-                    errorMsg = "Kullanıcı adı veya şifre hatalı.";
-                } else if (response.status === 404) {
-                    errorMsg = "Giriş servisine ulaşılamadı (404).";
-                } else if (response.status >= 500) {
-                    errorMsg = "Sunucu hatası oluştu (500). Lütfen daha sonra tekrar deneyiniz.";
-                }
-
-                showAlert(errorMsg, "error");
-            }
-        } catch (error) {
-            // Network / Connection Error Handling
-            showAlert("Sunucuya bağlanılamadı. Lütfen backend servisinin çalıştığından emin olunuz.", "error");
-        } finally {
-            // Restore Button State — rate-limit aktifken buton kilitli kalır
-            if (submitButton) {
-                if (isLoginRateLimitActive()) {
-                    submitButton.textContent = originalBtnText;
-                } else {
-                    submitButton.disabled = false;
-                    submitButton.textContent = originalBtnText;
-                }
-            }
+            alertBox.className =
+                `form-alert show ${type}`;
         }
-    });
 
-    // Sayfa açıldığında aktif rate-limit varsa geri yükle
-    restoreLoginRateLimit();
-});
+        function clearAlert() {
+            if (!alertBox) {
+                return;
+            }
+
+            alertBox.textContent = "";
+
+            alertBox.className =
+                "form-alert";
+        }
+
+        // =========================================================
+        // LOGIN SUBMIT
+        // =========================================================
+
+        loginForm.addEventListener(
+            "submit",
+            async (event) => {
+
+                event.preventDefault();
+
+                // -----------------------------------------
+                // ENGEL KONTROLÜ
+                //
+                // Rate-limit kararının tek kaynağı backend'dir.
+                // Login isteği gönderilmeden HEMEN ÖNCE
+                // GET /api/rate/login çağrılarak güncel durum
+                // alınır. Backend rateLimited / accountLocked
+                // dönüyorsa login endpoint'ine İSTEK GÖNDERİLMEZ
+                // ve UI mevcut LoginRateLimitUI üzerinden
+                // kilitlenir (bkz. LoginRateLimitUI.refresh).
+                // -----------------------------------------
+
+                if (
+                    window.LoginRateLimitUI &&
+                    typeof window.LoginRateLimitUI.refreshLoginRateStatus === "function"
+                ) {
+                    try {
+                        await window.LoginRateLimitUI.refreshLoginRateStatus();
+                    } catch (error) {
+                        // Network hatası durumunda sessizce
+                        // devam et: kullanıcı rate-limit'li
+                        // gibi DAVRANILMAZ. Backend login
+                        // endpoint'i zaten kendi rate-limit
+                        // kontrolünü yapacaktır.
+                        console.error(
+                            "[LOGIN] Rate pre-check failed:",
+                            error
+                        );
+                    }
+                }
+
+                if (
+                    window.LoginRateLimitUI &&
+                    typeof window.LoginRateLimitUI.isActive === "function" &&
+                    window.LoginRateLimitUI.isActive()
+                ) {
+                    console.log("[LOGIN] Rate limit active - request prevented");
+                    return;
+                }
+
+                if (
+                    window.LoginRateLimitUI &&
+                    typeof window.LoginRateLimitUI.isPermanentLockActive === "function" &&
+                    window.LoginRateLimitUI.isPermanentLockActive()
+                ) {
+                    console.log("[LOGIN] Permanent lock active - request prevented");
+                    return;
+                }
+
+                clearAlert();
+
+                // -----------------------------------------
+                // FORM VALUES
+                // -----------------------------------------
+
+                const username =
+                    usernameInput
+                        ? usernameInput.value.trim()
+                        : "";
+
+                const password =
+                    passwordInput
+                        ? passwordInput.value
+                        : "";
+
+                // -----------------------------------------
+                // CLIENT VALIDATION
+                // -----------------------------------------
+
+                if (!username || !password) {
+
+                    showAlert(
+                        "Lütfen kullanıcı adı ve şifrenizi giriniz.",
+                        "error"
+                    );
+
+                    return;
+                }
+
+                // -----------------------------------------
+                // PAYLOAD
+                // -----------------------------------------
+
+                const payload = {
+                    username: username,
+                    password: password
+                };
+
+                // -----------------------------------------
+                // LOADING STATE (mevcut sistem korunur)
+                // -----------------------------------------
+
+                const originalBtnText =
+                    submitButton
+                        ? submitButton.textContent
+                        : "Giriş";
+
+                if (submitButton) {
+
+                    submitButton.disabled = true;
+
+                    submitButton.textContent =
+                        "Giriş yapılıyor...";
+                }
+
+                try {
+
+                    // -----------------------------------------
+                    // API REQUEST
+                    // -----------------------------------------
+
+                    const response =
+                        await fetch(
+                            LOGIN_ENDPOINT,
+                            {
+                                method: "POST",
+
+                                headers: {
+                                    "Content-Type":
+                                        "application/json"
+                                },
+
+                                body:
+                                    JSON.stringify(
+                                        payload
+                                    )
+                            }
+                        );
+
+                    // -----------------------------------------
+                    // RESPONSE BODY (her zaman parse et)
+                    // -----------------------------------------
+
+                    const result =
+                        await parseResponseBody(response);
+
+                    // =================================================
+                    // KARAR AĞACI
+                    // Sıralama: accountLocked -> rateLimited -> success -> error
+                    // =================================================
+
+                    // -----------------------------------------
+                    // 1) KALICI BLOK
+                    // -----------------------------------------
+
+                    if (
+                        result &&
+                        result.accountLocked === true
+                    ) {
+
+                        const backendMessage =
+                            getBackendMessage(result) ||
+                            "Hesabınız güvenlik nedeniyle bloke edilmiştir.";
+
+                        console.log(
+                            "[LOGIN] Account permanently locked"
+                        );
+
+                        if (window.LoginRateLimitUI) {
+                            window.LoginRateLimitUI.showPermanentLock(
+                                backendMessage
+                            );
+                        }
+
+                        return;
+                    }
+
+                    // -----------------------------------------
+                    // 2) GEÇİCİ RATE LIMIT
+                    // -----------------------------------------
+
+                    if (
+                        result &&
+                        result.rateLimited === true
+                    ) {
+
+                        const backendMessage =
+                            getBackendMessage(result) ||
+                            "Çok fazla başarısız giriş denemesi.";
+
+                        const duration =
+                            getRemainingSeconds(result);
+
+                        console.log(
+                            "[LOGIN] Rate limit triggered, remainingSeconds:",
+                            duration
+                        );
+
+                        // Geçerli bir süre varsa UI countdown başlat
+                        if (duration > 0) {
+
+                            if (window.LoginRateLimitUI) {
+                                window.LoginRateLimitUI.start(
+                                    duration,
+                                    backendMessage
+                                );
+                            } else {
+                                console.error(
+                                    "[LOGIN] LoginRateLimitUI not available"
+                                );
+                                showAlert(
+                                    backendMessage,
+                                    "error"
+                                );
+                            }
+
+                        } else {
+
+                            // Süre gelmediyse sadece alert göster
+                            showAlert(
+                                backendMessage,
+                                "error"
+                            );
+                        }
+
+                        return;
+                    }
+
+                    // -----------------------------------------
+                    // 3) HTTP 429 FALLBACK
+                    // (Eski davranışta backend 429 dönüyor olabilir;
+                    //  body alanları yetersizse burası devreye girer.)
+                    // -----------------------------------------
+
+                    if (response.status === 429) {
+
+                        console.log(
+                            "[LOGIN] HTTP 429 fallback"
+                        );
+
+                        const backendMessage =
+                            getBackendMessage(result) ||
+                            "Çok fazla başarısız giriş denemesi. Lütfen daha sonra tekrar deneyiniz.";
+
+                        const duration =
+                            getRemainingSeconds(result);
+
+                        if (duration > 0 && window.LoginRateLimitUI) {
+
+                            window.LoginRateLimitUI.start(
+                                duration,
+                                backendMessage
+                            );
+
+                        } else {
+
+                            showAlert(
+                                backendMessage,
+                                "error"
+                            );
+                        }
+
+                        return;
+                    }
+
+                    // -----------------------------------------
+                    // 4) BAŞARILI LOGIN
+                    // -----------------------------------------
+
+                    if (
+                        response.ok &&
+                        result &&
+                        result.success === true
+                    ) {
+
+                        const successMsg =
+                            getBackendMessage(result) ||
+                            "Giriş başarılı!";
+
+                        showAlert(
+                            successMsg,
+                            "success"
+                        );
+
+                        // -----------------------------------------
+                        // TOKEN & USER DATA ÇIKARMA
+                        // result.data içinden alınır.
+                        // -----------------------------------------
+
+                        const data = result.data;
+
+                        let token = null;
+                        let userData = null;
+
+                        if (typeof data === "string") {
+
+                            // Geriye uyumluluk: data string ise JWT olarak kabul et
+                            token = data;
+
+                        } else if (
+                            data &&
+                            typeof data === "object"
+                        ) {
+
+                            token = data.token || null;
+
+                            // Yeni response yapısındaki alanlar:
+                            // userId, username, role, level, roles
+                            userData = {
+                                userId: data.userId,
+                                username:
+                                    data.username || username,
+                                role:
+                                    data.role || "User",
+                                level:
+                                    data.level || null,
+                                roles: Array.isArray(data.roles)
+                                    ? data.roles
+                                    : [data.role || "User"]
+                            };
+
+                        } else if (result.token) {
+
+                            // Bazı eski varyantlarda token kök seviyede olabilir
+                            token = result.token;
+                        }
+
+                        // -----------------------------------------
+                        // SESSION KAYDET (mevcut auth mimarisi korunur)
+                        // -----------------------------------------
+
+                        if (token && window.Auth) {
+
+                            window.Auth.saveSession(
+                                token,
+                                userData || { username: username }
+                            );
+                        }
+
+                        // -----------------------------------------
+                        // RATE LIMIT STATE TEMİZLE
+                        // -----------------------------------------
+
+                        if (window.LoginRateLimitUI) {
+                            window.LoginRateLimitUI.stop();
+                        }
+
+                        loginForm.reset();
+
+                        // -----------------------------------------
+                        // YÖNLENDİRME (mevcut akış korunur)
+                        // -----------------------------------------
+
+                        setTimeout(
+                            () => {
+
+                                window.location.href =
+                                    "index.html";
+
+                            },
+                            1000
+                        );
+
+                        return;
+                    }
+
+                    // -----------------------------------------
+                    // 5) NORMAL HATA
+                    // Backend'in gönderdiği message direkt gösterilir.
+                    // Frontend kendi mesajını üretmez.
+                    // -----------------------------------------
+
+                    const errorMsg =
+                        getBackendMessage(result) ||
+                        "Giriş işlemi sırasında bir hata oluştu.";
+
+                    showAlert(
+                        errorMsg,
+                        "error"
+                    );
+
+                } catch (error) {
+
+                    // =================================================
+                    // NETWORK ERROR
+                    // Backend tamamen erişilemiyorsa mevcut frontend
+                    // hata sistemi kullanılarak bilgi verilir.
+                    // =================================================
+
+                    console.error(
+                        "[LOGIN] Network error:",
+                        error
+                    );
+
+                    showAlert(
+                        "Sunucuya bağlanılamadı. Lütfen backend servisinin çalıştığından emin olunuz.",
+                        "error"
+                    );
+
+                } finally {
+
+                    // =================================================
+                    // BUTTON STATE (mevcut akış korunur)
+                    // =================================================
+
+                    if (submitButton) {
+
+                        if (
+                            window.LoginRateLimitUI &&
+                            typeof window.LoginRateLimitUI.isActive === "function" &&
+                            window.LoginRateLimitUI.isActive()
+                        ) {
+
+                            submitButton.textContent =
+                                originalBtnText;
+
+                        } else if (
+                            window.LoginRateLimitUI &&
+                            typeof window.LoginRateLimitUI.isPermanentLockActive === "function" &&
+                            window.LoginRateLimitUI.isPermanentLockActive()
+                        ) {
+
+                            submitButton.textContent =
+                                originalBtnText;
+
+                            submitButton.disabled = true;
+
+                        } else {
+
+                            submitButton.disabled = false;
+
+                            submitButton.textContent =
+                                originalBtnText;
+                        }
+                    }
+                }
+            }
+        );
+
+        // =========================================================
+        // INITIAL RESTORE
+        // LoginRateLimitUI.js kendi içinde restoreState() çağırır.
+        // Bu nedenle burada ekstra restore işlemi gerekmez.
+        // =========================================================
+
+    });

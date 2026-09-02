@@ -2,11 +2,38 @@ namespace Apı.Model;
 
 public class ApiResponseModel
 {
+    // =========================================================
+    // GENEL DURUM
+    // =========================================================
+
     public bool Success { get; set; }
 
+    // Kullanıcıya gösterilecek mesaj
     public string Message { get; set; } = string.Empty;
 
+    // Başarılı işlemlerde dönen veri
     public object? Data { get; set; }
+
+    // =========================================================
+    // RATE LIMIT
+    // =========================================================
+
+    // Geçici rate limit uygulanıyor mu?
+    public bool RateLimited { get; set; }
+
+    // Tekrar denenebileceği süre
+    public int? RemainingSeconds { get; set; }
+
+    // =========================================================
+    // ACCOUNT LOCK
+    // =========================================================
+
+    // Hesap güvenlik nedeniyle kilitli mi?
+    public bool AccountLocked { get; set; }
+
+    // =========================================================
+    // NORMAL FAIL
+    // =========================================================
 
     public static ApiResponseModel Fail(string message)
     {
@@ -17,7 +44,44 @@ public class ApiResponseModel
         };
     }
 
-    public static ApiResponseModel Ok(string message, object? data = null)
+    // =========================================================
+    // RATE LIMIT FAIL
+    // =========================================================
+
+    public static ApiResponseModel FailRateLimited(
+        string message,
+        int remainingSeconds)
+    {
+        return new ApiResponseModel
+        {
+            Success = false,
+            Message = message,
+            RateLimited = true,
+            RemainingSeconds = remainingSeconds
+        };
+    }
+
+    // =========================================================
+    // PERMANENT LOCK
+    // =========================================================
+
+    public static ApiResponseModel FailLocked(string message)
+    {
+        return new ApiResponseModel
+        {
+            Success = false,
+            Message = message,
+            AccountLocked = true
+        };
+    }
+
+    // =========================================================
+    // SUCCESS
+    // =========================================================
+
+    public static ApiResponseModel Ok(
+        string message,
+        object? data = null)
     {
         return new ApiResponseModel
         {
