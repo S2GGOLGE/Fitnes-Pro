@@ -285,8 +285,209 @@
 
 
         <!-- ==============================
-             FOOTER
+             APPLICATION MODAL
+             Hesap blokesi kaldırma, yeniden aktivasyon
+             ve diğer başvurular için kullanılır.
+             Backend endpoint: POST /api/application
+             (henüz mevcut değil — endpoint hazır olduğunda
+              ApplicationModal.js içindeki URL otomatik çalışır.)
              ============================== -->
+
+        <div
+            id="applicationModal"
+            class="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-hidden="true"
+            aria-labelledby="applicationModalTitle"
+        >
+
+            <div
+                class="modal-overlay"
+                id="applicationModalOverlay"
+            ></div>
+
+            <div
+                class="modal-content application-modal-content"
+                role="document"
+            >
+
+                <button
+                    type="button"
+                    class="modal-close"
+                    id="applicationModalClose"
+                    aria-label="Modalı kapat"
+                >
+
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        aria-hidden="true"
+                    >
+
+                        <path
+                            d="M6 6L18 18M6 18L18 6"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                        />
+
+                    </svg>
+
+                </button>
+
+                <div class="modal-header">
+
+                    <h2
+                        class="modal-title"
+                        id="applicationModalTitle"
+                    >
+                        Hesap Açtırma Başvurusu
+                    </h2>
+
+                    <p class="modal-description">
+                        Başvurunuz ekibimiz tarafından değerlendirilecektir.
+                        Lütfen bilgilerinizi eksiksiz doldurun.
+                    </p>
+
+                </div>
+
+                <form
+                    id="applicationForm"
+                    class="modal-form"
+                    novalidate
+                >
+
+                    <div class="form-group">
+
+                        <label for="applicationUsername">
+                            Kullanıcı Adı
+                        </label>
+
+                        <input
+                            type="text"
+                            id="applicationUsername"
+                            name="username"
+                            autocomplete="username"
+                            placeholder="ornek.kullanici"
+                            maxlength="32"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label for="applicationPurpose">
+                            Başvuru Amacı
+                        </label>
+
+                        <select
+                            id="applicationPurpose"
+                            name="purpose"
+                            class="form-select"
+                            required
+                        >
+
+                            <option value="" disabled selected>
+                                Lütfen seçiniz
+                            </option>
+
+                            <option value="unblock_account">
+                                Hesap blokesi kaldırma
+                            </option>
+
+                            <option value="reopen_account">
+                                Hesap yeniden açma
+                            </option>
+
+                            <option value="reset_password">
+                                Şifre sıfırlama talebi
+                            </option>
+
+                            <option value="other">
+                                Diğer
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label for="applicationEmail">
+                            İletişim Maili
+                        </label>
+
+                        <input
+                            type="email"
+                            id="applicationEmail"
+                            name="email"
+                            autocomplete="email"
+                            placeholder="ornek@fitnesspro.com"
+                            maxlength="120"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label for="applicationDescription">
+                            Açıklama
+                        </label>
+
+                        <textarea
+                            id="applicationDescription"
+                            name="description"
+                            class="form-textarea"
+                            placeholder="Durumunuzu kısaca açıklayın. (maks. 1000 karakter)"
+                            maxlength="1000"
+                            rows="5"
+                            required
+                        ></textarea>
+
+                        <div class="char-counter">
+                            <span id="applicationDescriptionCount">0</span>
+                            <span class="char-counter-sep">/</span>
+                            <span class="char-counter-max">1000</span>
+                        </div>
+
+                    </div>
+
+                    <div
+                        id="applicationModalAlert"
+                        class="form-alert"
+                        role="alert"
+                    ></div>
+
+                    <div class="modal-actions">
+
+                        <button
+                            type="button"
+                            id="cancelApplication"
+                            class="btn-secondary"
+                        >
+                            İptal
+                        </button>
+
+                        <button
+                            type="submit"
+                            id="submitApplication"
+                            class="btn-primary"
+                        >
+                            Başvuruyu Gönder
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
 
         <footer class="footer">
 
@@ -315,6 +516,7 @@
     <script src="../JavaScripts/UI/LoginRateLimitUI.js"></script>
     <script src="../JavaScripts/EndPoint/LoginEndpoint.js"></script>
     <script src="../JavaScripts/EndPoint/PasswordUpdateEndpoint.js"></script>
+    <script src="../JavaScripts/UI/ApplicationModal.js"></script>
 </body>
 
 </html>
