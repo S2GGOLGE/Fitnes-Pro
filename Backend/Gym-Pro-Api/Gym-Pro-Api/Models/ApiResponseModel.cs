@@ -2,9 +2,7 @@ namespace Apı.Model;
 
 public class ApiResponseModel
 {
-    // =========================================================
-    // GENEL DURUM
-    // =========================================================
+    #region GENEL DURUM
 
     public bool Success { get; set; }
 
@@ -14,9 +12,10 @@ public class ApiResponseModel
     // Başarılı işlemlerde dönen veri
     public object? Data { get; set; }
 
-    // =========================================================
-    // RATE LIMIT
-    // =========================================================
+    #endregion
+
+
+    #region RATE LIMIT
 
     // Geçici rate limit uygulanıyor mu?
     public bool RateLimited { get; set; }
@@ -24,16 +23,18 @@ public class ApiResponseModel
     // Tekrar denenebileceği süre
     public int? RemainingSeconds { get; set; }
 
-    // =========================================================
-    // ACCOUNT LOCK
-    // =========================================================
+    #endregion
+
+
+    #region ACCOUNT LOCK
 
     // Hesap güvenlik nedeniyle kilitli mi?
     public bool AccountLocked { get; set; }
 
-    // =========================================================
-    // NORMAL FAIL
-    // =========================================================
+    #endregion
+
+
+    #region NORMAL FAIL
 
     public static ApiResponseModel Fail(string message)
     {
@@ -44,9 +45,10 @@ public class ApiResponseModel
         };
     }
 
-    // =========================================================
-    // RATE LIMIT FAIL
-    // =========================================================
+    #endregion
+
+
+    #region RATE LIMIT FAIL
 
     public static ApiResponseModel FailRateLimited(
         string message,
@@ -61,9 +63,10 @@ public class ApiResponseModel
         };
     }
 
-    // =========================================================
-    // PERMANENT LOCK
-    // =========================================================
+    #endregion
+
+
+    #region PERMANENT LOCK
 
     public static ApiResponseModel FailLocked(string message)
     {
@@ -75,9 +78,10 @@ public class ApiResponseModel
         };
     }
 
-    // =========================================================
-    // SUCCESS
-    // =========================================================
+    #endregion
+
+
+    #region SUCCESS
 
     public static ApiResponseModel Ok(
         string message,
@@ -90,4 +94,6 @@ public class ApiResponseModel
             Data = data
         };
     }
+
+    #endregion
 }

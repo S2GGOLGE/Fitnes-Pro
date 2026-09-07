@@ -44,6 +44,12 @@ namespace Apı.Helpers
 
                 // ADIM 4: Roles -> Users foreign key
                 await EnsureRolesUserIdForeignKeyAsync(connection);
+
+                // ADIM 5: BannedUsers tablosu (kalıcı banlı hesaplar)
+                await EnsureBannedUsersTableAsync(connection);
+
+                // ADIM 6: BanAppeals tablosu (ban kaldırma talepleri)
+                await EnsureBanAppealsTableAsync(connection);
             }
         }
 
@@ -451,6 +457,72 @@ namespace Apı.Helpers
                 command.Parameters.AddWithValue("@fkName", foreignKeyName);
                 var result = await command.ExecuteScalarAsync();
                 return result is int count && count > 0;
+            }
+        }
+
+        // -------------------------------------------------------------------
+        // 5) BANNED USERS TABLOSU
+        //    Kalıcı olarak banlanmış hesapları tutar.
+        //    Backend restart'ta bu tablodan hydrate edilir.
+        // -------------------------------------------------------------------
+        private static async Task EnsureBannedUsersTableAsync(SqlConnection connection)
+        {
+            if (await TableExistsAsync(connection, "BannedUsers"))
+            {
+                return;
+            }
+
+            const string createBannedUsersSql = @"
+                CREATE TABLE [dbo].[BannedUsers]
+                (
+                    [Username]   NVARCHAR(100) NOT NULL,
+                    [BannedAt]   DATETIME2     NOT NULL,
+                    [Reason]     NVARCHAR(255) NULL,
+                    CONSTRAINT [PK_BannedUsers] PRIMARY KEY CLUSTERED ([Username] ASC)
+                );
+            ";
+
+            using (var command = new SqlCommand(createBannedUsersSql, connection))
+            {
+                await command.ExecuteNonQueryAsync();
+            }
+        }
+
+        // -------------------------------------------------------------------
+        // 6) BAN APPEALS TABLOSU
+        //    Kullanıcı ban kaldırma talepleri; admin onay/red işlemleri.
+        //    (Username, Status) index'i: "bu kullanıcının pending appeal'i var mı?"
+        //    ve "toplam kaç appeal gönderdi?" sorgularını hızlandırır.
+        // -------------------------------------------------------------------
+        private static async Task EnsureBanAppealsTableAsync(SqlConnection connection)
+        {
+            if (await TableExistsAsync(connection, "BanAppeals"))
+            {
+                return;
+            }
+
+            const string createBanAppealsSql = @"
+                CREATE TABLE [dbo].[BanAppeals]
+                (
+                    [Id]         INT            IDENTITY(1, 1) NOT NULL,
+                    [Username]   NVARCHAR(100)  NOT NULL,
+                    [Message]    NVARCHAR(1000) NOT NULL,
+                    [Status]     NVARCHAR(20)   NOT NULL
+                        CONSTRAINT [DF_BanAppeals_Status] DEFAULT N'Pending',
+                    [CreatedAt]  DATETIME2      NOT NULL,
+                    [DecidedAt]  DATETIME2      NULL,
+                    [DecidedBy]  NVARCHAR(100)  NULL,
+                    [AdminNote]  NVARCHAR(500)  NULL,
+                    CONSTRAINT [PK_BanAppeals] PRIMARY KEY CLUSTERED ([Id] ASC)
+                );
+
+                CREATE INDEX [IX_BanAppeals_Username_Status]
+                    ON [dbo].[BanAppeals] ([Username], [Status]);
+            ";
+
+            using (var command = new SqlCommand(createBanAppealsSql, connection))
+            {
+                await command.ExecuteNonQueryAsync();
             }
         }
 

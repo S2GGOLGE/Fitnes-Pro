@@ -1,9 +1,12 @@
 // =========================================================
-// FITNESS PRO - APPLICATION MODAL
+// FITNESS PRO - BAN APPEAL (BAŞVURU) MODAL
 // =========================================================
 //
-// Hesap blokesi kaldırma, yeniden açma, şifre sıfırlama
-// talebi ve diğer başvurular için kullanılan modal.
+// Kalıcı olarak banlanmış kullanıcının ban kaldırma talebi
+// göndermesi için kullanılan modal. Tek başvuru türü:
+// "kalıcı engelin kaldırılması" — Hesap blokesi kaldırma
+// / yeniden açma / şifre sıfırlama gibi diğer başvuru
+// türleri bu akışa dahil değildir.
 //
 // Mevcut sistemlerle etkileşim:
 //   - window.Auth.getUser()     → oturum açmış kullanıcının
@@ -15,16 +18,16 @@
 //                                 (PasswordUpdateModal ile aynı)
 //
 // Backend entegrasyonu:
-//   Endpoint   : POST /api/application
-//   Request    : { username, purpose, email, description }
+//   Endpoint   : POST /api/auth/ban-appeal
+//   Request    : { username, message }
 //   Response   : ApiResponseModel
 //                { success, message, data, rateLimited,
 //                  remainingSeconds, accountLocked }
 //
-//   Endpoint henüz backend tarafında mevcut değildir. URL
-//   burada tanımlıdır; backend hazır olduğunda otomatik
-//   çalışır. Backend hata dönerse veya bağlantı kurulamazsa
-//   mevcut alert sistemi üzerinden kullanıcı bilgilendirilir.
+//   Kurallar (backend tarafında zorlanır):
+//   - Sadece DB'de banlı kullanıcılar gönderebilir.
+//   - Aynı anda en fazla 1 Pending appeal olabilir.
+//   - Toplam max 2 appeal (onay/ret fark etmez).
 // =========================================================
 
 (function () {
@@ -35,18 +38,14 @@
         // =========================================================
         // API CONFIG
         // =========================================================
-        //
-        // Mevcut Auth.getBaseUrl() mimarisine bağlı kalınır.
-        // Yeni bir base URL sistemi kurulmaz.
-        // =========================================================
 
         const API_BASE_URL =
             (window.Auth && window.Auth.getBaseUrl()) ||
             window.API_BASE_URL ||
             "http://localhost:8081";
 
-        const APPLICATION_ENDPOINT =
-            `${API_BASE_URL}/api/application`;
+        const BAN_APPEAL_ENDPOINT =
+            `${API_BASE_URL}/api/auth/ban-appeal`;
 
         // =========================================================
         // DOM REFS
@@ -87,12 +86,8 @@
 
         const form = document.getElementById("applicationForm");
         const usernameInput = document.getElementById("applicationUsername");
-        const purposeInput = document.getElementById("applicationPurpose");
-        const emailInput = document.getElementById("applicationEmail");
-        const descriptionInput =
-            document.getElementById("applicationDescription");
-        const descriptionCount =
-            document.getElementById("applicationDescriptionCount");
+        const messageInput = document.getElementById("applicationDescription");
+        const messageCount = document.getElementById("applicationDescriptionCount");
         const submitButton = document.getElementById("submitApplication");
         const modalAlert = document.getElementById("applicationModalAlert");
 
@@ -108,13 +103,8 @@
 
         const MIN_USERNAME = 3;
         const MAX_USERNAME = 32;
-        const MAX_EMAIL = 120;
-        const MIN_DESCRIPTION = 10;
-        const MAX_DESCRIPTION = 1000;
-
-        // RFC 5322 simplified — proje seviyesinde yeterli.
-        const EMAIL_REGEX =
-            /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const MIN_MESSAGE = 10;
+        const MAX_MESSAGE = 1000;
 
         function validateUsername(value) {
             const v = (value || "").trim();
@@ -128,31 +118,14 @@
             return null;
         }
 
-        function validatePurpose(value) {
-            if (!value) return "Lütfen bir başvuru amacı seçiniz.";
-            return null;
-        }
-
-        function validateEmail(value) {
+        function validateMessage(value) {
             const v = (value || "").trim();
-            if (!v) return "İletişim maili boş bırakılamaz.";
-            if (v.length > MAX_EMAIL) {
-                return `İletişim maili en fazla ${MAX_EMAIL} karakter olabilir.`;
+            if (!v) return "Mesaj alanı boş bırakılamaz.";
+            if (v.length < MIN_MESSAGE) {
+                return `Mesaj en az ${MIN_MESSAGE} karakter olmalıdır.`;
             }
-            if (!EMAIL_REGEX.test(v)) {
-                return "Lütfen geçerli bir e-posta adresi giriniz.";
-            }
-            return null;
-        }
-
-        function validateDescription(value) {
-            const v = (value || "").trim();
-            if (!v) return "Açıklama alanı boş bırakılamaz.";
-            if (v.length < MIN_DESCRIPTION) {
-                return `Açıklama en az ${MIN_DESCRIPTION} karakter olmalıdır.`;
-            }
-            if (v.length > MAX_DESCRIPTION) {
-                return `Açıklama en fazla ${MAX_DESCRIPTION} karakter olabilir.`;
+            if (v.length > MAX_MESSAGE) {
+                return `Mesaj en fazla ${MAX_MESSAGE} karakter olabilir.`;
             }
             return null;
         }
@@ -177,47 +150,31 @@
         // CHAR COUNTER
         // =========================================================
 
-        const counter = descriptionCount
-            ? descriptionCount.parentElement
+        const counter = messageCount
+            ? messageCount.parentElement
             : null;
 
         function updateCharCounter() {
-            if (!descriptionInput || !descriptionCount) return;
+            if (!messageInput || !messageCount) return;
 
-            const len = descriptionInput.value.length;
-            descriptionCount.textContent = String(len);
+            const len = messageInput.value.length;
+            messageCount.textContent = String(len);
 
             if (!counter) return;
 
             counter.classList.remove("is-warning", "is-danger");
 
             // %90 → uyarı, %100 → tehlike
-            if (len >= MAX_DESCRIPTION) {
+            if (len >= MAX_MESSAGE) {
                 counter.classList.add("is-danger");
-            } else if (len >= Math.floor(MAX_DESCRIPTION * 0.9)) {
+            } else if (len >= Math.floor(MAX_MESSAGE * 0.9)) {
                 counter.classList.add("is-warning");
             }
         }
 
-        if (descriptionInput) {
-            descriptionInput.addEventListener("input", updateCharCounter);
+        if (messageInput) {
+            messageInput.addEventListener("input", updateCharCounter);
             updateCharCounter();
-        }
-
-        // Select için: kullanıcı bir şey seçtiğinde
-        // placeholder class'ını kaldır (CSS'te renk değişimi için).
-        if (purposeInput) {
-            purposeInput.addEventListener("change", () => {
-                if (purposeInput.value) {
-                    purposeInput.classList.remove("has-placeholder");
-                } else {
-                    purposeInput.classList.add("has-placeholder");
-                }
-            });
-            // İlk yüklemede: boş ise has-placeholder ekle
-            if (!purposeInput.value) {
-                purposeInput.classList.add("has-placeholder");
-            }
         }
 
         // =========================================================
@@ -277,12 +234,7 @@
             } catch (err) {
                 // reset() desteklenmiyorsa input'ları manuel temizle
                 if (usernameInput) usernameInput.value = "";
-                if (purposeInput) {
-                    purposeInput.value = "";
-                    purposeInput.classList.add("has-placeholder");
-                }
-                if (emailInput) emailInput.value = "";
-                if (descriptionInput) descriptionInput.value = "";
+                if (messageInput) messageInput.value = "";
             }
 
             clearModalAlert();
@@ -299,13 +251,6 @@
 
         // =========================================================
         // TETİKLEYİCİLER
-        // =========================================================
-        //
-        // Tüm olası trigger elementlerine (footer linki,
-        // kalıcı kilit butonu, vs.) listener bağlanır.
-        // Aynı elemente başka listener'lar (örn.
-        // LoginRateLimitUI.js) daha önce bağlanmış olabilir;
-        // bunlar bağımsız çalışır.
         // =========================================================
 
         triggerElements.forEach((trigger) => {
@@ -359,10 +304,8 @@
             const username = usernameInput
                 ? usernameInput.value.trim()
                 : "";
-            const purpose = purposeInput ? purposeInput.value : "";
-            const email = emailInput ? emailInput.value.trim() : "";
-            const description = descriptionInput
-                ? descriptionInput.value.trim()
+            const message = messageInput
+                ? messageInput.value.trim()
                 : "";
 
             // Client-side validation
@@ -373,33 +316,19 @@
                 return;
             }
 
-            const errPurpose = validatePurpose(purpose);
-            if (errPurpose) {
-                showModalAlert(errPurpose, "error");
-                if (purposeInput) purposeInput.focus();
+            const errMessage = validateMessage(message);
+            if (errMessage) {
+                showModalAlert(errMessage, "error");
+                if (messageInput) messageInput.focus();
                 return;
             }
 
-            const errEmail = validateEmail(email);
-            if (errEmail) {
-                showModalAlert(errEmail, "error");
-                if (emailInput) emailInput.focus();
-                return;
-            }
-
-            const errDescription = validateDescription(description);
-            if (errDescription) {
-                showModalAlert(errDescription, "error");
-                if (descriptionInput) descriptionInput.focus();
-                return;
-            }
-
-            // Payload
+            // Payload — backend BanAppealRequestModel ile uyumlu.
+            // Mevcut log/format yapısı korunur, sadece alanlar
+            // sadeleştirilmiştir.
             const payload = {
                 username: username,
-                purpose: purpose,
-                email: email,
-                description: description
+                message: message
             };
 
             // Loading state
@@ -417,16 +346,14 @@
             // Form alanlarını da disable et (kullanıcı değiştiremesin)
             const fields = [
                 usernameInput,
-                purposeInput,
-                emailInput,
-                descriptionInput
+                messageInput
             ];
             fields.forEach((f) => {
                 if (f) f.disabled = true;
             });
 
             try {
-                const response = await fetch(APPLICATION_ENDPOINT, {
+                const response = await fetch(BAN_APPEAL_ENDPOINT, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -483,7 +410,7 @@
                 // Network hatası — endpoint hazır olmayabilir
                 // veya backend kapalı. Kullanıcıya net mesaj.
                 console.error(
-                    "[APPLICATION] Network error:",
+                    "[BAN APPEAL] Network error:",
                     networkError
                 );
 

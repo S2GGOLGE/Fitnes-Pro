@@ -11,7 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-#region Add services to the container.
+#region Add services to the container.58ömn7b65
 
 builder.Services.AddControllers();
 
@@ -40,7 +40,15 @@ builder.Services.AddScoped<RoleService>(sp =>
 // =========================================================
 
 // 5 başarısız login -> 5 dakika blok
-builder.Services.AddSingleton<LoginRateLimitingService>();
+// 10 başarısız login -> 10 dakika blok
+// 15 başarısız login -> kalıcı ban (DB'ye yazılır, restart'ta korunur)
+builder.Services.AddSingleton<BanStorageService>(sp =>
+    new BanStorageService(defaultConnection));
+
+builder.Services.AddSingleton<LoginRateLimitingService>(sp =>
+    new LoginRateLimitingService(
+        sp.GetRequiredService<BanStorageService>()
+    ));
 
 // =========================================================
 // REGISTER
@@ -58,7 +66,8 @@ builder.Services.AddScoped<LoginService>(sp =>
         defaultConnection,
         sp.GetRequiredService<JwtService>(),
         sp.GetRequiredService<RoleService>(),
-        sp.GetRequiredService<LoginRateLimitingService>()
+        sp.GetRequiredService<LoginRateLimitingService>(),
+        sp.GetRequiredService<BanStorageService>()
     ));
 
 // =========================================================

@@ -10,12 +10,14 @@ public class LoginService
     private readonly JwtService _jwtService;
     private readonly RoleService _roleService;
     private readonly LoginRateLimitingService _rateLimitService;
+    private readonly BanStorageService _banStorageService;
 
     public LoginService(
         string connectionString,
         JwtService jwtService,
         RoleService roleService,
-        LoginRateLimitingService rateLimitingService)
+        LoginRateLimitingService rateLimitingService,
+        BanStorageService banStorageService)
     {
         _connectionString =
             connectionString
@@ -32,6 +34,10 @@ public class LoginService
         _rateLimitService =
             rateLimitingService
             ?? throw new ArgumentNullException(nameof(rateLimitingService));
+
+        _banStorageService =
+            banStorageService
+            ?? throw new ArgumentNullException(nameof(banStorageService));
     }
 
     // =========================================================
@@ -55,7 +61,22 @@ public class LoginService
         }
 
         // =========================================================
-        // RATE LIMIT - KALICI BLOK
+        // KALICI BAN - DB KONTROLÜ (yeniden başlatma sonrası da aktif)
+        // =========================================================
+
+        if (await _banStorageService.IsBannedAsync(models.Username))
+        {
+            Console.WriteLine(
+                $"[LOGIN] DB KALICI BAN RED | Username={models.Username}"
+            );
+
+            return ApiResponseModel.FailLocked(
+                "Güvenlik nedeniyle erişiminiz kalıcı olarak bloke edilmiştir."
+            );
+        }
+
+        // =========================================================
+        // RATE LIMIT - KALICI BLOK (in-memory)
         // =========================================================
 
         if (_rateLimitService.IsPermanentlyLocked(clientIp))
@@ -134,7 +155,7 @@ public class LoginService
 
         if (!await reader.ReadAsync())
         {
-            return RegisterFailedLogin(clientIp);
+            return await RegisterFailedLogin(clientIp, models.Username);
         }
 
         // =========================================================
@@ -191,7 +212,7 @@ public class LoginService
                 passwordHash,
                 StringComparison.Ordinal))
         {
-            return RegisterFailedLogin(clientIp);
+            return await RegisterFailedLogin(clientIp, models.Username);
         }
 
         // =========================================================
@@ -251,10 +272,12 @@ public class LoginService
     // BAŞARISIZ LOGIN MERKEZİ
     // =========================================================
 
-    private ApiResponseModel RegisterFailedLogin(string clientIp)
+    private async Task<ApiResponseModel> RegisterFailedLogin(
+        string clientIp,
+        string username)
     {
         var attempts =
-            _rateLimitService.RegisterFailedAttempt(clientIp);
+            await _rateLimitService.RegisterFailedAttempt(clientIp, username);
 
         // =========================================================
         // 15 → KALICI BLOK

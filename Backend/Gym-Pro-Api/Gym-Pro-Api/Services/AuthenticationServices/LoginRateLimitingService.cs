@@ -1,12 +1,11 @@
 namespace Apı.Service;
 
 using System.Collections.Concurrent;
+using Apı.Model;
 
 public class LoginRateLimitingService
 {
-    // =========================================================
-    // RATE LIMIT AYARLARI
-    // =========================================================
+    #region RATE LIMIT AYARLARI
 
     private const int FirstBlockAttempts = 5;
     private const int SecondBlockAttempts = 10;
@@ -18,15 +17,31 @@ public class LoginRateLimitingService
     private static readonly TimeSpan SecondBlockDuration =
         TimeSpan.FromMinutes(10);
 
-    // =========================================================
-    // RATE STORAGE
-    // =========================================================
+    #endregion
 
-    private readonly ConcurrentDictionary<string, LoginAttemptInfo> _attempts = new();
 
-    // =========================================================
-    // GENEL DURUM
-    // =========================================================
+    #region RATE STORAGE
+
+    private readonly ConcurrentDictionary<string, LoginAttemptInfoModel> _attempts = new();
+
+    private readonly Apı.Service.Authentication.BanStorageService _banStorage;
+
+    #endregion
+
+
+    #region CONSTRUCTOR
+
+    public LoginRateLimitingService(
+        Apı.Service.Authentication.BanStorageService banStorage)
+    {
+        _banStorage = banStorage
+            ?? throw new ArgumentNullException(nameof(banStorage));
+    }
+
+    #endregion
+
+
+    #region GENEL DURUM
 
     public bool IsBlocked(string key, out TimeSpan remaining)
     {
@@ -51,9 +66,8 @@ public class LoginRateLimitingService
                 $"Permanent={info.IsPermanentlyLocked}"
             );
 
-            // =====================================================
-            // KALICI BLOK
-            // =====================================================
+
+            #region KALICI BLOK
 
             if (info.IsPermanentlyLocked)
             {
@@ -64,18 +78,20 @@ public class LoginRateLimitingService
                 return true;
             }
 
-            // =====================================================
-            // AKTİF BLOK YOK
-            // =====================================================
+            #endregion
+
+
+            #region AKTİF BLOK YOK
 
             if (!info.BlockedUntil.HasValue)
             {
                 return false;
             }
 
-            // =====================================================
-            // GEÇİCİ BLOK AKTİF
-            // =====================================================
+            #endregion
+
+
+            #region GEÇİCİ BLOK AKTİF
 
             if (info.BlockedUntil.Value > DateTime.UtcNow)
             {
@@ -92,9 +108,10 @@ public class LoginRateLimitingService
                 return true;
             }
 
-            // =====================================================
-            // BLOK SÜRESİ DOLDU
-            // =====================================================
+            #endregion
+
+
+            #region BLOK SÜRESİ DOLDU
 
             Console.WriteLine(
                 $"[RATE LIMIT] BLOCK EXPIRED | " +
@@ -105,18 +122,19 @@ public class LoginRateLimitingService
             info.BlockedUntil = null;
 
             return false;
+
+            #endregion
         }
     }
 
-    // =========================================================
-    // RATE DURUMUNU GETİR
-    // =========================================================
+    #endregion
 
-    public LoginRateStatus GetStatus(string key)
+
+    #region RATE DURUMUNU GETİR
+
+    public LoginRateStatusModel GetStatus(string key)
     {
-        // =====================================================
-        // KEY YOK
-        // =====================================================
+        #region KEY YOK
 
         if (!_attempts.TryGetValue(key, out var info))
         {
@@ -124,7 +142,7 @@ public class LoginRateLimitingService
                 $"[RATE LIMIT] STATUS | KEY YOK | Key={key}"
             );
 
-            return new LoginRateStatus
+            return new LoginRateStatusModel
             {
                 IsBlocked = false,
                 RemainingSeconds = 0,
@@ -133,13 +151,15 @@ public class LoginRateLimitingService
             };
         }
 
+        #endregion
+
+
         lock (info)
         {
             var now = DateTime.UtcNow;
 
-            // =================================================
-            // KALICI KİLİT
-            // =================================================
+
+            #region KALICI KİLİT
 
             if (info.IsPermanentlyLocked)
             {
@@ -149,7 +169,7 @@ public class LoginRateLimitingService
                     $"Attempts={info.FailedAttempts}"
                 );
 
-                return new LoginRateStatus
+                return new LoginRateStatusModel
                 {
                     IsBlocked = true,
                     RemainingSeconds = null,
@@ -158,9 +178,10 @@ public class LoginRateLimitingService
                 };
             }
 
-            // =================================================
-            // GEÇİCİ BLOK
-            // =================================================
+            #endregion
+
+
+            #region GEÇİCİ BLOK
 
             if (info.BlockedUntil.HasValue &&
                 info.BlockedUntil.Value > now)
@@ -177,7 +198,7 @@ public class LoginRateLimitingService
                     $"Remaining={remainingSeconds}s"
                 );
 
-                return new LoginRateStatus
+                return new LoginRateStatusModel
                 {
                     IsBlocked = true,
                     RemainingSeconds = remainingSeconds,
@@ -186,9 +207,10 @@ public class LoginRateLimitingService
                 };
             }
 
-            // =================================================
-            // BLOK SÜRESİ DOLMUŞ
-            // =================================================
+            #endregion
+
+
+            #region BLOK SÜRESİ DOLMUŞ
 
             if (info.BlockedUntil.HasValue &&
                 info.BlockedUntil.Value <= now)
@@ -201,23 +223,27 @@ public class LoginRateLimitingService
                 info.BlockedUntil = null;
             }
 
-            // =================================================
-            // NORMAL
-            // =================================================
+            #endregion
 
-            return new LoginRateStatus
+
+            #region NORMAL
+
+            return new LoginRateStatusModel
             {
                 IsBlocked = false,
                 RemainingSeconds = 0,
                 FailedAttempts = info.FailedAttempts,
                 IsPermanentlyLocked = false
             };
+
+            #endregion
         }
     }
 
-    // =========================================================
-    // KALICI BLOK KONTROLÜ
-    // =========================================================
+    #endregion
+
+
+    #region KALICI BLOK KONTROLÜ
 
     public bool IsPermanentlyLocked(string key)
     {
@@ -232,32 +258,48 @@ public class LoginRateLimitingService
         }
     }
 
-    // =========================================================
-    // BAŞARISIZ LOGIN
-    // =========================================================
+    #endregion
 
-    public int RegisterFailedAttempt(string key)
+
+    #region BAŞARISIZ LOGIN
+
+    /// <summary>
+    /// Başarısız login denemesini kaydeder. 15. denemede:
+    ///   1) In-memory flag'i set eder (mevcut davranış).
+    ///   2) username verilmişse DB'ye kalıcı ban yazar (yeni).
+    /// Bu sayede backend restart'ta bile kalıcı ban korunur.
+    /// </summary>
+    public async Task<int> RegisterFailedAttempt(
+        string key,
+        string? username = null)
     {
         var info = _attempts.GetOrAdd(
             key,
-            _ => new LoginAttemptInfo()
+            _ => new LoginAttemptInfoModel()
         );
+
+        int attempts;
 
         lock (info)
         {
             info.FailedAttempts++;
 
-            var attempts = info.FailedAttempts;
+            attempts = info.FailedAttempts;
+
+            if (!string.IsNullOrWhiteSpace(username))
+            {
+                info.Username = username;
+            }
 
             Console.WriteLine(
                 $"[RATE LIMIT] FAILED | " +
                 $"Key={key} | " +
+                $"Username={info.Username ?? "-"} | " +
                 $"Attempts={attempts}"
             );
 
-            // =================================================
-            // 5 DENEME → 5 DAKİKA
-            // =================================================
+
+            #region 5 DENEME → 5 DAKİKA
 
             if (attempts == FirstBlockAttempts)
             {
@@ -269,9 +311,10 @@ public class LoginRateLimitingService
                 );
             }
 
-            // =================================================
-            // 10 DENEME → 10 DAKİKA
-            // =================================================
+            #endregion
+
+
+            #region 10 DENEME → 10 DAKİKA
 
             else if (attempts == SecondBlockAttempts)
             {
@@ -283,9 +326,10 @@ public class LoginRateLimitingService
                 );
             }
 
-            // =================================================
-            // 15 DENEME → KALICI
-            // =================================================
+            #endregion
+
+
+            #region 15 DENEME → KALICI
 
             else if (attempts >= PermanentLockAttempts)
             {
@@ -293,20 +337,64 @@ public class LoginRateLimitingService
                 info.BlockedUntil = null;
 
                 Console.WriteLine(
-                    $"[RATE LIMIT] KALICI BLOK | Key={key}"
+                    $"[RATE LIMIT] KALICI BLOK | Key={key} | " +
+                    $"Username={info.Username ?? "-"}"
                 );
             }
 
-            return attempts;
+            #endregion
         }
+
+        // 15. denemede DB'ye kalıcı ban yaz (in-memory lock'un dışında,
+        // deadlock riski yok). Username yoksa eski davranışa düşer.
+        if (attempts >= PermanentLockAttempts &&
+            !string.IsNullOrWhiteSpace(username))
+        {
+            try
+            {
+                await _banStorage.InsertBanAsync(
+                    username!,
+                    "15 başarısız login denemesi"
+                );
+
+                Console.WriteLine(
+                    $"[RATE LIMIT] DB KALICI BAN YAZILDI | Username={username}"
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    $"[RATE LIMIT] DB BAN YAZIM HATASI | " +
+                    $"Username={username} | {ex.Message}"
+                );
+            }
+        }
+
+        return attempts;
     }
 
-    // =========================================================
-    // BAŞARILI LOGIN
-    // =========================================================
+    #endregion
+
+
+    #region BAŞARILI LOGIN
 
     public void Reset(string key)
     {
+        if (_attempts.TryGetValue(key, out var info))
+        {
+            lock (info)
+            {
+                if (info.IsPermanentlyLocked)
+                {
+                    Console.WriteLine(
+                        $"[RATE LIMIT] RESET REDDEDILDI (KALICI BLOK) | Key={key}"
+                    );
+
+                    return;
+                }
+            }
+        }
+
         if (_attempts.TryRemove(key, out _))
         {
             Console.WriteLine(
@@ -315,32 +403,64 @@ public class LoginRateLimitingService
         }
     }
 
-    // =========================================================
-    // INTERNAL MODEL
-    // =========================================================
+    #endregion
 
-    private sealed class LoginAttemptInfo
+
+    #region ADMIN: KALICI KİLİT KALDIRMA
+
+    /// <summary>
+    /// Admin'in onayladığı appeal sonrası çağrılır.
+    /// Hem DB'den banı siler hem de bu kullanıcıya ait tüm in-memory
+    /// entry'leri temizler. Mevcut 5/10 dk'lık geçici bloklar da bu yolla
+    /// kalkar; admin yeni onay verdiyse kullanıcı temiz başlar.
+    /// </summary>
+    public async Task RemovePermanentLockAsync(string username)
     {
-        public int FailedAttempts { get; set; }
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            return;
+        }
 
-        public DateTime? BlockedUntil { get; set; }
+        try
+        {
+            await _banStorage.RemoveBanAsync(username);
 
-        public bool IsPermanentlyLocked { get; set; }
+            Console.WriteLine(
+                $"[RATE LIMIT] DB KALICI BAN SİLİNDİ | Username={username}"
+            );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(
+                $"[RATE LIMIT] DB BAN SİLME HATASI | " +
+                $"Username={username} | {ex.Message}"
+            );
+        }
+
+        // Username eşleşmesiyle tüm in-memory entry'leri temizle.
+        // Bir kullanıcı birden fazla IP'den deneme yapmış olabilir; hepsi silinir.
+        foreach (var pair in _attempts)
+        {
+            if (_attempts.TryGetValue(pair.Key, out var info))
+            {
+                lock (info)
+                {
+                    if (string.Equals(
+                            info.Username,
+                            username,
+                            StringComparison.Ordinal))
+                    {
+                        _attempts.TryRemove(pair.Key, out _);
+
+                        Console.WriteLine(
+                            $"[RATE LIMIT] IN-MEMORY ENTRY SİLİNDİ | " +
+                            $"Key={pair.Key} | Username={username}"
+                        );
+                    }
+                }
+            }
+        }
     }
-}
 
-
-// =============================================================
-// RATE STATUS MODEL
-// =============================================================
-
-public sealed class LoginRateStatus
-{
-    public bool IsBlocked { get; set; }
-
-    public int? RemainingSeconds { get; set; }
-
-    public int FailedAttempts { get; set; }
-
-    public bool IsPermanentlyLocked { get; set; }
+    #endregion
 }
