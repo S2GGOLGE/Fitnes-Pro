@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Fitness Pro - Hedeflerim. Kişisel fitness, kilo ve güç hedeflerini belirle, ilerlemeni anlık takip et.">
+    <meta name="theme-color" content="#0B0F0D">
+
+    <title>Fitness Pro | Hedeflerim</title>
+
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../Css/UI/Goals.css">
+</head>
+
+<body>
+
+    <div class="goals-shell">
+
+        <!-- ==================== SIDEBAR ==================== -->
+        <aside class="goals-sidebar" id="goalsSidebar" aria-label="Hedefler Gezinme Menüsü">
+
+            <!-- 1. Fitness Pro Marka Başlığı (index.html'e Dönüş) -->
+            <div class="sidebar-header">
+                <a href="index.html" class="brand-link" title="Fitness Pro Ana Sayfasına Dön" aria-label="Fitness Pro Ana Sayfası">
+                    <div class="brand-badge">FP</div>
+                    <div class="brand-title">FITNESS<span>PRO</span></div>
+                </a>
+                <button type="button" class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Menüyü Kapat">×</button>
+            </div>
+
+            <!-- 2. Kullanıcı Profili (Avatar, Username, İlerleme) -->
+            <div class="sidebar-profile">
+                <div class="profile-avatar" aria-hidden="true">E</div>
+                <div class="profile-meta">
+                    <strong class="profile-username" title="Emre">Emre</strong>
+                    <div class="profile-badge">
+                        <span class="profile-badge-dot"></span>
+                        <span>İlerleme: Aktif</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Hedefler Arası Geçiş Listesi -->
+            <div class="sidebar-section-title">
+                <span>HEDEFLERİM</span>
+                <span class="goals-count-tag" id="goalsCountTag">0 Hedef</span>
+            </div>
+
+            <!-- Dinamik Olarak Hedef Butonlarının Listelendiği Alan -->
+            <nav class="goals-nav-list" id="goalsNavList" aria-label="Kayıtlı Hedefler">
+                <!-- JS tarafından doldurulacaktır -->
+            </nav>
+
+            <!-- 4. Yeni Hedef Ekleme Butonu -->
+            <button type="button" class="btn-add-goal-sidebar" id="btnAddGoalSidebar" aria-label="Yeni hedef ekle">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>Yeni Hedef Ekle</span>
+            </button>
+
+            <!-- 5. Alt Navigasyon -->
+            <div class="sidebar-footer">
+                <a href="index.html" class="sidebar-back-link" title="Dashboard Ana Sayfasına Git">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    <span>Ana Sayfaya Dön</span>
+                </a>
+            </div>
+
+        </aside>
+
+        <!-- Mobil Menü Karartması (Overlay) -->
+        <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+        <!-- ==================== MAIN CONTENT ==================== -->
+        <main class="goals-main" id="goalsMain">
+
+            <!-- Mobil Üst Çubuk (Mobile Topbar) -->
+            <header class="mobile-topbar">
+                <button type="button" class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Hedefler Menüsünü Aç">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <span class="mobile-page-title">HEDEFLERİM</span>
+                <a href="index.html" class="brand-badge" title="Ana Sayfa" style="text-decoration:none;">FP</a>
+            </header>
+
+            <!-- Dinamik İçerik Alanı (1.png veya 2.png durumları) -->
+            <div id="goalsDynamicContent" aria-live="polite">
+                <!-- JavaScript aracılığıyla doldurulacaktır -->
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="../JavaScripts/Core/auth.js"></script>
+    <script src="../JavaScripts/UI/Goals.js"></script>
+
+</body>
+
+</html>
