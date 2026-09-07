@@ -1,0 +1,454 @@
+```html
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Fitness Pro | Bildirimler</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../Css/UI/Bildirimler.css">
+    <link rel="stylesheet" href="../Css/Core/GlobalModal.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+
+            <div class="logo">
+                <div class="logo-icon">F</div>
+                <div class="logo-text">Fitness<span>Pro</span></div>
+            </div>
+
+            <nav class="nav">
+
+                <a href="../Başlangıc.html" class="nav-item">
+                    <span class="nav-icon"><i data-lucide="home"></i></span>
+                    <span>Başlangıç</span>
+                </a>
+
+                <a href="Workouts.html" class="nav-item">
+                    <span class="nav-icon"><i data-lucide="dumbbell"></i></span>
+                    <span>İdmanlar</span>
+                </a>
+
+                <a href="Progress.html" class="nav-item">
+                    <span class="nav-icon"><i data-lucide="trending-up"></i></span>
+                    <span>İlerleme</span>
+                </a>
+
+                <a href="#" class="nav-item">
+                    <span class="nav-icon"><i data-lucide="target"></i></span>
+                    <span>Hedefler</span>
+                </a>
+
+                <a href="Profile.html" class="nav-item">
+                    <span class="nav-icon"><i data-lucide="user"></i></span>
+                    <span>Profil</span>
+                </a>
+
+                <a href="setting.html" class="nav-item">
+                    <span class="nav-icon"><i data-lucide="settings"></i></span>
+                    <span>Ayarlar</span>
+                </a>
+
+                <a href="Bildirimler.html" class="nav-item active">
+                    <span class="nav-icon"><i data-lucide="bell"></i></span>
+                    <span>Bildirimler</span>
+                </a>
+
+            </nav>
+
+            <div class="sidebar-bottom">
+
+            </div>
+
+        </aside>
+
+        <!-- MAIN -->
+        <main class="main">
+
+            <!-- TOPBAR -->
+            <header class="topbar">
+
+                <button class="top-action" id="themeBtn" title="Tema">
+                    <i data-lucide="sun"></i>
+                </button>
+
+                <button class="top-action" title="Bildirimler">
+                    <i data-lucide="bell"></i>
+                </button>
+
+                <div class="profile">
+                    <div class="avatar">ME</div>
+
+                    <div class="profile-info">
+                        <strong>Mehmet</strong>
+                        <small>Premium</small>
+                    </div>
+                </div>
+
+            </header>
+
+            <!-- CONTENT -->
+            <section class="content">
+
+                <!-- HEADER -->
+                <div class="page-header">
+
+                    <div class="page-title">
+                        <h1>Bildirimler</h1>
+                        <p>Antrenmanların ve hedeflerinle ilgili son gelişmeler.</p>
+                    </div>
+
+                    <div class="header-actions">
+                        <button class="btn" id="markAllBtn">
+                            <i data-lucide="check"></i> Tümünü Okundu Yap
+                        </button>
+
+                        <button class="btn btn-primary">
+                            <i data-lucide="settings"></i> Bildirim Ayarları
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- STATS -->
+                <div class="stats">
+
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <span>Toplam Bildirim</span>
+                            <div class="stat-icon"><i data-lucide="bell"></i></div>
+                        </div>
+
+                        <div class="stat-number" id="totalCount">8</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <span>Okunmamış</span>
+                            <div class="stat-icon"><i data-lucide="circle-dot"></i></div>
+                        </div>
+
+                        <div class="stat-number" id="unreadCount">4</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <span>Bu Hafta</span>
+                            <div class="stat-icon"><i data-lucide="trending-up"></i></div>
+                        </div>
+
+                        <div class="stat-number">12</div>
+                    </div>
+
+                </div>
+
+                <!-- TOOLBAR -->
+                <div class="toolbar">
+
+                    <div class="filters">
+
+                        <button class="filter active" data-filter="all">
+                            Tümü
+                        </button>
+
+                        <button class="filter" data-filter="unread">
+                            Okunmamış
+                        </button>
+
+                        <button class="filter" data-filter="workout">
+                            Antrenman
+                        </button>
+
+                        <button class="filter" data-filter="goal">
+                            Hedefler
+                        </button>
+
+                        <button class="filter" data-filter="achievement">
+                            Başarılar
+                        </button>
+
+                        <button class="filter" data-filter="system">
+                            Sistem
+                        </button>
+
+                    </div>
+
+                    <input type="text" class="search" id="searchInput" placeholder="Bildirimlerde ara...">
+
+                </div>
+
+                <!-- NOTIFICATIONS -->
+                <div class="notifications" id="notificationList">
+
+                    <article class="notification unread" data-type="workout" data-title="Antrenman Hatırlatması">
+
+                        <div class="notification-icon">
+                            <i data-lucide="dumbbell"></i>
+                        </div>
+
+                        <div class="notification-body">
+
+                            <div class="notification-title">
+                                Antrenman Hatırlatması
+                            </div>
+
+                            <div class="notification-text">
+                                Bugünkü göğüs ve triceps antrenmanın seni bekliyor.
+                            </div>
+
+                            <div class="notification-time">
+                                Bugün · 18:30
+                            </div>
+
+                        </div>
+
+                        <div class="notification-actions">
+
+                            <span class="dot"></span>
+
+                            <button class="icon-btn detail" title="Detay">
+                                <i data-lucide="arrow-right"></i>
+                            </button>
+
+                            <button class="icon-btn delete" title="Sil">
+                                <i data-lucide="x"></i>
+                            </button>
+
+                        </div>
+
+                    </article>
+
+
+                    <article class="notification unread" data-type="goal" data-title="Hedef İlerlemesi">
+
+                        <div class="notification-icon">
+                            <i data-lucide="target"></i>
+                        </div>
+
+                        <div class="notification-body">
+
+                            <div class="notification-title">
+                                Hedef İlerlemesi
+                            </div>
+
+                            <div class="notification-text">
+                                Kilo verme hedefinde %75 ilerleme kaydettin.
+                            </div>
+
+                            <div class="notification-time">
+                                2 saat önce
+                            </div>
+
+                        </div>
+
+                        <div class="notification-actions">
+
+                            <span class="dot"></span>
+
+                            <button class="icon-btn detail">
+                                <i data-lucide="arrow-right"></i>
+                            </button>
+
+                            <button class="icon-btn delete">
+                                <i data-lucide="x"></i>
+                            </button>
+
+                        </div>
+
+                    </article>
+
+
+                    <article class="notification unread" data-type="system" data-title="Su Hatırlatması">
+
+                        <div class="notification-icon">
+                            <i data-lucide="droplets"></i>
+                        </div>
+
+                        <div class="notification-body">
+
+                            <div class="notification-title">
+                                Su Hatırlatması
+                            </div>
+
+                            <div class="notification-text">
+                                Günlük su hedefinin %60'ına ulaştın.
+                            </div>
+
+                            <div class="notification-time">
+                                1 saat önce
+                            </div>
+
+                        </div>
+
+                        <div class="notification-actions">
+
+                            <span class="dot"></span>
+
+                            <button class="icon-btn detail">
+                                <i data-lucide="arrow-right"></i>
+                            </button>
+
+                            <button class="icon-btn delete">
+                                <i data-lucide="x"></i>
+                            </button>
+
+                        </div>
+
+                    </article>
+
+
+                    <article class="notification unread" data-type="achievement" data-title="Yeni Başarı">
+
+                        <div class="notification-icon">
+                            <i data-lucide="trophy"></i>
+                        </div>
+
+                        <div class="notification-body">
+
+                            <div class="notification-title">
+                                Yeni Başarı
+                            </div>
+
+                            <div class="notification-text">
+                                10 günlük antrenman serisini tamamladın!
+                            </div>
+
+                            <div class="notification-time">
+                                Dün
+                            </div>
+
+                        </div>
+
+                        <div class="notification-actions">
+
+                            <span class="dot"></span>
+
+                            <button class="icon-btn detail">
+                                <i data-lucide="arrow-right"></i>
+                            </button>
+
+                            <button class="icon-btn delete">
+                                <i data-lucide="x"></i>
+                            </button>
+
+                        </div>
+
+                    </article>
+
+
+                    <article class="notification" data-type="system" data-title="Program Güncellendi">
+
+                        <div class="notification-icon">
+                            <i data-lucide="settings"></i>
+                        </div>
+
+                        <div class="notification-body">
+
+                            <div class="notification-title">
+                                Program Güncellendi
+                            </div>
+
+                            <div class="notification-text">
+                                Antrenman programın başarıyla güncellendi.
+                            </div>
+
+                            <div class="notification-time">
+                                3 gün önce
+                            </div>
+
+                        </div>
+
+                        <div class="notification-actions">
+
+                            <button class="icon-btn detail">
+                                <i data-lucide="arrow-right"></i>
+                            </button>
+
+                            <button class="icon-btn delete">
+                                <i data-lucide="x"></i>
+                            </button>
+
+                        </div>
+
+                    </article>
+
+
+                    <article class="notification" data-type="workout" data-title="Antrenman Tamamlandı">
+
+                        <div class="notification-icon">
+                            <i data-lucide="check-circle"></i>
+                        </div>
+
+                        <div class="notification-body">
+
+                            <div class="notification-title">
+                                Antrenman Tamamlandı
+                            </div>
+
+                            <div class="notification-text">
+                                Bugünkü antrenmanını başarıyla tamamladın.
+                            </div>
+
+                            <div class="notification-time">
+                                2 gün önce
+                            </div>
+
+                        </div>
+
+                        <div class="notification-actions">
+
+                            <button class="icon-btn detail">
+                                <i data-lucide="arrow-right"></i>
+                            </button>
+
+                            <button class="icon-btn delete">
+                                <i data-lucide="x"></i>
+                            </button>
+
+                        </div>
+
+                    </article>
+
+                </div>
+
+                <!-- EMPTY -->
+                <div class="empty" id="emptyState">
+
+                    <div class="empty-icon">
+                        <i data-lucide="bell-off"></i>
+                    </div>
+
+                    <h3>Bildirim bulunamadı</h3>
+
+                    <p>
+                        Şu anda görüntülenecek bildirimin yok.
+                    </p>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <script src="../JavaScripts/Core/GlobalModalManager.js"></script>
+    <script src="../JavaScripts/UI/Bildimler.js"></script>
+    <script src="../JavaScripts/UI/NotificationModalBridge.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

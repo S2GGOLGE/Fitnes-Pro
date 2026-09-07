@@ -1,0 +1,461 @@
+/* =========================================================
+   FITNESS PRO - GLOBAL MODAL STYLES
+   =========================================================
+   
+   Merkezi modal sistemi için stiller.
+   Mevcut Fitness Pro tasarım dili ile uyumlu.
+   
+   Dark theme:
+   - Background: #0B0F0D
+   - Primary: #22C55E
+   
+   Typography: Inter
+   ========================================================= */
+
+/* ==========================================
+   GLOBAL MODAL CONTAINER
+   ========================================== */
+
+.global-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.global-modal.show {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ==========================================
+   GLOBAL MODAL OVERLAY
+   ========================================== */
+
+.global-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.global-modal.show .global-modal-overlay {
+    opacity: 1;
+}
+
+/* ==========================================
+   GLOBAL MODAL CONTENT
+   ========================================== */
+
+.global-modal-content {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    background-color: var(--card, #18201B);
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.07));
+    border-radius: 16px;
+    padding: 32px 28px;
+    max-height: 90vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+    transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.global-modal-content:focus {
+    outline: none;
+}
+
+.global-modal.show .global-modal-content {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* ==========================================
+   GLOBAL MODAL CLOSE BUTTON
+   ========================================== */
+
+.global-modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: var(--text-muted, #69736D);
+    border: 1px solid transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: color 0.25s ease, background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.global-modal-close:hover {
+    color: var(--text, #F3F7F4);
+    background-color: var(--surface, #121815);
+    border-color: var(--border, rgba(255, 255, 255, 0.07));
+}
+
+.global-modal-close:focus-visible {
+    outline: 2px solid var(--primary, #22C55E);
+    outline-offset: 2px;
+}
+
+.global-modal-close:active {
+    transform: scale(0.95);
+}
+
+/* ==========================================
+   GLOBAL MODAL HEADER
+   ========================================== */
+
+.global-modal-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.global-modal-icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background-color: rgba(34, 197, 94, 0.08);
+    color: var(--primary, #22C55E);
+}
+
+.global-modal[data-type="success"] .global-modal-icon,
+.global-modal[data-type="info"] .global-modal-icon {
+    color: var(--primary, #22C55E);
+    background-color: rgba(34, 197, 94, 0.08);
+}
+
+.global-modal[data-type="warning"] .global-modal-icon,
+.global-modal[data-type="confirmation"] .global-modal-icon {
+    color: #F59E0B;
+    background-color: rgba(245, 158, 11, 0.1);
+}
+
+.global-modal[data-type="error"] .global-modal-icon,
+.global-modal[data-type="delete"] .global-modal-icon {
+    color: #EF4444;
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+.global-modal-title-container {
+    flex: 1;
+    min-width: 0;
+}
+
+.global-modal-title {
+    color: var(--text, #F3F7F4);
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+    line-height: 1.3;
+}
+
+.global-modal-description {
+    color: var(--text-muted, #69736D);
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* ==========================================
+   GLOBAL MODAL BODY
+   ========================================== */
+
+.global-modal-body {
+    margin-bottom: 24px;
+    color: var(--text, #F3F7F4);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.global-modal-body > p:first-child {
+    margin-top: 0;
+}
+
+.global-modal-feature-icon {
+    font-size: 24px;
+    line-height: 1;
+}
+
+.global-modal-meta {
+    margin: 16px 0 0;
+    color: var(--text-muted, #69736D);
+    font-size: 13px;
+}
+
+.global-modal-body:empty {
+    display: none;
+}
+
+.global-modal-body[hidden],
+.global-modal-actions[hidden],
+.global-modal-title[hidden],
+.global-modal-description[hidden],
+.global-modal-icon[hidden] {
+    display: none;
+}
+
+/* ==========================================
+   GLOBAL MODAL ACTIONS
+   ========================================== */
+
+.global-modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.global-modal-actions:empty {
+    display: none;
+}
+
+/* ==========================================
+   GLOBAL MODAL BUTTONS
+   ========================================== */
+
+.global-modal-button {
+    flex: 1;
+    min-width: 120px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 20px;
+    border-radius: 9px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: "Inter", sans-serif;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    border: none;
+    outline: none;
+}
+
+.global-modal-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.global-modal-button:focus-visible {
+    outline: 2px solid var(--primary, #22C55E);
+    outline-offset: 2px;
+}
+
+/* Primary Button */
+.global-modal-button-primary {
+    background-color: var(--primary, #22C55E);
+    color: #07100A;
+}
+
+.global-modal-button-primary:hover:not(:disabled) {
+    background-color: #2bd668;
+    transform: translateY(-1px);
+}
+
+.global-modal-button-primary:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+/* Secondary Button */
+.global-modal-button-secondary {
+    background-color: var(--surface, #121815);
+    color: var(--text, #F3F7F4);
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.07));
+}
+
+.global-modal-button-secondary:hover:not(:disabled) {
+    background-color: var(--card-hover, #1C251F);
+    border-color: var(--border-green, rgba(34, 197, 94, 0.25));
+}
+
+/* Danger Button */
+.global-modal-button-danger {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #EF4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.global-modal-button-danger:hover:not(:disabled) {
+    background-color: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.5);
+}
+
+/* Button Spinner */
+.global-modal-button-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: global-modal-spinner 0.6s linear infinite;
+}
+
+@keyframes global-modal-spinner {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.global-modal-loader {
+    width: 28px;
+    height: 28px;
+    border: 3px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: global-modal-spinner 0.7s linear infinite;
+}
+
+/* ==========================================
+   MODAL SIZE VARIANTS
+   ========================================== */
+
+.global-modal-content.size-small {
+    max-width: 400px;
+}
+
+.global-modal-content.size-large {
+    max-width: 700px;
+}
+
+.global-modal-content.size-full {
+    max-width: 90vw;
+}
+
+/* ==========================================
+   RESPONSIVE DESIGN
+   ========================================== */
+
+@media (max-width: 600px) {
+    .global-modal {
+        padding: 16px;
+    }
+
+    .global-modal-content {
+        padding: 24px 20px;
+        max-height: 95vh;
+    }
+
+    .global-modal-header {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .global-modal-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .global-modal-title {
+        font-size: 18px;
+    }
+
+    .global-modal-description {
+        font-size: 13px;
+    }
+
+    .global-modal-actions {
+        flex-direction: column;
+    }
+
+    .global-modal-button {
+        width: 100%;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 400px) {
+    .global-modal-content {
+        padding: 20px 16px;
+    }
+
+    .global-modal-title {
+        font-size: 16px;
+    }
+
+    .global-modal-description {
+        font-size: 12px;
+    }
+}
+
+/* ==========================================
+   ACCESSIBILITY IMPROVEMENTS
+   ========================================== */
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .global-modal,
+    .global-modal-overlay,
+    .global-modal-content,
+    .global-modal-close,
+    .global-modal-button {
+        transition: none;
+    }
+
+    .global-modal-content {
+        transform: none;
+    }
+
+    .global-modal-button-spinner {
+        animation: none;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .global-modal-content {
+        border-width: 2px;
+    }
+
+    .global-modal-button {
+        border-width: 2px;
+    }
+}
+
+/* Focus visible improvements */
+.global-modal-close:focus-visible,
+.global-modal-button:focus-visible {
+    outline-width: 3px;
+    outline-offset: 3px;
+}
+
+/* ==========================================
+   PRINT STYLES
+   ========================================== */
+
+@media print {
+    .global-modal {
+        display: none !important;
+    }
+}

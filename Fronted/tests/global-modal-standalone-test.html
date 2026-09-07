@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Modal Manager - Standalone Test</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../Css/Core/GlobalModal.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0B0F0D;
+            color: #F3F7F4;
+            margin: 0;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #22C55E;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: #69736D;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            color: #22C55E;
+            font-size: 20px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .test-button {
+            padding: 12px 20px;
+            background-color: #18201B;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 8px;
+            color: #F3F7F4;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-align: left;
+        }
+
+        .test-button:hover {
+            background-color: #1C251F;
+            border-color: rgba(34, 197, 94, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .test-button.primary {
+            background-color: rgba(34, 197, 94, 0.1);
+            border-color: rgba(34, 197, 94, 0.3);
+            color: #22C55E;
+        }
+
+        .test-button.danger {
+            background-color: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #EF4444;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 16px;
+            background-color: #18201B;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 13px;
+            color: #69736D;
+        }
+
+        .status.success {
+            border-color: rgba(34, 197, 94, 0.3);
+            color: #22C55E;
+        }
+
+        .status.error {
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #EF4444;
+        }
+
+        @media (max-width: 600px) {
+            .button-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Global Modal Manager - Standalone Test</h1>
+        <p class="subtitle">Fitness Pro için merkezi modal sistemi basit test</p>
+
+        <!-- Temel Testler -->
+        <div class="section">
+            <h2 class="section-title">Temel Testler</h2>
+            <div class="button-grid">
+                <button class="test-button primary" onclick="testBasicModal()">
+                    ℹ️ Basit Modal
+                </button>
+                <button class="test-button primary" onclick="testSuccessModal()">
+                    ✅ Başarı Modalı
+                </button>
+                <button class="test-button" onclick="testConfirmModal()">
+                    🔓 Onay Modalı
+                </button>
+                <button class="test-button danger" onclick="testErrorModal()">
+                    ❌ Hata Modalı
+                </button>
+            </div>
+        </div>
+
+        <!-- Durum -->
+        <div class="section">
+            <h2 class="section-title">Durum</h2>
+            <div id="status" class="status">
+                Henüz bir işlem yapılmadı.
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Modal Manager -->
+    <script src="../JavaScripts/Core/GlobalModalManager.js"></script>
+
+    <!-- Test Scriptleri -->
+    <script>
+        function updateStatus(message, type = 'normal') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + type;
+        }
+
+        function testBasicModal() {
+            window.GlobalModal.open({
+                type: 'info',
+                title: 'Bilgi',
+                description: 'Bu bir basit bilgi modalıdır.',
+                buttons: [
+                    {
+                        text: 'Tamam',
+                        className: 'global-modal-button-primary',
+                        closeOnClick: true
+                    }
+                ]
+            });
+            updateStatus('Basit modal açıldı', 'success');
+        }
+
+        function testSuccessModal() {
+            window.GlobalModal.open({
+                type: 'success',
+                title: 'Başarılı!',
+                description: 'İşlem başarıyla tamamlandı.',
+                buttons: [
+                    {
+                        text: 'Tamam',
+                        className: 'global-modal-button-primary',
+                        closeOnClick: true
+                    }
+                ]
+            });
+            updateStatus('Başarı modalı açıldı', 'success');
+        }
+
+        function testConfirmModal() {
+            window.GlobalModal.confirm({
+                title: 'Emin misiniz?',
+                description: 'Bu işlemi yapmak istediğinize emin misiniz?',
+                onConfirm: () => {
+                    updateStatus('Kullanıcı onayladı', 'success');
+                }
+            });
+        }
+
+        function testErrorModal() {
+            window.GlobalModal.open({
+                type: 'error',
+                title: 'Hata',
+                description: 'Bir hata oluştu.',
+                buttons: [
+                    {
+                        text: 'Tamam',
+                        className: 'global-modal-button-primary',
+                        closeOnClick: true
+                    }
+                ]
+            });
+            updateStatus('Hata modalı açıldı', 'error');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStatus('Global Modal Manager hazır', 'success');
+        });
+    </script>
+</body>
+</html>

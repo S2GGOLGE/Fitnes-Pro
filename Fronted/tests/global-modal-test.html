@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Modal Manager - Test Sayfası</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../Css/Core/GlobalModal.css">
+    <link rel="stylesheet" href="../Css/UI/index.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0B0F0D;
+            color: #F3F7F4;
+            margin: 0;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #22C55E;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: #69736D;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            color: #22C55E;
+            font-size: 20px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .test-button {
+            padding: 12px 20px;
+            background-color: #18201B;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 8px;
+            color: #F3F7F4;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-align: left;
+        }
+
+        .test-button:hover {
+            background-color: #1C251F;
+            border-color: rgba(34, 197, 94, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .test-button.primary {
+            background-color: rgba(34, 197, 94, 0.1);
+            border-color: rgba(34, 197, 94, 0.3);
+            color: #22C55E;
+        }
+
+        .test-button.danger {
+            background-color: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #EF4444;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 16px;
+            background-color: #18201B;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 13px;
+            color: #69736D;
+        }
+
+        .status.success {
+            border-color: rgba(34, 197, 94, 0.3);
+            color: #22C55E;
+        }
+
+        .status.error {
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #EF4444;
+        }
+
+        .code-block {
+            background-color: #121815;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #A5AEA8;
+            overflow-x: auto;
+        }
+
+        @media (max-width: 600px) {
+            .button-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Global Modal Manager - Test Sayfası</h1>
+        <p class="subtitle">Fitness Pro için merkezi modal sistemi test ve demo</p>
+
+        <!-- Temel Modal Tipleri -->
+        <div class="section">
+            <h2 class="section-title">Temel Modal Tipleri</h2>
+            <div class="button-grid">
+                <button class="test-button primary" onclick="testInfoModal()">
+                    ℹ️ Bilgi Modalı
+                </button>
+                <button class="test-button primary" onclick="testSuccessModal()">
+                    ✅ Başarı Modalı
+                </button>
+                <button class="test-button" onclick="testWarningModal()">
+                    ⚠️ Uyarı Modalı
+                </button>
+                <button class="test-button danger" onclick="testErrorModal()">
+                    ❌ Hata Modalı
+                </button>
+            </div>
+        </div>
+
+        <!-- Onay Modalları -->
+        <div class="section">
+            <h2 class="section-title">Onay Modalları</h2>
+            <div class="button-grid">
+                <button class="test-button" onclick="testConfirmModal()">
+                    🔓 Basit Onay
+                </button>
+                <button class="test-button danger" onclick="testDeleteConfirm()">
+                    🗑️ Silme Onayı
+                </button>
+                <button class="test-button" onclick="testCustomConfirm()">
+                    ⚙️ Özel Onay
+                </button>
+            </div>
+        </div>
+
+        <!-- Form ve İçerik Modalları -->
+        <div class="section">
+            <h2 class="section-title">Form ve İçerik Modalları</h2>
+            <div class="button-grid">
+                <button class="test-button" onclick="testFormModal()">
+                    📝 Form Modalı
+                </button>
+                <button class="test-button" onclick="testCustomContent()">
+                    🎨 Özel İçerik
+                </button>
+                <button class="test-button" onclick="testLoadingModal()">
+                    ⏳ Loading Modalı
+                </button>
+            </div>
+        </div>
+
+        <!-- Gelişmiş Özellikler -->
+        <div class="section">
+            <h2 class="section-title">Gelişmiş Özellikler</h2>
+            <div class="button-grid">
+                <button class="test-button" onclick="testCustomIcon()">
+                    🎯 Özel İkon
+                </button>
+                <button class="test-button" onclick="testNoOverlayClose()">
+                    🔒 Overlay Kapatma Engelle
+                </button>
+                <button class="test-button" onclick="testCustomButtons()">
+                    🔘 Özel Butonlar
+                </button>
+                <button class="test-button" onclick="testLargeModal()">
+                    📐 Büyük Modal
+                </button>
+            </div>
+        </div>
+
+        <!-- Convenience Methods -->
+        <div class="section">
+            <h2 class="section-title">Convenience Methods</h2>
+            <div class="button-grid">
+                <button class="test-button primary" onclick="testAlertMethod()">
+                    📢 Alert Method
+                </button>
+                <button class="test-button" onclick="testConfirmMethod()">
+                    ❓ Confirm Method
+                </button>
+                <button class="test-button" onclick="testIsOpen()">
+                    🔍 Is Open Check
+                </button>
+            </div>
+        </div>
+
+        <!-- Gerçek Dünya Senaryoları -->
+        <div class="section">
+            <h2 class="section-title">Gerçek Dünya Senaryoları</h2>
+            <div class="button-grid">
+                <button class="test-button danger" onclick="testAPIDelete()">
+                    🌐 API Silme İşlemi
+                </button>
+                <button class="test-button" onclick="testFormValidation()">
+                    ✏️ Form Validasyonu
+                </button>
+                <button class="test-button" onclick="testMultiStep()">
+                    📊 Çok Adımlı İşlem
+                </button>
+            </div>
+        </div>
+
+        <!-- Durum -->
+        <div class="section">
+            <h2 class="section-title">Durum</h2>
+            <div id="status" class="status">
+                Henüz bir işlem yapılmadı.
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Modal Manager -->
+    <script src="../JavaScripts/Core/GlobalModalManager.js"></script>
+
+    <!-- Test Scriptleri -->
+    <script>
+        // Yardımcı fonksiyonlar
+        function updateStatus(message, type = 'normal') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + type;
+        }
+
+        function log(message) {
+            console.log('[Global Modal Test]', message);
+            updateStatus(message, 'success');
+        }
+
+        function logError(message) {
+            console.error('[Global Modal Test]', message);
+            updateStatus(message, 'error');
+        }
+
+        // Temel Modal Tipleri
+        function testInfoModal() {
+            window.GlobalModal.open({
+                type: 'info',
+                title: 'Bilgi',
+                description: 'Bu bir bilgi mesajıdır. Sistem hakkında genel bilgiler içerir.',
+                buttons: [
+                    {
+                        text: 'Tamam',
+                        className: 'global-modal-button-primary',
+                        closeOnClick: true
+                    }
+                ]
+            });
+            log('Bilgi modalı açıldı');
+        }
+
+        function testSuccessModal() {
+            window.GlobalModal.open({
+                type: 'success',
+                title: 'Başarılı!',
+                description: 'İşlem başarıyla tamamlandı. Tüm veriler kaydedildi.',
+                buttons: [
+                    {
+                        text: 'Tamam',
+                        className: 'global-modal-button-primary',
+                        closeOnClick: true
+                    }
+                ]
+            });
+            log('Başarı modalı açıldı');
+        }
+
+        function testWarningModal() {
+            window.GlobalModal.open({
+                type: 'warning',
+                title: 'Uyarı',
+                description: 'Bu işlem geri alınamaz. Devam etmeden önce dikkatli olun.',
+                buttons: [
+                    {
+                        text: 'İptal',
+                        className: 'global-modal-button-secondary',
+                        closeOnClick: true
+                    },
+                    {
+                        text: 'Devam Et',
+                        className: 'global-modal-button-primary',
+                        closeOnClick: true
+                    }
+                ]
+            });
+            log('Uyarı modalı açıldı');
+        }
+
+        function testErrorModal() {
+            window.GlobalModal.open({
+                type: 'error',
+                title: 'Hata',
+                description: 'Bir hata oluştu. Lütfen daha sonra tekrar deneyin veya destek ile iletişime geçin.',
+                buttons: [
+                    {
+                        text: 'Tamam',
+                        className: 'global-modal-button-primary',
+                        closeOnClick: true
+                    }
+                ]
+            });
+            log('Hata modalı açıldı');
+        }
+
+        // Onay Modalları
+        function testConfirmModal() {
+            window.GlobalModal.confirm({
+                title: 'Emin misiniz?',
+                description: 'Bu işlemi gerçekleştirmek istediğinize emin misiniz?',
+                onConfirm: () => {
+                    log('Kullanıcı onayladı');
+                }
+            });
+        }
+
+        function testDeleteConfirm() {
+            window.GlobalModal.open({
+                type: 'delete',
+                title: 'Öğeyi Sil',
+                description: 'Bu öğeyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+                buttons: [
+                    {
+                        text: 'İptal',
+                        className: 'global-modal-button-secondary',
+                        closeOnClick: true
+                    },
+                    {
+                        text: 'Sil',
+                        className: 'global-modal-button-danger',
+                        callback: () => {
+                            log('Öğe silindi');
+                        },
+                        closeOnClick: true
+                    }
+                ]
+            });
+        }
+
+        function testCustomConfirm() {
+            window.GlobalModal.open({
+                type: 'confirmation',
+                title: 'Özel Onay',
+                description: 'Bu işlem özel izin gerektirir. Devam etmek istiyor musunuz?',
+                buttons: [
+                    {
+                        text: 'Hayır',
+                        className: 'global-modal-button-secondary',
+                        closeOnClick: true,
+                        callback: () => log('Kullanıcı reddetti')
+                    },
+                    {
+                        text: 'Evet',
+                        className: 'global-modal-button-primary',
+                        closeOnClick: true,
+                        callback: () => log('Kullanıcı onayladı')
+                    }
+                ]
+            });
+        }
+
+        // Form ve İçerik Modalları
+        function testFormModal() {
+            window.GlobalModal.open({
+                title: 'Form Başlığı',
+                description: 'Lütfen bilgileri doldurun.',
+                content: `
+                    <form id="testForm">
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 6px; color: #F3F7F4; font-size: 13px; font-weight: 600;">Ad</label>
+                            <input type="text" name="name" style="width: 100%; padding: 12px; background-color: #121815; color: #F3F7F4; border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 8px; font-size: 14px;" placeholder="Adınız" required>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 6px; color: #F3F7F4; font-size: 13px; font-weight: 600;">E-posta</label>
+                            <input type="email" name="email" style="width: 100%; padding: 12px; background-color: #121815; color: #F3F7F4; border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 8px; font-size: 14px;" placeholder="ornek@email.com" required>
+                        </div>
+                    </form>
+                `,
+                buttons: [
+                    {
+                        text: 'İptal',
+                        className: 'global-modal-button-secondary',
+                        closeOnClick: true
+                    },
+                    {
+                        text: 'Kaydet',
+                        className: 'global-modal-button-primary',
+                        callback: () => {
+                            const form = document.getElementById('testForm');
+                            if (form) {
+                                const formData = new FormData(form);
+                                log('Form verileri: ' + JSON.stringify(Object.fromEntries(formData)));
+                            }
+                        },
+                        closeOnClick: false
+                    }
+                ]
+            });
+        }
+
+        function testCustomContent() {
+            window.GlobalModal.open({
+                title: 'Detaylar',
+                content: `
+                    <div style="color: #F3F7F4;">
+                        <p style="margin-bottom: 12px;">Bu özel HTML içeriğidir:</p>
+                        <ul style="padding-left: 20px; margin: 0;">
+                            <li style="margin-bottom: 8px;">Öğe 1: Sistem durumu</li>
+                            <li style="margin-bottom: 8px;">Öğe 2: Kullanıcı bilgileri</li>
+                            <li style="margin-bottom: 8px;">Öğe 3: İşlem geçmişi</li>
+                        </ul>
+                        <div style="margin-top: 16px; padding: 12px; background-color: rgba(34, 197, 94, 0.08); border-radius: 8px; border-left: 3px solid #22C55E;">
+                            <strong style="color: #22C55E;">İpucu:</strong> Bu modal tamamen özelleştirilebilir.
+                        </div>
+                    </div>
+                `,
+                buttons: [
+                    {
+                        text: 'Kapat',
+                        className: 'global-modal-button-primary',
+                        closeOnClick: true
+                    }
+                ]
+            });
+        }
+
+        function testLoadingModal() {
+            window.GlobalModal.open({
+                title: 'İşleniyor...',
+                description: 'Lütfen bekleyin, işlem yapılıyor.',
+                buttons: [
+                    {
+                        text: 'İşleniyor...',
+                        className: 'global-modal-button-primary',
+                        loading: true,
+                        disabled: true
+                    }
+                ],
+                closeOnOverlay: false,
+                closeOnEscape: false
+            });
+
+            // 3 saniye sonra otomatik kapat
+            setTimeout(() => {
+                window.GlobalModal.close();
+                log('Loading modalı otomatik kapatıldı');
+            }, 3000);
+        }
+
+        // Gelişmiş Özellikler
+        function testCustomIcon() {
+            window.GlobalModal.open({
+                title: 'Özel İkon',
+                description: 'Özel SVG ikon kullanımı.',
+                icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 8v8"></path>
+                    <path d="M8 12h8"></path>
+                </svg>`,
+                buttons: [
+                    {
+                        text: 'Tamam',
+                        className: 'global-modal-button-primary',
+                        closeOnClick: true
+                    }
+                ]
+            });
+        }
+
+        function testNoOverlayClose() {
+            window.GlobalModal.open({
+                title: 'Kritik İşlem',
+                description: 'Bu modal overlay tıklaması ile kapatılamaz. Sadece butonları kullanın.',
+                closeOnOverlay: false,
+                closeOnEscape: false,
+                buttons: [
+                    {
+                        text: 'İptal',
+                        className: 'global-modal-button-secondary',
+                        closeOnClick: true
+                    },
+                    {
+                        text: 'Onayla',
+                        className: 'global-modal-button-primary',
+                        closeOnClick: true,
+                        callback: () => log('Kritik işlem onaylandı')
+                    }
+                ]
+            });
+        }
+
+        function testCustomButtons() {
+            window.GlobalModal.open({
+                title: 'Özel Butonlar',
+                description: 'Her buton için özel ayarlar.',
+                buttons: [
+                    {
+                        text: 'İptal',
+                        className: 'global-modal-button-secondary',
+                        disabled: false,
+                        closeOnClick: true,
+                        callback: () => log('İptal tıklandı')
+                    },
+                    {
+                        text: 'Kaydet',
+                        className: 'global-modal-button-primary',
+                        disabled: false,
+                        closeOnClick: false,
+                        callback: () => {
+                            log('Kaydet tıklandı');
+                            window.GlobalModal.close();
+                        }
+                    },
+                    {
+                        text: 'Sil (Disabled)',
+                        className: 'global-modal-button-danger',
+                        disabled: true,
+                        closeOnClick: true,
+                        callback: () => log('Sil tıklandı')
+                    }
+                ]
+            });
+        }
+
+        function testLargeModal() {
+            window.GlobalModal.open({
+                title: 'Büyük Modal',
+                description: 'Daha geniş içerik için.',
+                content: `
+                    <div style="color: #F3F7F4;">
+                        <p>Bu modal daha geniştir ve daha fazla içerik barındırabilir.</p>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px;">
+                            <div style="padding: 16px; background-color: #121815; border-radius: 8px;">Kutu 1</div>
+                            <div style="padding: 16px; background-color: #121815; border-radius: 8px;">Kutu 2</div>
+                            <div style="padding: 16px; background-color: #121815; border-radius: 8px;">Kutu 3</div>
+                        </div>
+                    </div>
+                `,
+                buttons: [
+                    {
+                        text: 'Kapat',
+                        className: 'global-modal-button-primary',
+                        closeOnClick: true
+                    }
+                ]
+            });
+
+            // Modal içeriğine büyük boyut sınıfı ekle
+            setTimeout(() => {
+                const modalContent = document.querySelector('.global-modal-content');
+                if (modalContent) {
+                    modalContent.classList.add('size-large');
+                }
+            }, 100);
+        }
+
+        // Convenience Methods
+        function testAlertMethod() {
+            window.GlobalModal.alert({
+                type: 'success',
+                title: 'Başarılı',
+                message: 'İşlem başarıyla tamamlandı.'
+            });
+            log('Alert method kullanıldı');
+        }
+
+        function testConfirmMethod() {
+            window.GlobalModal.confirm({
+                title: 'Emin misiniz?',
+                description: 'Bu işlemi yapmak istediğinize emin misiniz?',
+                onConfirm: () => {
+                    log('Confirm method onaylandı');
+                }
+            });
+        }
+
+        function testIsOpen() {
+            const isOpen = window.GlobalModal.isOpen();
+            log('Modal açık mı: ' + isOpen);
+        }
+
+        // Gerçek Dünya Senaryoları
+        function testAPIDelete() {
+            window.GlobalModal.confirm({
+                title: 'Kullanıcı Sil',
+                description: 'Bu kullanıcıyı silmek istediğinize emin misiniz?',
+                onConfirm: async () => {
+                    // Loading modalı göster
+                    window.GlobalModal.open({
+                        title: 'Siliniyor...',
+                        description: 'Lütfen bekleyin.',
+                        buttons: [
+                            {
+                                text: 'İşleniyor...',
+                                className: 'global-modal-button-primary',
+                                loading: true,
+                                disabled: true
+                            }
+                        ],
+                        closeOnOverlay: false,
+                        closeOnEscape: false
+                    });
+
+                    // Simüle edilmiş API çağrısı
+                    setTimeout(() => {
+                        window.GlobalModal.open({
+                            type: 'success',
+                            title: 'Başarılı',
+                            description: 'Kullanıcı başarıyla silindi.',
+                            buttons: [
+                                {
+                                    text: 'Tamam',
+                                    className: 'global-modal-button-primary',
+                                    closeOnClick: true
+                                }
+                            ]
+                        });
+                        log('API silme işlemi başarıyla tamamlandı (simülasyon)');
+                    }, 2000);
+                }
+            });
+        }
+
+        function testFormValidation() {
+            window.GlobalModal.open({
+                title: 'Öğeyi Düzenle',
+                content: `
+                    <form id="editForm">
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 6px; color: #F3F7F4; font-size: 13px; font-weight: 600;">Ad *</label>
+                            <input type="text" name="name" value="Test Öğe" style="width: 100%; padding: 12px; background-color: #121815; color: #F3F7F4; border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 8px; font-size: 14px;" required>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 6px; color: #F3F7F4; font-size: 13px; font-weight: 600;">Açıklama</label>
+                            <textarea name="description" rows="3" style="width: 100%; padding: 12px; background-color: #121815; color: #F3F7F4; border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 8px; font-size: 14px; resize: vertical;">Bu bir test açıklamasıdır.</textarea>
+                        </div>
+                    </form>
+                `,
+                buttons: [
+                    {
+                        text: 'İptal',
+                        className: 'global-modal-button-secondary',
+                        closeOnClick: true
+                    },
+                    {
+                        text: 'Kaydet',
+                        className: 'global-modal-button-primary',
+                        callback: () => {
+                            const form = document.getElementById('editForm');
+                            if (form) {
+                                const nameInput = form.querySelector('input[name="name"]');
+                                if (nameInput && !nameInput.value.trim()) {
+                                    window.GlobalModal.open({
+                                        type: 'error',
+                                        title: 'Hata',
+                                        description: 'Ad alanı boş olamaz.',
+                                        buttons: [
+                                            {
+                                                text: 'Tamam',
+                                                className: 'global-modal-button-primary',
+                                                closeOnClick: true
+                                            }
+                                        ]
+                                    });
+                                    return false; // Modalı kapatma
+                                }
+                                
+                                log('Form validasyonu başarılı: ' + nameInput.value);
+                                return true; // Modalı kapat
+                            }
+                            return false;
+                        },
+                        closeOnClick: false
+                    }
+                ]
+            });
+        }
+
+        function testMultiStep() {
+            let step = 1;
+            
+            function showStep1() {
+                window.GlobalModal.open({
+                    title: 'Adım 1/3',
+                    description: 'İlk adım: Bilgileri girin.',
+                    content: `
+                        <div style="color: #F3F7F4;">
+                            <p>Lütfen başlangıç bilgilerini girin.</p>
+                            <input type="text" placeholder="İsim" style="width: 100%; padding: 12px; background-color: #121815; color: #F3F7F4; border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 8px; font-size: 14px; margin-top: 12px;">
+                        </div>
+                    `,
+                    buttons: [
+                        {
+                            text: 'İptal',
+                            className: 'global-modal-button-secondary',
+                            closeOnClick: true
+                        },
+                        {
+                            text: 'Sonraki',
+                            className: 'global-modal-button-primary',
+                            callback: () => {
+                                step = 2;
+                                showStep2();
+                            },
+                            closeOnClick: false
+                        }
+                    ]
+                });
+            }
+            
+            function showStep2() {
+                window.GlobalModal.open({
+                    title: 'Adım 2/3',
+                    description: 'İkinci adım: Ayarları yapın.',
+                    content: `
+                        <div style="color: #F3F7F4;">
+                            <p>Lütfen ayarları yapılandırın.</p>
+                            <div style="margin-top: 12px;">
+                                <label style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="checkbox" checked> Seçenek 1
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+                                    <input type="checkbox"> Seçenek 2
+                                </label>
+                            </div>
+                        </div>
+                    `,
+                    buttons: [
+                        {
+                            text: 'Geri',
+                            className: 'global-modal-button-secondary',
+                            callback: () => {
+                                step = 1;
+                                showStep1();
+                            },
+                            closeOnClick: false
+                        },
+                        {
+                            text: 'Sonraki',
+                            className: 'global-modal-button-primary',
+                            callback: () => {
+                                step = 3;
+                                showStep3();
+                            },
+                            closeOnClick: false
+                        }
+                    ]
+                });
+            }
+            
+            function showStep3() {
+                window.GlobalModal.open({
+                    title: 'Adım 3/3',
+                    description: 'Son adım: Onaylayın.',
+                    content: `
+                        <div style="color: #F3F7F4;">
+                            <p>Tüm ayarlar hazır. Onaylamak için butona tıklayın.</p>
+                            <div style="margin-top: 12px; padding: 12px; background-color: rgba(34, 197, 94, 0.08); border-radius: 8px;">
+                                <strong style="color: #22C55E;">Özet:</strong>
+                                <ul style="margin: 8px 0 0 20px; padding: 0;">
+                                    <li>Bilgiler girildi</li>
+                                    <li>Ayarlar yapılandırıldı</li>
+                                </ul>
+                            </div>
+                        </div>
+                    `,
+                    buttons: [
+                        {
+                            text: 'Geri',
+                            className: 'global-modal-button-secondary',
+                            callback: () => {
+                                step = 2;
+                                showStep2();
+                            },
+                            closeOnClick: false
+                        },
+                        {
+                            text: 'Tamamla',
+                            className: 'global-modal-button-primary',
+                            callback: () => {
+                                log('Çok adımlı işlem tamamlandı');
+                            },
+                            closeOnClick: true
+                        }
+                    ]
+                });
+            }
+            
+            showStep1();
+        }
+
+        // Sayfa yüklendiğinde
+        document.addEventListener('DOMContentLoaded', () => {
+            log('Global Modal Manager test sayfası yüklendi');
+        });
+    </script>
+</body>
+</html>

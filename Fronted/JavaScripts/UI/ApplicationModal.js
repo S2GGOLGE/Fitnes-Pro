@@ -204,30 +204,40 @@
                 }
             }
 
+            clearModalAlert();
+
+            // Merkezi altyapı yüklüyse form node'unu tek global container
+            // içinde göster. Form/event/API davranışı değişmez; yalnızca
+            // presentation ve accessibility GlobalModal tarafından yönetilir.
+            if (window.GlobalModal) {
+                window.GlobalModal.open({
+                    type: "form",
+                    title: "Hesap Açtırma Başvurusu",
+                    description: "Başvurunuz ekibimiz tarafından değerlendirilecektir. Lütfen bilgilerinizi eksiksiz doldurun.",
+                    content: form,
+                    initialFocus: "#applicationUsername",
+                    onClose: resetModalState
+                });
+
+                setTimeout(() => {
+                    if (usernameInput && usernameInput.value) usernameInput.select();
+                }, 100);
+                return;
+            }
+
             modal.classList.add("show");
             modal.setAttribute("aria-hidden", "false");
             document.body.style.overflow = "hidden";
 
-            // İlk input'a focus
             setTimeout(() => {
                 if (usernameInput) {
                     usernameInput.focus();
-                    if (usernameInput.value) {
-                        usernameInput.select();
-                    }
+                    if (usernameInput.value) usernameInput.select();
                 }
             }, 100);
-
-            clearModalAlert();
         }
 
-        function closeModal() {
-            if (!modal) return;
-
-            modal.classList.remove("show");
-            modal.setAttribute("aria-hidden", "true");
-            document.body.style.overflow = "";
-
+        function resetModalState() {
             // Form temizle
             try {
                 form.reset();
@@ -239,6 +249,20 @@
 
             clearModalAlert();
             updateCharCounter();
+        }
+
+        function closeModal() {
+            if (!modal) return;
+
+            if (window.GlobalModal && window.GlobalModal.isOpen()) {
+                window.GlobalModal.close("feature-close");
+                return;
+            }
+
+            modal.classList.remove("show");
+            modal.setAttribute("aria-hidden", "true");
+            document.body.style.overflow = "";
+            resetModalState();
 
             // Tetikleyici elemente focus geri ver
             if (
