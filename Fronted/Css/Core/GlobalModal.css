@@ -213,6 +213,56 @@
     font-size: 13px;
 }
 
+/* ==========================================
+   GLOBAL MODAL FORM & CONTENT ELEMENTS
+   ========================================== */
+
+.global-modal-field {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.global-modal-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted, #A7B0AA);
+}
+
+.global-modal-input,
+.global-modal-textarea {
+    width: 100%;
+    background-color: var(--surface, #121815);
+    border: 1px solid var(--border, #29332D);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text, #F5F7F6);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.global-modal-textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.global-modal-input:focus,
+.global-modal-textarea:focus {
+    border-color: var(--primary, #22C55E);
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+}
+
+.global-modal-card-box {
+    background-color: var(--surface, #121815);
+    border: 1px solid var(--border, #29332D);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-top: 10px;
+}
+
 .global-modal-body:empty {
     display: none;
 }

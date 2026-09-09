@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Fitness Pro Yönetim ve Admin Paneli">
+    <title>Fitness Pro | Admin Panel</title>
+
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+
+    <!-- Inter Font (Tipografi.pdf gereksinimi) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Global Modal CSS -->
+    <link rel="stylesheet" href="../Css/Core/GlobalModal.css">
+
+    <!-- Admin CSS -->
+    <link rel="stylesheet" href="../Css/UI/Admin.css">
+</head>
+
+<body>
+    <!-- Responsive Menü Karartma Katmanı (Overlay) -->
+    <div class="admin-sidebar-overlay" id="adminSidebarOverlay" aria-hidden="true"></div>
+
+    <div class="admin-layout">
+
+        <!-- ===================================================================
+             SOL MENÜ / SIDEBAR (Şablon Görselleri: 1.png, 2.png, 3.png, 1 (2).png)
+             =================================================================== -->
+        <aside class="admin-sidebar" id="adminSidebar">
+            <!-- Mobilde Menü Kapatma Butonu -->
+            <button type="button" class="admin-sidebar-close" id="adminSidebarClose" aria-label="Menüyü kapat">✕</button>
+            
+            <!-- Profil Kartı (1.png Üst Kutu: Avatar + Username) -->
+            <div class="admin-profile-card">
+                <div class="admin-avatar" id="adminAvatar">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 12c-4.42 0-8 2.24-8 5v1a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1c0-2.76-3.58-5-8-5z"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="admin-profile-name" id="sidebarUsername">Username</div>
+                    <div class="admin-profile-role">YÖNETİCİ</div>
+                </div>
+            </div>
+
+            <!-- Dinamik Navigasyon Buton Grubu -->
+            <nav class="admin-nav-group" id="adminNavGroup" aria-label="Admin İşlemleri">
+                <!-- JavaScript tarafından geçerli görünüme göre dinamik doldurulur -->
+            </nav>
+
+            <!-- Geri Dön Butonu (Şablonlardaki Yeşil Alt Buton) -->
+            <div class="admin-sidebar-bottom">
+                <button type="button" class="admin-btn-pill admin-btn-back" id="adminBackBtn">
+                    ← Geri Dön
+                </button>
+            </div>
+
+        </aside>
+
+        <!-- ===================================================================
+             ANA İÇERİK PANELİ (Şablondaki Geniş Yuvarlatılmış Kart)
+             =================================================================== -->
+        <main class="admin-main-panel" id="adminMainPanel">
+
+            <!-- Başlık & Karşılama Bölümü -->
+            <header class="admin-header">
+                <!-- Sol Üst Hamburger Menü Butonu & Breadcrumb -->
+                <div class="admin-top-bar">
+                    <button type="button" class="admin-menu-toggle" id="adminMenuToggle" aria-label="Menüyü Aç" aria-expanded="false" title="Menüyü Aç">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <div class="admin-breadcrumb" id="adminBreadcrumb">
+                        <span>Yönetim</span>
+                        <span>/</span>
+                        <span id="breadcrumbCurrent">Genel Bakış</span>
+                    </div>
+                </div>
+
+                <div class="admin-header-row">
+                    <div>
+                        <!-- Şablondaki Karşılama Metni (1.png) -->
+                        <h1 class="admin-greeting" id="adminGreetingTitle">
+                            Merhaba Saygı Değer <span id="adminGreetingUsername">{Username}</span> Admin Bey
+                        </h1>
+                        <p class="admin-subtitle" id="adminGreetingSubtitle">
+                            Yönetim paneline hoş geldiniz.
+                        </p>
+                    </div>
+
+                    <div class="admin-header-actions">
+                        <button type="button" class="admin-theme-btn" id="themeToggleBtn" title="Temayı Değiştir">
+                            <span id="themeIcon">☀️</span>
+                            <span id="themeLabel">Light</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ===============================================================
+                 GÖRÜNÜM 1: GENEL BAKIŞ / DASHBOARD (1.png)
+                 =============================================================== -->
+            <section class="admin-view-section" id="viewDashboard">
+                <!-- 4 Adet Ana Özet Kartı (1.png şablonundaki kartlar) -->
+                <div class="admin-cards-grid">
+                    
+                    <!-- Kart 1: Kullanıcılar -->
+                    <div class="admin-stat-card" data-nav="logs" data-log-cat="user" title="Kullanıcı loglarına git">
+                        <div class="admin-stat-title">
+                            <span>Kullanıcılar</span>
+                            <div class="admin-stat-icon">👥</div>
+                        </div>
+                        <div class="admin-stat-val">
+                            <span class="admin-num" id="statUsersCount">1,480</span>
+                        </div>
+                        <div class="admin-stat-meta">
+                            <span class="admin-badge-trend admin-trend-up">↑ +14.2%</span>
+                            <span>bu ay aktif</span>
+                        </div>
+                    </div>
+
+                    <!-- Kart 2: Bekleyen Başvurular -->
+                    <div class="admin-stat-card" data-nav="appeals" title="Başvurular listesine git">
+                        <div class="admin-stat-title">
+                            <span>Bekleyen Başvurular</span>
+                            <div class="admin-stat-icon">⏳</div>
+                        </div>
+                        <div class="admin-stat-val">
+                            <span class="admin-num" id="statPendingAppealsCount" style="color: var(--admin-warning);">14</span>
+                        </div>
+                        <div class="admin-stat-meta">
+                            <span class="admin-badge-trend admin-trend-warn">İnceleme bekliyor</span>
+                        </div>
+                    </div>
+
+                    <!-- Kart 3: Banlı Kullanıcılar -->
+                    <div class="admin-stat-card" data-nav="appeals" data-sub="ban-appeals" title="Ban kaldırma taleplerine git">
+                        <div class="admin-stat-title">
+                            <span>Banlı Kullanıcılar</span>
+                            <div class="admin-stat-icon">🚫</div>
+                        </div>
+                        <div class="admin-stat-val">
+                            <span class="admin-num" id="statBannedCount" style="color: var(--admin-error);">8</span>
+                        </div>
+                        <div class="admin-stat-meta">
+                            <span class="admin-badge-trend admin-trend-down">Kalıcı Kilitli</span>
+                        </div>
+                    </div>
+
+                    <!-- Kart 4: Sistem Durumu -->
+                    <div class="admin-stat-card" data-nav="system" title="Sistem detaylarına git">
+                        <div class="admin-stat-title">
+                            <span>Sistem Durumu</span>
+                            <div class="admin-stat-icon">⚡</div>
+                        </div>
+                        <div class="admin-stat-val">
+                            <span class="admin-num" style="color: var(--admin-success);" id="statSystemHealth">%99.9</span>
+                        </div>
+                        <div class="admin-stat-meta">
+                            <span class="admin-badge-trend admin-trend-up">Tüm Servisler Aktif</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Dashboard Ekstra Widget Alanı -->
+                <div class="admin-dashboard-widgets">
+                    
+                    <!-- Son Başvurular Hızlı İnceleme -->
+                    <div class="admin-widget-card">
+                        <div class="admin-widget-header">
+                            <h3 class="admin-h3">Son Başvuru Hareketleri</h3>
+                            <button type="button" class="admin-action-btn detail" data-nav="appeals">Tümünü Gör →</button>
+                        </div>
+                        <div class="admin-table-responsive">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Kullanıcı</th>
+                                        <th>Tür</th>
+                                        <th>Durum</th>
+                                        <th>İşlem</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashboardRecentAppeals">
+                                    <!-- JS ile doldurulur -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Hızlı Sistem Durumu Özeti -->
+                    <div class="admin-widget-card">
+                        <div class="admin-widget-header">
+                            <h3 class="admin-h3">Hızlı Sunucu Göstergesi</h3>
+                            <span class="admin-badge admin-badge-approved">Çevrimiçi</span>
+                        </div>
+                        <div class="admin-metric-row">
+                            <span class="admin-body-sm">API Yanıt Süresi</span>
+                            <strong style="color: var(--admin-primary);" id="quickApiResponse">24 ms</strong>
+                        </div>
+                        <div class="admin-metric-row">
+                            <span class="admin-body-sm">Bellek Kullanımı</span>
+                            <span id="quickMemoryUsage">142 MB / 512 MB</span>
+                        </div>
+                        <div class="admin-progress-bar">
+                            <div class="admin-progress-fill" style="width: 28%;"></div>
+                        </div>
+                        <div class="admin-metric-row" style="margin-top: 12px;">
+                            <span class="admin-body-sm">JWT Yetkilendirme</span>
+                            <span style="color: var(--admin-success);">Güvenli (HS256)</span>
+                        </div>
+                        <div class="admin-metric-row">
+                            <span class="admin-body-sm">Son Giriş</span>
+                            <span class="admin-caption" id="quickLastLogin">Bugün, 01:05</span>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ===============================================================
+                 GÖRÜNÜM 2: BAŞVURULAR (2.png)
+                 =============================================================== -->
+            <section class="admin-view-section" id="viewAppeals" style="display: none;">
+                
+                <div class="admin-table-container">
+                    
+                    <!-- Araç ve Filtre Çubuğu -->
+                    <div class="admin-table-toolbar">
+                        <div class="admin-search-wrapper">
+                            <span class="admin-search-icon">🔍</span>
+                            <input type="text" class="admin-search-input" id="appealSearchInput" placeholder="Kullanıcı adı veya açıklama ara...">
+                        </div>
+
+                        <div class="admin-filters">
+                            <select class="admin-select" id="appealStatusFilter" aria-label="Durum Filtresi">
+                                <option value="ALL">Tüm Durumlar</option>
+                                <option value="Pending" selected>Beklemede (Pending)</option>
+                                <option value="Approved">Onaylananlar (Approved)</option>
+                                <option value="Rejected">Reddedilenler (Rejected)</option>
+                            </select>
+
+                            <button type="button" class="admin-action-btn detail" id="appealRefreshBtn" title="Yenile">
+                                🔄 Yenile
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tablo -->
+                    <div class="admin-table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Kullanıcı Adı</th>
+                                    <th>Başvuru Türü</th>
+                                    <th>Tarih</th>
+                                    <th>Talep Açıklaması</th>
+                                    <th>Durum</th>
+                                    <th style="text-align: right;">Eylemler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="appealsTableBody">
+                                <!-- JS ile dinamik satırlar -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- ===============================================================
+                 GÖRÜNÜM 3: LOGLAR (3.png)
+                 =============================================================== -->
+            <section class="admin-view-section" id="viewLogs" style="display: none;">
+                
+                <div class="admin-table-container">
+                    
+                    <!-- Filtreleme Çubuğu (3.png sticky note: table ile ust kısımda filtreleme olcak) -->
+                    <div class="admin-table-toolbar">
+                        <div class="admin-search-wrapper">
+                            <span class="admin-search-icon">🔍</span>
+                            <input type="text" class="admin-search-input" id="logSearchInput" placeholder="Loglarda ara (mesaj, IP, kullanıcı)...">
+                        </div>
+
+                        <div class="admin-filters">
+                            <select class="admin-select" id="logLevelFilter" aria-label="Seviye Filtresi">
+                                <option value="ALL">Tüm Seviyeler</option>
+                                <option value="INFO">Info (Bilgi)</option>
+                                <option value="WARN">Warning (Uyarı)</option>
+                                <option value="ERROR">Error (Hata)</option>
+                                <option value="SUCCESS">Success (Başarılı)</option>
+                            </select>
+
+                            <select class="admin-select" id="logCategoryFilter" aria-label="Kategori Filtresi">
+                                <option value="ALL">Tüm Kategoriler</option>
+                                <option value="Sistem">Sistem</option>
+                                <option value="User">User</option>
+                                <option value="Başvuru">Başvuru</option>
+                                <option value="Admin İşlemleri">Admin İşlemleri</option>
+                                <option value="Genel">Genel</option>
+                            </select>
+
+                            <button type="button" class="admin-action-btn detail" id="logClearFiltersBtn">
+                                Temizle
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Log Tablosu -->
+                    <div class="admin-table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Zaman Damgası</th>
+                                    <th>Seviye</th>
+                                    <th>Kategori</th>
+                                    <th>Kullanıcı / Kaynak</th>
+                                    <th>Açıklama</th>
+                                    <th>Detay</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logsTableBody">
+                                <!-- JS ile dinamik loglar -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- ===============================================================
+                 GÖRÜNÜM 4: SİSTEM DURUMU VE AYARLAR (1 (2).png)
+                 =============================================================== -->
+            <section class="admin-view-section" id="viewSystem" style="display: none;">
+                
+                <div class="admin-system-grid">
+                    
+                    <!-- Sistem Canlı Metrikleri -->
+                    <div class="admin-system-card" id="sysCardStatus">
+                        <h3 class="admin-h3" style="margin-bottom: 16px;">⚡ Anlık Sunucu ve Performans</h3>
+                        
+                        <div class="admin-metric-row">
+                            <span class="admin-body">İşlemci (CPU) Yükü</span>
+                            <strong style="color: var(--admin-primary);" id="metricCpu">14%</strong>
+                        </div>
+                        <div class="admin-progress-bar">
+                            <div class="admin-progress-fill" id="metricCpuBar" style="width: 14%;"></div>
+                        </div>
+
+                        <div class="admin-metric-row" style="margin-top: 14px;">
+                            <span class="admin-body">Bellek (RAM) Dağılımı</span>
+                            <span id="metricRam">218 MB / 1024 MB</span>
+                        </div>
+                        <div class="admin-progress-bar">
+                            <div class="admin-progress-fill" id="metricRamBar" style="width: 22%;"></div>
+                        </div>
+
+                        <div class="admin-metric-row" style="margin-top: 14px;">
+                            <span class="admin-body">Ortalama API Gecikmesi</span>
+                            <span style="color: var(--admin-success);" id="metricPing">18 ms</span>
+                        </div>
+
+                        <div class="admin-metric-row">
+                            <span class="admin-body">Sistem Çalışma Süresi (Uptime)</span>
+                            <span class="admin-caption">14 gün, 6 saat, 22 dk</span>
+                        </div>
+                    </div>
+
+                    <!-- Güvenlik & Rate Limiting Durumu -->
+                    <div class="admin-system-card" id="sysCardSecurity">
+                        <h3 class="admin-h3" style="margin-bottom: 16px;">🛡️ Güvenlik & Rate-Limit Kalkanı</h3>
+
+                        <div class="admin-metric-row">
+                            <span class="admin-body">Başarısız Giriş Denemeleri (Son 1 Saat)</span>
+                            <span style="color: var(--admin-warning);">3 adet</span>
+                        </div>
+                        <div class="admin-metric-row">
+                            <span class="admin-body">Kalıcı Banlı IP / Kullanıcı</span>
+                            <span style="color: var(--admin-error);" id="sysBannedUsersCount">8 aktif kilit</span>
+                        </div>
+                        <div class="admin-metric-row">
+                            <span class="admin-body">JWT Token Doğrulama Oranı</span>
+                            <span style="color: var(--admin-success);">%100 Başarılı</span>
+                        </div>
+                        <div class="admin-metric-row">
+                            <span class="admin-body">DDOS & Brute Force Filtresi</span>
+                            <span class="admin-badge admin-badge-approved">Aktif</span>
+                        </div>
+                    </div>
+
+                    <!-- Sistem Bilgileri (.NET / DB) -->
+                    <div class="admin-system-card" id="sysCardInfo">
+                        <h3 class="admin-h3" style="margin-bottom: 16px;">ℹ️ Sistem ve Ortam Bilgileri</h3>
+
+                        <div class="admin-metric-row">
+                            <span class="admin-body-sm">Uygulama Adı</span>
+                            <strong>Fitness Pro API & Web</strong>
+                        </div>
+                        <div class="admin-metric-row">
+                            <span class="admin-body-sm">Backend Runtime</span>
+                            <span>.NET 10.0 / ASP.NET Core</span>
+                        </div>
+                        <div class="admin-metric-row">
+                            <span class="admin-body-sm">Veritabanı Motoru</span>
+                            <span>Entity Framework Core (LocalDB)</span>
+                        </div>
+                        <div class="admin-metric-row">
+                            <span class="admin-body-sm">Frontend Sürüm</span>
+                            <span>v2.4.0 (Dark/Light UI)</span>
+                        </div>
+                    </div>
+
+                    <!-- Hızlı Sistem Ayarları -->
+                    <div class="admin-system-card" id="sysCardSettings">
+                        <h3 class="admin-h3" style="margin-bottom: 16px;">⚙️ Hızlı Sistem Anahtarları</h3>
+
+                        <label class="admin-toggle-label">
+                            <div>
+                                <strong class="admin-body">Gelişmiş Denetim Günlüğü (Audit Log)</strong>
+                                <p class="admin-caption">Tüm admin ve kullanıcı işlemlerini detaylı kaydet</p>
+                            </div>
+                            <div class="admin-toggle-switch">
+                                <input type="checkbox" checked id="toggleAuditLog">
+                                <span class="admin-slider"></span>
+                            </div>
+                        </label>
+
+                        <label class="admin-toggle-label">
+                            <div>
+                                <strong class="admin-body">Yeni Üye Kayıtları</strong>
+                                <p class="admin-caption">Sisteme yeni kullanıcı kayıtlarını açık tut</p>
+                            </div>
+                            <div class="admin-toggle-switch">
+                                <input type="checkbox" checked id="toggleUserRegistration">
+                                <span class="admin-slider"></span>
+                            </div>
+                        </label>
+
+                        <label class="admin-toggle-label">
+                            <div>
+                                <strong class="admin-body">Bakım Modu (Maintenance Mode)</strong>
+                                <p class="admin-caption">Yalnızca yöneticilerin erişmesine izin ver</p>
+                            </div>
+                            <div class="admin-toggle-switch">
+                                <input type="checkbox" id="toggleMaintenanceMode">
+                                <span class="admin-slider"></span>
+                            </div>
+                        </label>
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    </div>
+
+    <!-- JavaScripts -->
+    <script src="../JavaScripts/Core/auth.js"></script>
+    <script src="../JavaScripts/Core/GlobalModalManager.js"></script>
+    <script src="../JavaScripts/UI/Admin.js"></script>
+</body>
+
+</html>
