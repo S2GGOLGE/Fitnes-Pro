@@ -63,12 +63,7 @@
         // Sistem Ayarları
         toggleMaintenanceMode: document.getElementById("toggleMaintenanceMode"),
         toggleUserRegistration: document.getElementById("toggleUserRegistration"),
-        toggleAuditLog: document.getElementById("toggleAuditLog"),
-
-        // Tema
-        themeToggleBtn: document.getElementById("themeToggleBtn"),
-        themeIcon: document.getElementById("themeIcon"),
-        themeLabel: document.getElementById("themeLabel")
+        toggleAuditLog: document.getElementById("toggleAuditLog")
     };
 
     // =========================================================================
@@ -200,8 +195,8 @@
         initTheme();
         initEventListeners();
         loadAppealsData();
-        state.logs = [...MOCK_LOGS];
-        
+        loadLogsData();
+
         renderView("dashboard");
         startLiveSystemSimulation();
     }
@@ -227,32 +222,58 @@
     }
 
     // =========================================================================
-    // TEMA YÖNETİMİ
+    // TEMA YÖNETİMİ (Kullanıcı Tercihi: Dark veya Light)
     // =========================================================================
-    function initTheme() {
-        const savedTheme = localStorage.getItem("fitness_pro_theme") || "dark";
-        applyTheme(savedTheme);
+    function getPreferredTheme() {
+        // 1. Kullanıcının kayıtlı tercihi (localStorage)
+        const storedTheme = localStorage.getItem("fitness_pro_theme") || localStorage.getItem("theme");
+        if (storedTheme === "dark" || storedTheme === "light") {
+            return storedTheme;
+        }
 
-        if (dom.themeToggleBtn) {
-            dom.themeToggleBtn.addEventListener("click", () => {
-                const current = document.documentElement.getAttribute("data-theme") || "dark";
-                const next = current === "dark" ? "light" : "dark";
-                applyTheme(next);
+        // 2. Kullanıcı profilinde tema tercihi varsa
+        if (state.currentUser && state.currentUser.theme) {
+            return state.currentUser.theme;
+        }
+
+        // 3. Kullanıcının sistem/tarayıcı tercihi
+        if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
+            return "light";
+        }
+
+        // 4. Varsayılan tema (Dark)
+        return "dark";
+    }
+
+    function initTheme() {
+        // Kullanıcının belirlediği tema ile uygula
+        const preferredTheme = getPreferredTheme();
+        applyTheme(preferredTheme);
+
+        // Kullanıcı başka bir sayfada (örn: Ayarlar) temasını değiştirirse anında senkronize et
+        window.addEventListener("storage", (e) => {
+            if (e.key === "fitness_pro_theme" || e.key === "theme") {
+                if (e.newValue) {
+                    applyTheme(e.newValue);
+                }
+            }
+        });
+
+        // Kullanıcı açık bir tercih seçmemişse sistem teması değişimlerini dinle
+        if (!localStorage.getItem("fitness_pro_theme") && !localStorage.getItem("theme") && window.matchMedia) {
+            window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", (e) => {
+                applyTheme(e.matches ? "light" : "dark");
             });
         }
     }
 
     function applyTheme(theme) {
-        document.documentElement.setAttribute("data-theme", theme);
-        localStorage.setItem("fitness_pro_theme", theme);
-        if (dom.themeIcon && dom.themeLabel) {
-            if (theme === "dark") {
-                dom.themeIcon.textContent = "☀️";
-                dom.themeLabel.textContent = "Light";
-            } else {
-                dom.themeIcon.textContent = "🌙";
-                dom.themeLabel.textContent = "Dark";
-            }
+        const selected = (theme === "light") ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", selected);
+        if (selected === "light") {
+            document.body.classList.add("light-theme");
+        } else {
+            document.body.classList.remove("light-theme");
         }
     }
 
@@ -623,6 +644,165 @@
     }
 
     // =========================================================================
+    // LOG VERİ YÜKLEME (Backend /api/logs endpoint'i)
+    // =========================================================================
+    //
+    // Backend response yapısı (ApiResponseModel + GetLogModel):
+    // {
+    //   success / succes : boolean,
+    //   data: {
+    //     systemLogs:  SystemLogModel[],
+    //     userLogs:    UserLogModel[],
+    //     appealLogs:  AppealLogModel[],
+    //     adminLogs:   AdminLogModel[],
+    //     generalLogs: GeneralLogModel[]
+    //   },
+    //   error: object | null
+    // }
+    //
+    // Not: Backend "succes" (C# tarafında yazım hatası) dönüyor.
+    // Frontend hem "success" hem de "succes" anahtarını kabul eder.
+    //
+    // JWT: window.Auth.authFetch otomatik olarak "Authorization: Bearer {token}"
+    // başlığını ekler; 401 durumunda mevcut auth sistemi logout akışını çalıştırır.
+    //
+    async function loadLogsData() {
+        let loadedFromApi = false;
+
+        if (
+            window.Auth &&
+            typeof window.Auth.authFetch === "function" &&
+            window.Auth.isAuthenticated()
+        ) {
+            try {
+                const res = await window.Auth.authFetch("/api/logs", { method: "GET" });
+                if (res && res.ok) {
+                    const payload = await res.json();
+                    const isSuccess = payload && (payload.success === true || payload.succes === true);
+                    if (isSuccess && payload.data) {
+                        state.logs = mergeBackendLogsToState(payload.data);
+                        loadedFromApi = true;
+                    } else if (payload && (payload.success === false || payload.succes === false)) {
+                        showLogsApiError(payload.message || "Backend log verilerini getirmedi.");
+                    }
+                } else if (res && res.status === 403) {
+                    showLogsApiError("Bu sayfayı görüntülemek için Admin yetkisi gereklidir.");
+                } else if (res && res.status >= 500) {
+                    showLogsApiError("Sunucu hatası. Loglar geçici olarak yüklenemedi.");
+                } else if (res && res.status === 404) {
+                    showLogsApiError("Log endpoint'i bulunamadı (404).");
+                } else if (res) {
+                    showLogsApiError(`Beklenmeyen yanıt (HTTP ${res.status}). Loglar yüklenemedi.`);
+                }
+            } catch (err) {
+                // Ağ hatası / backend erişilemez — mevcut fallback yoluna düş.
+                console.info("[ADMIN LOGS] Backend erişilemedi, yerel log verileri kullanılıyor.");
+            }
+        }
+
+        if (!loadedFromApi) {
+            state.logs = [...MOCK_LOGS];
+        }
+
+        if (state.currentView === "logs") {
+            renderLogsTable();
+        }
+    }
+
+    function mergeBackendLogsToState(data) {
+        const out = [];
+
+        const pushGroup = (arr, prefix, category) => {
+            if (!Array.isArray(arr)) return;
+            arr.forEach(item => out.push(buildLogEntry(prefix, item, category)));
+        };
+
+        pushGroup(data.systemLogs,  "sys", "Sistem");
+        pushGroup(data.userLogs,    "usr", "User");
+        pushGroup(data.appealLogs,  "app", "Başvuru");
+        pushGroup(data.adminLogs,   "adm", "Admin İşlemleri");
+        pushGroup(data.generalLogs, "gen", "Genel");
+
+        return out;
+    }
+
+    function buildLogEntry(prefix, log, category) {
+        if (!log || typeof log !== "object") return null;
+
+        const backendId = pickField(log, "Id", "id");
+        const message   = pickField(log, "Message", "message") || "";
+
+        return {
+            // UI için sanal id (5 farklı tablodan gelen Id çakışmasın diye prefix'li)
+            id: `${prefix}_${backendId ?? Math.random().toString(36).slice(2)}`,
+
+            // Tablo sütunları (mevcut UI yapısı korunur)
+            time:     formatLogTime(pickField(log, "CreatedAt", "createdAt")),
+            level:    pickField(log, "Level", "level") || "INFO",
+            category: category,
+            user:     resolveLogUser(prefix, log),
+            message:  message,
+
+            // Detay modalında gösterilecek ek alanlar
+            source:        prefix,
+            action:        pickField(log, "Action", "action") || "",
+            ipAddress:     pickField(log, "IpAddress", "ipAddress") || null,
+            userId:        pickField(log, "UserId", "userId") || null,
+            appealId:      pickField(log, "AppealId", "appealId") || null,
+            performedBy:   pickField(log, "PerformedBy", "performedBy") || null,
+            targetUsername: pickField(log, "TargetUsername", "targetUsername") || null,
+            adminUsername: pickField(log, "AdminUsername", "adminUsername") || null,
+            logCategory:   pickField(log, "Category", "category") || null
+        };
+    }
+
+    function pickField(obj, camel, lower) {
+        if (!obj) return null;
+        if (obj[camel] !== undefined && obj[camel] !== null) return obj[camel];
+        if (obj[lower] !== undefined && obj[lower] !== null) return obj[lower];
+        return null;
+    }
+
+    function resolveLogUser(prefix, log) {
+        const fallback = (val, alt) =>
+            (val === null || val === undefined || val === "") ? alt : val;
+
+        switch (prefix) {
+            case "sys": return fallback(pickField(log, "Source", "source"), "Sistem");
+            case "usr": return fallback(pickField(log, "Username", "username"), "Kullanıcı");
+            case "app": return fallback(pickField(log, "Username", "username"), "Bilinmiyor");
+            case "adm": return fallback(pickField(log, "AdminUsername", "adminUsername"), "Admin");
+            case "gen": return fallback(
+                pickField(log, "Username", "username"),
+                fallback(pickField(log, "Category", "category"), "Genel")
+            );
+            default: return "-";
+        }
+    }
+
+    function formatLogTime(value) {
+        if (!value) return "Bilinmiyor";
+        // Backend ISO 8601 / "2026-09-10T01:04:12" gibi gönderebilir
+        const d = new Date(value);
+        if (!isNaN(d.getTime())) {
+            return d.toLocaleString("tr-TR");
+        }
+        return String(value);
+    }
+
+    function showLogsApiError(message) {
+        if (window.GlobalModal && typeof window.GlobalModal.alert === "function") {
+            window.GlobalModal.alert({
+                type: "error",
+                title: "Loglar Yüklenemedi",
+                message: message
+            });
+        } else {
+            console.error("[ADMIN LOGS]", message);
+        }
+    }
+
+    // =========================================================================
     // DASHBOARD İÇERİK RENDER (1.png)
     // =========================================================================
     function renderDashboard() {
@@ -738,13 +918,18 @@
         const levelFilter = state.logLevel;
         const categoryFilter = state.logCategory;
 
+        const safeStr = (v) =>
+            (v === null || v === undefined) ? "" : String(v).toLowerCase();
+
         const filtered = state.logs.filter(log => {
             const levelMatch = levelFilter === "ALL" || log.level === levelFilter;
             const catMatch = categoryFilter === "ALL" || log.category === categoryFilter;
             const searchMatch = !searchQuery ||
-                log.message.toLowerCase().includes(searchQuery) ||
-                log.user.toLowerCase().includes(searchQuery) ||
-                log.category.toLowerCase().includes(searchQuery);
+                safeStr(log.message).includes(searchQuery) ||
+                safeStr(log.user).includes(searchQuery) ||
+                safeStr(log.category).includes(searchQuery) ||
+                safeStr(log.action).includes(searchQuery) ||
+                safeStr(log.ipAddress).includes(searchQuery);
 
             return levelMatch && catMatch && searchMatch;
         });
@@ -763,13 +948,13 @@
         filtered.forEach(log => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-                <td><span class="admin-caption">${escapeHtml(log.time)}</span></td>
+                <td><span class="admin-caption">${escapeHtml(log.time || "Bilinmiyor")}</span></td>
                 <td>${renderLogLevelBadge(log.level)}</td>
-                <td><strong>${escapeHtml(log.category)}</strong></td>
-                <td><span class="admin-body-sm">${escapeHtml(log.user)}</span></td>
-                <td style="max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(log.message)}</td>
+                <td><strong>${escapeHtml(log.category || "-")}</strong></td>
+                <td><span class="admin-body-sm">${escapeHtml(log.user || "-")}</span></td>
+                <td style="max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(log.message || "")}">${escapeHtml(log.message || "")}</td>
                 <td>
-                    <button type="button" class="admin-action-btn detail" onclick="window.AdminPanel.showLogDetail(${log.id})">
+                    <button type="button" class="admin-action-btn detail" onclick="window.AdminPanel.showLogDetail('${log.id}')">
                         İncele
                     </button>
                 </td>
@@ -960,6 +1145,9 @@
 
     /**
      * Log Detayı Modalı (Harici GlobalModal ile)
+     * Backend'den gelen tüm opsiyonel alanlar (IpAddress, Action,
+     * UserId, AppealId, PerformedBy, TargetUsername, AdminUsername,
+     * Category) güvenli şekilde gösterilir.
      */
     function showLogDetail(logId) {
         const log = state.logs.find(l => l.id === logId);
@@ -967,15 +1155,40 @@
 
         const modalType = log.level === "ERROR" ? "error" : (log.level === "WARN" ? "warning" : (log.level === "SUCCESS" ? "success" : "info"));
 
+        const safe = (v, fallback) =>
+            (v === null || v === undefined || v === "") ? fallback : escapeHtml(String(v));
+
+        const detailRow = (label, value) => value === null || value === undefined || value === ""
+            ? ""
+            : `
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <span style="color: var(--text-muted);">${escapeHtml(label)}:</span>
+                    <span>${value}</span>
+                </div>
+            `;
+
+        // Backend kaynak tipine göre hangi ek alanlar gösterilecek
+        const source = log.source || "";
+        const extraRows = [
+            detailRow("Eylem (Action)",     safe(log.action,        "—")),
+            detailRow("IP Adresi",          safe(log.ipAddress,     "—")),
+            detailRow("Kullanıcı ID",       safe(log.userId,        null)),
+            detailRow("Başvuru ID",         safe(log.appealId,      null)),
+            detailRow("İşlemi Yapan (PerformedBy)", safe(log.performedBy, null)),
+            detailRow("Hedef Kullanıcı",    safe(log.targetUsername, null)),
+            detailRow("Admin Kullanıcı",    safe(log.adminUsername, null)),
+            detailRow("Alt Kategori",       safe(log.logCategory,   null))
+        ].filter(Boolean).join("");
+
         const contentHtml = `
             <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px;">
                 <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
                     <span style="color: var(--text-muted);">Zaman Damgası:</span>
-                    <strong>${escapeHtml(log.time)}</strong>
+                    <strong>${escapeHtml(log.time || "Bilinmiyor")}</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
                     <span style="color: var(--text-muted);">Kategori:</span>
-                    <span>${escapeHtml(log.category)}</span>
+                    <span>${escapeHtml(log.category || "-")}</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
                     <span style="color: var(--text-muted);">Seviye:</span>
@@ -983,13 +1196,13 @@
                 </div>
                 <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
                     <span style="color: var(--text-muted);">Kullanıcı / Kaynak:</span>
-                    <span>${escapeHtml(log.user)}</span>
+                    <span>${escapeHtml(log.user || "-")}</span>
                 </div>
-                
+                ${extraRows}
                 <div class="global-modal-card-box">
                     <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Log Mesajı / Olay</div>
                     <div style="color: var(--text); line-height: 22px; font-family: monospace; font-size: 13px;">
-                        ${escapeHtml(log.message)}
+                        ${escapeHtml(log.message || "")}
                     </div>
                 </div>
             </div>
@@ -998,7 +1211,7 @@
         window.GlobalModal.open({
             type: modalType,
             title: "Denetim Kaydı Detayı",
-            description: `${log.category} kategorisindeki sistem olayı.`,
+            description: `${log.category || "Genel"} kategorisindeki sistem olayı.`,
             content: contentHtml,
             buttons: [
                 {

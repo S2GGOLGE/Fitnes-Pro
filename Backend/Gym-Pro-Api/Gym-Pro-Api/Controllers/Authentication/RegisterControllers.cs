@@ -14,7 +14,11 @@ public class RegRegisterController :ControllerBase
     [HttpPost]
     public async Task<IActionResult> Register([FromBody] RegisterModel model)
     {
-        var result =await _registerService.RegisterAsync(model);
+        // Client IP
+        var clientIp =
+            HttpContext.Connection.RemoteIpAddress?.ToString();
+
+        var result = await _registerService.RegisterAsync(model, clientIp);
         if(!result.Success)
         {
             return BadRequest(result);

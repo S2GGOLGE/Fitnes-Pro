@@ -15,7 +15,11 @@ namespace Apı.Controller
         [HttpPost]
         public async Task<IActionResult> Update([FromBody] PasswordupdateModel model)
         {
-            var result = await _passwordupdateService.UpdateAsync(model);
+            // Client IP
+            var clientIp =
+                HttpContext.Connection.RemoteIpAddress?.ToString();
+
+            var result = await _passwordupdateService.UpdateAsync(model, clientIp);
             if (!result.Success)
             {
                 return BadRequest(result);

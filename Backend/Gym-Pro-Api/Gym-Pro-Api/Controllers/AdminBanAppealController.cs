@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Apı.Model;
 using Apı.Service;
 using Apı.Service.Authentication;
+using Apı.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,16 +20,21 @@ public class AdminBanAppealController : ControllerBase
 {
     private readonly BanStorageService _banStorage;
     private readonly LoginRateLimitingService _rateLimitService;
+    private readonly ILogService _logService;
 
     public AdminBanAppealController(
         BanStorageService banStorage,
-        LoginRateLimitingService rateLimitService)
+        LoginRateLimitingService rateLimitService,
+        ILogService logService)
     {
         _banStorage = banStorage
             ?? throw new ArgumentNullException(nameof(banStorage));
 
         _rateLimitService = rateLimitService
             ?? throw new ArgumentNullException(nameof(rateLimitService));
+
+        _logService = logService
+            ?? throw new ArgumentNullException(nameof(logService));
     }
 
     // =========================================================
@@ -77,6 +83,7 @@ public class AdminBanAppealController : ControllerBase
         [FromBody] BanAppealDecisionRequestModel? body)
     {
         var adminUsername = GetCurrentAdminUsername();
+        var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
 
         var appeal =
             await _banStorage.GetAppealAsync(id);
@@ -121,6 +128,64 @@ public class AdminBanAppealController : ControllerBase
             $"By={adminUsername}"
         );
 
+        // =========================================================
+        // LOG: APPEAL APPROVED (AdminLog)
+        // =========================================================
+
+        try
+        {
+            await _logService.LogAdminAsync(
+                adminUsername,
+                "AppealApproved",
+                $"Ban appeal onaylandı (Username={appeal.Username})",
+                appeal.Username,
+                clientIp
+            );
+        }
+        catch
+        {
+            // Log hatası ana işlemi bozmamalı.
+        }
+
+        // =========================================================
+        // LOG: BAN REMOVED (AdminLog)
+        // =========================================================
+
+        try
+        {
+            await _logService.LogAdminAsync(
+                adminUsername,
+                "BanRemoved",
+                $"Kullanıcının kalıcı banı kaldırıldı (Username={appeal.Username})",
+                appeal.Username,
+                clientIp
+            );
+        }
+        catch
+        {
+            // Log hatası ana işlemi bozmamalı.
+        }
+
+        // =========================================================
+        // LOG: APPEAL APPROVED (AppealLog)
+        // =========================================================
+
+        try
+        {
+            await _logService.LogAppealAsync(
+                id,
+                appeal.Username,
+                "AppealApproved",
+                "Ban appeal admin tarafından onaylandı",
+                adminUsername,
+                clientIp
+            );
+        }
+        catch
+        {
+            // Log hatası ana işlemi bozmamalı.
+        }
+
         return Ok(ApiResponseModel.Ok(
             "Ban appeal onaylandı. Kullanıcının banı kaldırıldı.",
             new
@@ -144,6 +209,7 @@ public class AdminBanAppealController : ControllerBase
         [FromBody] BanAppealDecisionRequestModel? body)
     {
         var adminUsername = GetCurrentAdminUsername();
+        var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
 
         var appeal =
             await _banStorage.GetAppealAsync(id);
@@ -183,6 +249,45 @@ public class AdminBanAppealController : ControllerBase
             $"Id={id} | Username={appeal.Username} | " +
             $"By={adminUsername}"
         );
+
+        // =========================================================
+        // LOG: APPEAL REJECTED (AdminLog)
+        // =========================================================
+
+        try
+        {
+            await _logService.LogAdminAsync(
+                adminUsername,
+                "AppealRejected",
+                $"Ban appeal reddedildi (Username={appeal.Username})",
+                appeal.Username,
+                clientIp
+            );
+        }
+        catch
+        {
+            // Log hatası ana işlemi bozmamalı.
+        }
+
+        // =========================================================
+        // LOG: APPEAL REJECTED (AppealLog)
+        // =========================================================
+
+        try
+        {
+            await _logService.LogAppealAsync(
+                id,
+                appeal.Username,
+                "AppealRejected",
+                "Ban appeal admin tarafından reddedildi",
+                adminUsername,
+                clientIp
+            );
+        }
+        catch
+        {
+            // Log hatası ana işlemi bozmamalı.
+        }
 
         return Ok(ApiResponseModel.Ok(
             "Ban appeal reddedildi. Kullanıcının banı devam ediyor.",

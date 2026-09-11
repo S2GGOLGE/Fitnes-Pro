@@ -50,6 +50,20 @@ namespace Apı.Helpers
 
                 // ADIM 6: BanAppeals tablosu (ban kaldırma talepleri)
                 await EnsureBanAppealsTableAsync(connection);
+                // ADIM 7: SystemLogs tablosu
+                await EnsureSystemLogsTableAsync(connection);
+
+                // ADIM 8: UserLogs tablosu
+                await EnsureUserLogsTableAsync(connection);
+
+                // ADIM 9: AppealLogs tablosu
+                await EnsureAppealLogsTableAsync(connection);
+
+                // ADIM 10: AdminLogs tablosu
+                await EnsureAdminLogsTableAsync(connection);
+
+                // ADIM 11: GeneralLogs tablosu
+                await EnsureGeneralLogsTableAsync(connection);
             }
         }
 
@@ -521,6 +535,214 @@ namespace Apı.Helpers
             ";
 
             using (var command = new SqlCommand(createBanAppealsSql, connection))
+            {
+                await command.ExecuteNonQueryAsync();
+            }
+        }
+        // -------------------------------------------------------------------
+        // 7) SYSTEM LOGS TABLOSU
+        //    Sistem / backend kaynaklı olayları tutar.
+        // -------------------------------------------------------------------
+        private static async Task EnsureSystemLogsTableAsync(SqlConnection connection)
+        {
+            if (await TableExistsAsync(connection, "SystemLogs"))
+            {
+                return;
+            }
+
+            const string createSystemLogsSql = @"
+        CREATE TABLE [dbo].[SystemLogs]
+        (
+            [Id]          INT IDENTITY(1, 1) NOT NULL,
+            [Level]       NVARCHAR(20)  NOT NULL,
+            [Action]      NVARCHAR(100) NOT NULL,
+            [Message]     NVARCHAR(1000) NOT NULL,
+            [Source]      NVARCHAR(100) NULL,
+            [IpAddress]   NVARCHAR(45)  NULL,
+            [CreatedAt]   DATETIME2     NOT NULL DEFAULT GETUTCDATE(),
+
+            CONSTRAINT [PK_SystemLogs]
+                PRIMARY KEY CLUSTERED ([Id] ASC)
+        );
+
+        CREATE INDEX [IX_SystemLogs_CreatedAt]
+            ON [dbo].[SystemLogs] ([CreatedAt]);
+
+        CREATE INDEX [IX_SystemLogs_Level]
+            ON [dbo].[SystemLogs] ([Level]);
+    ";
+
+            using (var command = new SqlCommand(createSystemLogsSql, connection))
+            {
+                await command.ExecuteNonQueryAsync();
+            }
+        }
+
+
+        // -------------------------------------------------------------------
+        // 8) USER LOGS TABLOSU
+        //    Kullanıcıların yaptığı işlemleri tutar.
+        // -------------------------------------------------------------------
+        private static async Task EnsureUserLogsTableAsync(SqlConnection connection)
+        {
+            if (await TableExistsAsync(connection, "UserLogs"))
+            {
+                return;
+            }
+
+            const string createUserLogsSql = @"
+        CREATE TABLE [dbo].[UserLogs]
+        (
+            [Id]          INT IDENTITY(1, 1) NOT NULL,
+            [UserId]      INT NULL,
+            [Username]    NVARCHAR(100) NULL,
+            [Action]      NVARCHAR(100) NOT NULL,
+            [Message]     NVARCHAR(1000) NOT NULL,
+            [IpAddress]   NVARCHAR(45) NULL,
+            [CreatedAt]   DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+
+            CONSTRAINT [PK_UserLogs]
+                PRIMARY KEY CLUSTERED ([Id] ASC)
+        );
+
+        CREATE INDEX [IX_UserLogs_UserId]
+            ON [dbo].[UserLogs] ([UserId]);
+
+        CREATE INDEX [IX_UserLogs_Username]
+            ON [dbo].[UserLogs] ([Username]);
+
+        CREATE INDEX [IX_UserLogs_CreatedAt]
+            ON [dbo].[UserLogs] ([CreatedAt]);
+    ";
+
+            using (var command = new SqlCommand(createUserLogsSql, connection))
+            {
+                await command.ExecuteNonQueryAsync();
+            }
+        }
+
+
+        // -------------------------------------------------------------------
+        // 9) APPEAL LOGS TABLOSU
+        //    Ban başvuruları ve başvuru süreçlerini tutar.
+        // -------------------------------------------------------------------
+        private static async Task EnsureAppealLogsTableAsync(SqlConnection connection)
+        {
+            if (await TableExistsAsync(connection, "AppealLogs"))
+            {
+                return;
+            }
+
+            const string createAppealLogsSql = @"
+        CREATE TABLE [dbo].[AppealLogs]
+        (
+            [Id]          INT IDENTITY(1, 1) NOT NULL,
+            [AppealId]    INT NULL,
+            [Username]    NVARCHAR(100) NULL,
+            [Action]      NVARCHAR(100) NOT NULL,
+            [Message]     NVARCHAR(1000) NOT NULL,
+            [PerformedBy] NVARCHAR(100) NULL,
+            [IpAddress]   NVARCHAR(45) NULL,
+            [CreatedAt]   DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+
+            CONSTRAINT [PK_AppealLogs]
+                PRIMARY KEY CLUSTERED ([Id] ASC)
+        );
+
+        CREATE INDEX [IX_AppealLogs_AppealId]
+            ON [dbo].[AppealLogs] ([AppealId]);
+
+        CREATE INDEX [IX_AppealLogs_Username]
+            ON [dbo].[AppealLogs] ([Username]);
+
+        CREATE INDEX [IX_AppealLogs_CreatedAt]
+            ON [dbo].[AppealLogs] ([CreatedAt]);
+    ";
+
+            using (var command = new SqlCommand(createAppealLogsSql, connection))
+            {
+                await command.ExecuteNonQueryAsync();
+            }
+        }
+
+
+        // -------------------------------------------------------------------
+        // 10) ADMIN LOGS TABLOSU
+        //     Admin tarafından gerçekleştirilen işlemleri tutar.
+        // -------------------------------------------------------------------
+        private static async Task EnsureAdminLogsTableAsync(SqlConnection connection)
+        {
+            if (await TableExistsAsync(connection, "AdminLogs"))
+            {
+                return;
+            }
+
+            const string createAdminLogsSql = @"
+        CREATE TABLE [dbo].[AdminLogs]
+        (
+            [Id]            INT IDENTITY(1, 1) NOT NULL,
+            [AdminUsername] NVARCHAR(100) NOT NULL,
+            [Action]        NVARCHAR(100) NOT NULL,
+            [TargetUsername] NVARCHAR(100) NULL,
+            [Message]       NVARCHAR(1000) NOT NULL,
+            [IpAddress]     NVARCHAR(45) NULL,
+            [CreatedAt]     DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+
+            CONSTRAINT [PK_AdminLogs]
+                PRIMARY KEY CLUSTERED ([Id] ASC)
+        );
+
+        CREATE INDEX [IX_AdminLogs_AdminUsername]
+            ON [dbo].[AdminLogs] ([AdminUsername]);
+
+        CREATE INDEX [IX_AdminLogs_TargetUsername]
+            ON [dbo].[AdminLogs] ([TargetUsername]);
+
+        CREATE INDEX [IX_AdminLogs_CreatedAt]
+            ON [dbo].[AdminLogs] ([CreatedAt]);
+    ";
+
+            using (var command = new SqlCommand(createAdminLogsSql, connection))
+            {
+                await command.ExecuteNonQueryAsync();
+            }
+        }
+
+
+        // -------------------------------------------------------------------
+        // 11) GENERAL LOGS TABLOSU
+        //     Diğer kategorilere girmeyen genel uygulama olaylarını tutar.
+        // -------------------------------------------------------------------
+        private static async Task EnsureGeneralLogsTableAsync(SqlConnection connection)
+        {
+            if (await TableExistsAsync(connection, "GeneralLogs"))
+            {
+                return;
+            }
+
+            const string createGeneralLogsSql = @"
+        CREATE TABLE [dbo].[GeneralLogs]
+        (
+            [Id]          INT IDENTITY(1, 1) NOT NULL,
+            [Category]    NVARCHAR(50) NOT NULL,
+            [Action]      NVARCHAR(100) NOT NULL,
+            [Message]     NVARCHAR(1000) NOT NULL,
+            [Username]    NVARCHAR(100) NULL,
+            [IpAddress]   NVARCHAR(45) NULL,
+            [CreatedAt]   DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+
+            CONSTRAINT [PK_GeneralLogs]
+                PRIMARY KEY CLUSTERED ([Id] ASC)
+        );
+
+        CREATE INDEX [IX_GeneralLogs_Category]
+            ON [dbo].[GeneralLogs] ([Category]);
+
+        CREATE INDEX [IX_GeneralLogs_CreatedAt]
+            ON [dbo].[GeneralLogs] ([CreatedAt]);
+    ";
+
+            using (var command = new SqlCommand(createGeneralLogsSql, connection))
             {
                 await command.ExecuteNonQueryAsync();
             }

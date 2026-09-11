@@ -55,7 +55,10 @@ builder.Services.AddSingleton<LoginRateLimitingService>(sp =>
 // =========================================================
 
 builder.Services.AddScoped<RegisterService>(sp =>
-    new RegisterService(defaultConnection));
+    new RegisterService(
+        defaultConnection,
+        sp.GetRequiredService<Apı.Services.ILogService>()
+    ));
 
 // =========================================================
 // LOGIN
@@ -67,15 +70,25 @@ builder.Services.AddScoped<LoginService>(sp =>
         sp.GetRequiredService<JwtService>(),
         sp.GetRequiredService<RoleService>(),
         sp.GetRequiredService<LoginRateLimitingService>(),
-        sp.GetRequiredService<BanStorageService>()
+        sp.GetRequiredService<BanStorageService>(),
+        sp.GetRequiredService<Apı.Services.ILogService>()
     ));
+
+// =========================================================
+// LOG SERVICE
+// =========================================================
+
+builder.Services.AddScoped<Apı.Services.ILogService, LogService>();
 
 // =========================================================
 // PASSWORD
 // =========================================================
 
 builder.Services.AddScoped<PasswordupdateService>(sp =>
-    new PasswordupdateService(defaultConnection));
+    new PasswordupdateService(
+        defaultConnection,
+        sp.GetRequiredService<Apı.Services.ILogService>()
+    ));
 
 #endregion
 
@@ -134,6 +147,28 @@ var app = builder.Build();
 // Veritabanı ve temel tablolar (Users, Roles, FK) uygulama başlangıcında hazırlanır.
 // Restart-safe: mevcut tablo/veri varsa dokunulmaz.
 await DatabaseInitializer.InitializeAsync(defaultConnection);
+
+// =========================================================
+// SYSTEM LOG: BAŞARILI BAŞLANGIÇ
+// =========================================================
+try
+{
+    using var bootstrapScope = app.Services.CreateScope();
+    var bootstrapLog =
+        bootstrapScope.ServiceProvider
+            .GetRequiredService<Apı.Services.ILogService>();
+
+    await bootstrapLog.LogSystemAsync(
+        level: "Information",
+        action: "ApplicationStart",
+        message: "Veritabanı ve tablolar başarıyla hazırlandı. Servis başlatıldı.",
+        source: "Program.cs"
+    );
+}
+catch
+{
+    // Başlangıç logu başarısız olursa servisi durdurmuyoruz.
+}
 
 #region Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())

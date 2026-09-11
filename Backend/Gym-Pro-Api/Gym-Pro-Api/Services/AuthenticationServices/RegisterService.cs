@@ -2,6 +2,7 @@ using System.Globalization;
 using Apı.Helpers;
 using Apı.Model;
 using Apı.Service;
+using Apı.Services;
 using Microsoft.Data.SqlClient;
 
 namespace Apı.Service.Authentication;
@@ -9,24 +10,41 @@ namespace Apı.Service.Authentication;
 public class RegisterService
 {
     private readonly string _connectionString;
+    private readonly ILogService _logService;
 
-    public RegisterService(string connectionService)
+    public RegisterService(string connectionService, ILogService logService)
     {
         _connectionString = connectionService;
+        _logService = logService
+            ?? throw new ArgumentNullException(nameof(logService));
     }
 
-    public async Task<ApiResponseModel> RegisterAsync(RegisterModel model)
+    public async Task<ApiResponseModel> RegisterAsync(
+        RegisterModel model,
+        string? clientIp = null)
     {
         // 1. Boş Alan Kontrolü
         var validationError = EmptyspaceHelpers.Validate(model);
         if (validationError != null)
         {
+            await SafeLogUserAsync(
+                model?.Username,
+                "RegisterFailed",
+                $"Validasyon hatası: {validationError}",
+                clientIp
+            );
             return ApiResponseModel.Fail(validationError);
         }
 
         // 2. Şifre Eşleşme Kontrolü
         if (model.Password != model.PasswordRepeat)
         {
+            await SafeLogUserAsync(
+                model.Username,
+                "RegisterFailed",
+                "Şifreler eşleşmiyor",
+                clientIp
+            );
             return ApiResponseModel.Fail("Şifreler Eşleşmiyor Kontrol Edin");
         }
 
@@ -36,6 +54,12 @@ public class RegisterService
         var normalizedLevel = NormalizeLevel(model.Level);
         if (normalizedLevel is null)
         {
+            await SafeLogUserAsync(
+                model.Username,
+                "RegisterFailed",
+                "Geçersiz seviye",
+                clientIp
+            );
             return ApiResponseModel.Fail("Geçersiz seviye. Acemi, Orta veya Uzman seçiniz.");
         }
         model.Level = normalizedLevel;
@@ -52,6 +76,12 @@ public class RegisterService
             var userExists = Convert.ToInt32(await checkCommand.ExecuteScalarAsync());
             if (userExists > 0)
             {
+                await SafeLogUserAsync(
+                    model.Username,
+                    "RegisterFailed",
+                    "Kullanıcı adı veya email zaten kayıtlı",
+                    clientIp
+                );
                 return ApiResponseModel.Fail("Kullanıcı Adı Yada Email Dolu Başka bir ad deneyin");
             }
         }
@@ -133,12 +163,49 @@ public class RegisterService
             }
 
             await transaction.CommitAsync();
+
+            // =========================================================
+            // LOG: REGISTER SUCCESS
+            // =========================================================
+
+            await SafeLogUserAsync(
+                model.Username,
+                "RegisterSuccess",
+                "Kullanıcı başarıyla kayıt oldu",
+                clientIp
+            );
+
             return ApiResponseModel.Ok("Kayıt Başarılı");
         }
         catch
         {
             await transaction.RollbackAsync();
             throw;
+        }
+    }
+
+    /// <summary>
+    /// Log yazımı sırasında oluşan hatalar ana işlemi (register) bozmamalı.
+    /// </summary>
+    private async Task SafeLogUserAsync(
+        string? username,
+        string action,
+        string message,
+        string? clientIp)
+    {
+        try
+        {
+            await _logService.LogUserAsync(
+                null,
+                username,
+                action,
+                message,
+                clientIp
+            );
+        }
+        catch
+        {
+            // Yutulur: log hatası register'ı etkilemez.
         }
     }
 

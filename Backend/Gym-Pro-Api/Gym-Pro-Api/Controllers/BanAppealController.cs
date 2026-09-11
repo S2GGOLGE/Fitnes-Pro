@@ -1,5 +1,6 @@
 using Apı.Model;
 using Apı.Service.Authentication;
+using Apı.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Apı.Controllers;
@@ -16,11 +17,17 @@ namespace Apı.Controllers;
 public class BanAppealController : ControllerBase
 {
     private readonly BanStorageService _banStorage;
+    private readonly ILogService _logService;
 
-    public BanAppealController(BanStorageService banStorage)
+    public BanAppealController(
+        BanStorageService banStorage,
+        ILogService logService)
     {
         _banStorage = banStorage
             ?? throw new ArgumentNullException(nameof(banStorage));
+
+        _logService = logService
+            ?? throw new ArgumentNullException(nameof(logService));
     }
 
     [HttpPost]
@@ -99,6 +106,29 @@ public class BanAppealController : ControllerBase
             $"[BAN APPEAL] Yeni talep | " +
             $"Id={appealId} | Username={model.Username}"
         );
+
+        // =========================================================
+        // LOG: APPEAL CREATED
+        // =========================================================
+
+        var clientIp =
+            HttpContext.Connection.RemoteIpAddress?.ToString();
+
+        try
+        {
+            await _logService.LogAppealAsync(
+                appealId,
+                model.Username,
+                "AppealCreated",
+                "Kullanıcı ban kaldırma talebi oluşturdu",
+                null,
+                clientIp
+            );
+        }
+        catch
+        {
+            // Log hatası ana işlemi bozmamalı.
+        }
 
         return Ok(ApiResponseModel.Ok(
             "Ban kaldırma talebiniz alındı. " +
