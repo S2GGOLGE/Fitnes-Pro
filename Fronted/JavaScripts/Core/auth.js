@@ -9,89 +9,133 @@
 (function () {
     const TOKEN_KEY = "fitness_pro_token";
     const USER_KEY = "fitness_pro_user";
+    const ADMIN_KEY = "fitness_pro_admin";
 
     const Auth = {
-        // Base API URL
+        // =====================================================
+        // BASE API URL
+        // =====================================================
+
         getBaseUrl() {
             return window.API_BASE_URL || "http://localhost:8081";
         },
 
-        // Save token and user object
+        // =====================================================
+        // SESSION
+        // =====================================================
+
         saveSession(token, user = null) {
             if (!token) return;
+
             localStorage.setItem(TOKEN_KEY, token);
 
             if (user) {
                 localStorage.setItem(USER_KEY, JSON.stringify(user));
             } else {
                 const decoded = this.parseJwt(token);
+
                 if (decoded) {
                     const extractedUser = {
                         userId: decoded.sub || decoded.nameid,
-                        username: decoded.unique_name || decoded.name || "Kullanıcı",
+                        username:
+                            decoded.unique_name ||
+                            decoded.name ||
+                            "Kullanıcı",
                         role: decoded.role || "User"
                     };
-                    localStorage.setItem(USER_KEY, JSON.stringify(extractedUser));
+
+                    localStorage.setItem(
+                        USER_KEY,
+                        JSON.stringify(extractedUser)
+                    );
                 }
             }
         },
 
-        // Get stored JWT token
         getToken() {
             const token = localStorage.getItem(TOKEN_KEY);
-            if (!token) return null;
+
+            if (!token) {
+                return null;
+            }
 
             if (this.isTokenExpired(token)) {
                 this.clearSession();
+                this.clearAdmin();
                 return null;
             }
+
             return token;
         },
 
-        // Get stored user information
         getUser() {
             const userStr = localStorage.getItem(USER_KEY);
+
             if (userStr) {
                 try {
                     return JSON.parse(userStr);
                 } catch {
-                    // ignore JSON parse error
+                    // Ignore invalid JSON
                 }
             }
 
             const token = this.getToken();
+
             if (token) {
                 const decoded = this.parseJwt(token);
+
                 if (decoded) {
                     return {
                         userId: decoded.sub || decoded.nameid,
-                        username: decoded.unique_name || decoded.name || "Kullanıcı",
+                        username:
+                            decoded.unique_name ||
+                            decoded.name ||
+                            "Kullanıcı",
                         role: decoded.role || "User"
                     };
                 }
             }
+
             return null;
         },
 
-        // Clear local storage auth keys
         clearSession() {
             localStorage.removeItem(TOKEN_KEY);
             localStorage.removeItem(USER_KEY);
         },
 
-        // Decode JWT token payload
+        // =====================================================
+        // JWT
+        // =====================================================
+
         parseJwt(token) {
             try {
-                if (!token) return null;
-                const parts = token.split('.');
-                if (parts.length < 2) return null;
+                if (!token) {
+                    return null;
+                }
+
+                const parts = token.split(".");
+
+                if (parts.length < 2) {
+                    return null;
+                }
+
                 const base64Url = parts[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+
+                const base64 = base64Url
+                    .replace(/-/g, "+")
+                    .replace(/_/g, "/");
+
                 const jsonPayload = decodeURIComponent(
                     atob(base64)
-                        .split('')
-                        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                        .join('')
+                        .split("")
+                        .map(
+                            c =>
+                                "%" +
+                                ("00" +
+                                    c.charCodeAt(0).toString(16)).slice(-2)
+                        )
+                        .join("")
                 );
 
                 return JSON.parse(jsonPayload);
@@ -101,59 +145,95 @@
             }
         },
 
-        // Check if token is expired
         isTokenExpired(token) {
             const decoded = this.parseJwt(token);
-            if (!decoded || !decoded.exp) return false;
+
+            if (!decoded || !decoded.exp) {
+                return false;
+            }
 
             const currentTime = Math.floor(Date.now() / 1000);
+
             return decoded.exp < currentTime;
         },
 
-        // Check if user is logged in with valid token
         isAuthenticated() {
             return !!this.getToken();
         },
 
-        // Logout and redirect to login page
+        // =====================================================
+        // LOGOUT
+        // =====================================================
+
         logout(redirect = true) {
             this.clearSession();
+            this.clearAdmin();
+
             if (redirect) {
-                const isInPagesDir = window.location.pathname.toLowerCase().includes("/pages/");
-                const loginPath = isInPagesDir ? "Login.html" : "Pages/Login.html";
+                const isInPagesDir =
+                    window.location.pathname
+                        .toLowerCase()
+                        .includes("/pages/");
+
+                const loginPath = isInPagesDir
+                    ? "Login.html"
+                    : "Pages/Login.html";
+
                 window.location.href = loginPath;
             }
         },
 
-        // Route Guard: Require authentication for protected pages
+        // =====================================================
+        // AUTH ROUTE GUARD
+        // =====================================================
+
         requireAuth() {
             if (!this.isAuthenticated()) {
-                const isInPagesDir = window.location.pathname.toLowerCase().includes("/pages/");
-                const loginPath = isInPagesDir ? "Login.html" : "Pages/Login.html";
+                const isInPagesDir =
+                    window.location.pathname
+                        .toLowerCase()
+                        .includes("/pages/");
+
+                const loginPath = isInPagesDir
+                    ? "Login.html"
+                    : "Pages/Login.html";
+
                 window.location.href = loginPath;
+
                 return false;
             }
+
             return true;
         },
 
-        // Route Guard: Redirect already authenticated user to index/dashboard
         redirectIfLoggedIn() {
             if (this.isAuthenticated()) {
-                const isInPagesDir = window.location.pathname.toLowerCase().includes("/pages/");
-                const indexPath = isInPagesDir ? "index.html" : "Pages/index.html";
+                const isInPagesDir =
+                    window.location.pathname
+                        .toLowerCase()
+                        .includes("/pages/");
+
+                const indexPath = isInPagesDir
+                    ? "index.html"
+                    : "Pages/index.html";
+
                 window.location.href = indexPath;
+
                 return true;
             }
+
             return false;
         },
 
-        // Authenticated Fetch wrapper with automatic Bearer token injection
+        // =====================================================
+        // AUTHENTICATED FETCH
+        // =====================================================
+
         async authFetch(url, options = {}) {
             const token = this.getToken();
 
-            // Set up headers
             const headers = {
-                "Accept": "application/json",
+                Accept: "application/json",
                 ...(options.headers || {})
             };
 
@@ -161,8 +241,11 @@
                 headers["Authorization"] = `Bearer ${token}`;
             }
 
-            // Default content-type for objects if not set
-            if (options.body && typeof options.body === "string" && !headers["Content-Type"]) {
+            if (
+                options.body &&
+                typeof options.body === "string" &&
+                !headers["Content-Type"]
+            ) {
                 headers["Content-Type"] = "application/json";
             }
 
@@ -171,105 +254,362 @@
                 headers
             };
 
-            // Full URL resolution
-            const fullUrl = url.startsWith("http") ? url : `${this.getBaseUrl()}${url.startsWith("/") ? "" : "/"}${url}`;
+            const fullUrl = url.startsWith("http")
+                ? url
+                : `${this.getBaseUrl()}${
+                      url.startsWith("/") ? "" : "/"
+                  }${url}`;
 
             try {
-                const response = await fetch(fullUrl, fetchOptions);
+                const response = await fetch(
+                    fullUrl,
+                    fetchOptions
+                );
 
-                // Handle 401 Unauthorized globally
                 if (response.status === 401) {
-                    console.warn("Unauthorized request (401). Token may be expired.");
+                    console.warn(
+                        "Unauthorized request (401). Token may be expired."
+                    );
+
                     this.logout(true);
+
                     return response;
                 }
 
                 return response;
             } catch (error) {
-                console.error("AuthFetch Network Error:", error);
+                console.error(
+                    "AuthFetch Network Error:",
+                    error
+                );
+
                 throw error;
             }
         },
 
-        // Verify current token with backend endpoint
+        // =====================================================
+        // VERIFY TOKEN
+        // =====================================================
+
         async verifyToken() {
             try {
-                const response = await this.authFetch("/api/auth/me");
+                const response = await this.authFetch(
+                    "/api/auth/me"
+                );
+
                 if (response && response.ok) {
                     const result = await response.json();
-                    if (result && result.success && result.data) {
-                        this.saveSession(this.getToken(), result.data);
+
+                    if (
+                        result &&
+                        result.success &&
+                        result.data
+                    ) {
+                        this.saveSession(
+                            this.getToken(),
+                            result.data
+                        );
+
                         return result.data;
                     }
                 }
+
                 return null;
             } catch {
                 return null;
             }
         },
 
-        // Sync User Info in DOM UI (Avatar, Usernames, Logout buttons)
+        // =====================================================
+        // AUTH UI
+        // =====================================================
+
         syncAuthUI() {
             const user = this.getUser();
-            if (!user) return;
 
-            const username = user.username || "Kullanıcı";
-            const initial = username.charAt(0).toUpperCase();
+            if (!user) {
+                return;
+            }
 
-            // Update Topbar and Sidebar Usernames
-            const topbarUsername = document.getElementById("topbarUsername");
-            if (topbarUsername) topbarUsername.textContent = username;
+            const username =
+                user.username || "Kullanıcı";
 
-            const sidebarUsername = document.getElementById("sidebarUsername");
-            if (sidebarUsername) sidebarUsername.textContent = username;
+            const initial =
+                username.charAt(0).toUpperCase();
 
-            const displayUsername = document.getElementById("displayUsername");
-            if (displayUsername) displayUsername.textContent = `@${username}`;
+            const topbarUsername =
+                document.getElementById(
+                    "topbarUsername"
+                );
 
-            // Update Avatars
-            const topbarAvatar = document.getElementById("topbarAvatar");
-            if (topbarAvatar && !topbarAvatar.querySelector("img")) topbarAvatar.textContent = initial;
+            if (topbarUsername) {
+                topbarUsername.textContent =
+                    username;
+            }
 
-            const sidebarAvatar = document.getElementById("sidebarAvatar");
-            if (sidebarAvatar && !sidebarAvatar.querySelector("img")) sidebarAvatar.textContent = initial;
+            const sidebarUsername =
+                document.getElementById(
+                    "sidebarUsername"
+                );
 
-            const profileAvatars = document.querySelectorAll(".profile-avatar");
-            profileAvatars.forEach(av => {
-                if (!av.querySelector("img") && av.id !== "sidebarAvatar") {
-                    av.textContent = initial;
+            if (sidebarUsername) {
+                sidebarUsername.textContent =
+                    username;
+            }
+
+            const displayUsername =
+                document.getElementById(
+                    "displayUsername"
+                );
+
+            if (displayUsername) {
+                displayUsername.textContent =
+                    `@${username}`;
+            }
+
+            const topbarAvatar =
+                document.getElementById(
+                    "topbarAvatar"
+                );
+
+            if (
+                topbarAvatar &&
+                !topbarAvatar.querySelector("img")
+            ) {
+                topbarAvatar.textContent =
+                    initial;
+            }
+
+            const sidebarAvatar =
+                document.getElementById(
+                    "sidebarAvatar"
+                );
+
+            if (
+                sidebarAvatar &&
+                !sidebarAvatar.querySelector("img")
+            ) {
+                sidebarAvatar.textContent =
+                    initial;
+            }
+
+            const profileAvatars =
+                document.querySelectorAll(
+                    ".profile-avatar"
+                );
+
+            profileAvatars.forEach(avatar => {
+                if (
+                    !avatar.querySelector("img") &&
+                    avatar.id !== "sidebarAvatar"
+                ) {
+                    avatar.textContent =
+                        initial;
                 }
             });
 
-            // Wire up all logout buttons
-            const logoutBtns = document.querySelectorAll("#logoutBtn, .logout-btn");
-            logoutBtns.forEach(btn => {
-                if (!btn.dataset.authBound) {
-                    btn.dataset.authBound = "true";
-                    btn.addEventListener("click", (e) => {
-                        e.preventDefault();
-                        const confirmed = confirm("Çıkış yapmak istediğinize emin misiniz?");
-                        if (confirmed) {
-                            Auth.logout(true);
+            const logoutButtons =
+                document.querySelectorAll(
+                    "#logoutBtn, .logout-btn"
+                );
+
+            logoutButtons.forEach(button => {
+                if (!button.dataset.authBound) {
+                    button.dataset.authBound = "true";
+
+                    button.addEventListener(
+                        "click",
+                        event => {
+                            event.preventDefault();
+
+                            const confirmed =
+                                confirm(
+                                    "Çıkış yapmak istediğinize emin misiniz?"
+                                );
+
+                            if (confirmed) {
+                                Auth.logout(true);
+                            }
                         }
-                    });
+                    );
                 }
+            });
+        },
+
+        // =====================================================
+        // ADMIN STATE
+        // =====================================================
+
+        _adminFlag: false,
+
+        // =====================================================
+        // ADMIN ACCESS
+        // =====================================================
+
+        async fetchAdminAccess() {
+            try {
+                const response =
+                    await this.authFetch(
+                        "/api/admin/access"
+                    );
+
+                if (response && response.ok) {
+                    const payload =
+                        await response.json();
+
+                    const isAdmin = !!(
+                        payload &&
+                        payload.success &&
+                        payload.data &&
+                        payload.data.isAdmin
+                    );
+
+                    this._adminFlag =
+                        isAdmin;
+
+                    localStorage.setItem(
+                        ADMIN_KEY,
+                        isAdmin
+                            ? "true"
+                            : "false"
+                    );
+
+                    return isAdmin;
+                }
+
+                // Non-success response:
+                // treat current frontend state as non-admin.
+                this._adminFlag = false;
+
+                localStorage.setItem(
+                    ADMIN_KEY,
+                    "false"
+                );
+
+                return false;
+            } catch (error) {
+                console.error(
+                    "Admin access fetch error:",
+                    error
+                );
+
+                this._adminFlag = false;
+
+                localStorage.setItem(
+                    ADMIN_KEY,
+                    "false"
+                );
+
+                return false;
+            }
+        },
+
+        isAdmin() {
+            if (
+                typeof this._adminFlag ===
+                "boolean"
+            ) {
+                return this._adminFlag;
+            }
+
+            return (
+                localStorage.getItem(
+                    ADMIN_KEY
+                ) === "true"
+            );
+        },
+
+        clearAdmin() {
+            localStorage.removeItem(
+                ADMIN_KEY
+            );
+
+            this._adminFlag = false;
+        },
+
+        // =====================================================
+        // ADMIN ROUTE GUARD
+        // =====================================================
+
+        requireAdmin() {
+            if (!this.isAuthenticated()) {
+                return this.requireAuth();
+            }
+
+            if (!this.isAdmin()) {
+                const isInPagesDir =
+                    window.location.pathname
+                        .toLowerCase()
+                        .includes("/pages/");
+
+                const redirectPath =
+                    isInPagesDir
+                        ? "index.html"
+                        : "Pages/index.html";
+
+                window.location.href =
+                    redirectPath;
+
+                return false;
+            }
+
+            return true;
+        },
+
+        // =====================================================
+        // ADMIN UI VISIBILITY
+        // =====================================================
+
+        applyAdminVisibility() {
+            const isAdmin =
+                this.isAdmin();
+
+            const adminElements =
+                document.querySelectorAll(
+                    '[data-role="admin"]'
+                );
+
+            adminElements.forEach(element => {
+                element.style.display =
+                    isAdmin ? "" : "none";
             });
         }
     };
 
-    // Attach to global window object
+    // =========================================================
+    // GLOBAL AUTH OBJECT
+    // =========================================================
+
     window.Auth = Auth;
 
-    // Automatic UI sync when DOM is ready
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", () => {
-            if (Auth.isAuthenticated()) {
-                Auth.syncAuthUI();
-            }
-        });
-    } else {
-        if (Auth.isAuthenticated()) {
-            Auth.syncAuthUI();
+    // =========================================================
+    // AUTH INITIALIZATION
+    // =========================================================
+
+    const initializeAuthUI = async () => {
+        if (!Auth.isAuthenticated()) {
+            Auth.clearAdmin();
+            Auth.applyAdminVisibility();
+            return;
         }
+
+        Auth.syncAuthUI();
+
+        await Auth.fetchAdminAccess();
+
+        Auth.applyAdminVisibility();
+    };
+
+    // =========================================================
+    // DOM READY
+    // =========================================================
+
+    if (document.readyState === "loading") {
+        document.addEventListener(
+            "DOMContentLoaded",
+            initializeAuthUI
+        );
+    } else {
+        initializeAuthUI();
     }
 })();

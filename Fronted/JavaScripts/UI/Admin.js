@@ -17,6 +17,7 @@
         logLevel: "ALL", // "ALL" | "INFO" | "WARN" | "ERROR" | "SUCCESS"
         appeals: [],
         logs: [],
+        logsBackendAvailable: false, // /api/logs başarıyla yüklendi mi?
         currentUser: null
     };
 
@@ -117,73 +118,6 @@
             date: "2026-09-06 22:30",
             reason: "Beslenme ve diyetetik mezunuyum, üyelerin beslenme takibini yapmak istiyorum.",
             status: "Approved"
-        }
-    ];
-
-    const MOCK_LOGS = [
-        {
-            id: 1,
-            time: "2026-09-10 01:04:12",
-            level: "INFO",
-            category: "Admin İşlemleri",
-            user: "Admin (192.168.1.45)",
-            message: "Yönetim paneli genel bakış ekranı görüntülendi."
-        },
-        {
-            id: 2,
-            time: "2026-09-10 00:58:30",
-            level: "SUCCESS",
-            category: "Başvuru",
-            user: "selin_kaya",
-            message: "Ban kaldırma talebi onaylandı ve hesap erişimi açıldı."
-        },
-        {
-            id: 3,
-            time: "2026-09-10 00:45:18",
-            level: "WARN",
-            category: "Sistem",
-            user: "RateLimiter",
-            message: "IP 178.23.4.19 tarafından arka arkaya 5 hatalı giriş denemesi yapıldı."
-        },
-        {
-            id: 4,
-            time: "2026-09-10 00:32:00",
-            level: "INFO",
-            category: "User",
-            user: "burak_fitness",
-            message: "Kullanıcı profil güncelleme isteği tamamlandı."
-        },
-        {
-            id: 5,
-            time: "2026-09-09 23:59:10",
-            level: "ERROR",
-            category: "Sistem",
-            user: "AuthService",
-            message: "JWT token süresi dolmuş oturum isteği 401 Unauthorized ile reddedildi."
-        },
-        {
-            id: 6,
-            time: "2026-09-09 22:15:40",
-            level: "INFO",
-            category: "Genel",
-            user: "SystemDaemon",
-            message: "Günlük veritabanı önbelleği ve log indeksleme işlemi başarıyla tamamlandı."
-        },
-        {
-            id: 7,
-            time: "2026-09-09 21:05:12",
-            level: "WARN",
-            category: "Başvuru",
-            user: "ahmet_koc",
-            message: "Kullanıcı ban kaldırma talebi yönetici notu ile reddedildi."
-        },
-        {
-            id: 8,
-            time: "2026-09-09 20:30:00",
-            level: "SUCCESS",
-            category: "User",
-            user: "mert_yildiz",
-            message: "Yeni kullanıcı kaydı başarıyla oluşturuldu."
         }
     ];
 
@@ -555,7 +489,6 @@
                             description: "Bakım modu etkinleştirildiğinde yöneticiler haricindeki tüm kullanıcıların platform erişimi geçici olarak durdurulur.",
                             onConfirm: () => {
                                 dom.toggleMaintenanceMode.checked = true;
-                                logSystemAction("Bakım Modu yönetici tarafından ETKİNLEŞTİRİLDİ.", "WARN");
                                 window.GlobalModal.alert({
                                     type: "warning",
                                     title: "Bakım Modu Aktif",
@@ -567,28 +500,15 @@
                         dom.toggleMaintenanceMode.checked = true;
                     }
                 } else {
-                    logSystemAction("Bakım Modu devre dışı bırakıldı, tüm erişimler normale döndü.", "INFO");
+                    // Bakım modu kapatıldı — backend'in bu aksiyonu kayıt altına
+                    // alması beklenir; sayfayı yenilemek log listesini tazeler.
                 }
             });
         }
     }
 
-    function logSystemAction(message, level = "INFO") {
-        state.logs.unshift({
-            id: Date.now(),
-            time: new Date().toLocaleString("tr-TR"),
-            level: level,
-            category: "Sistem",
-            user: `${state.currentUser.username} (Yönetici)`,
-            message: message
-        });
-        if (state.currentView === "logs") {
-            renderLogsTable();
-        }
-    }
-
     // =========================================================================
-    // VERİ YÜKLEME (API & MOCK ENTEGRASYONU)
+    // VERİ YÜKLEME (API)
     // =========================================================================
     async function loadAppealsData(showToast = false) {
         let loadedFromApi = false;
@@ -666,8 +586,13 @@
     // JWT: window.Auth.authFetch otomatik olarak "Authorization: Bearer {token}"
     // başlığını ekler; 401 durumunda mevcut auth sistemi logout akışını çalıştırır.
     //
+    // Sahte veri (mock) FALLBACK'i YOKTUR. Backend bağlantısı kurulamazsa
+    // kullanıcı "Sisteme Bağlanılamıyor" uyarısı görür.
+    //
     async function loadLogsData() {
         let loadedFromApi = false;
+        state.logs = [];
+        state.logsBackendAvailable = false;
 
         if (
             window.Auth &&
@@ -681,27 +606,36 @@
                     const isSuccess = payload && (payload.success === true || payload.succes === true);
                     if (isSuccess && payload.data) {
                         state.logs = mergeBackendLogsToState(payload.data);
+                        state.logsBackendAvailable = true;
                         loadedFromApi = true;
                     } else if (payload && (payload.success === false || payload.succes === false)) {
-                        showLogsApiError(payload.message || "Backend log verilerini getirmedi.");
+                        showLogsBackendConnectionError(
+                            "Backend log verilerini getirmedi: " + (payload.message || "bilinmeyen hata")
+                        );
+                    } else {
+                        showLogsBackendConnectionError("Beklenmeyen API cevabı alındı.");
                     }
                 } else if (res && res.status === 403) {
                     showLogsApiError("Bu sayfayı görüntülemek için Admin yetkisi gereklidir.");
-                } else if (res && res.status >= 500) {
-                    showLogsApiError("Sunucu hatası. Loglar geçici olarak yüklenemedi.");
                 } else if (res && res.status === 404) {
-                    showLogsApiError("Log endpoint'i bulunamadı (404).");
+                    showLogsBackendConnectionError("Log endpoint'i bulunamadı (HTTP 404).");
+                } else if (res && res.status >= 500) {
+                    showLogsBackendConnectionError(`Sunucu hatası (HTTP ${res.status}).`);
                 } else if (res) {
-                    showLogsApiError(`Beklenmeyen yanıt (HTTP ${res.status}). Loglar yüklenemedi.`);
+                    showLogsBackendConnectionError(`Beklenmeyen yanıt (HTTP ${res.status}).`);
                 }
             } catch (err) {
-                // Ağ hatası / backend erişilemez — mevcut fallback yoluna düş.
-                console.info("[ADMIN LOGS] Backend erişilemedi, yerel log verileri kullanılıyor.");
+                console.info("[ADMIN LOGS] Backend erişilemedi:", err);
+                showLogsBackendConnectionError("Backend servisine bağlanılamadı.");
             }
+        } else {
+            // Auth yoksa backend zaten çağrılamaz → bağlantı kurulamıyor
+            showLogsBackendConnectionError("Aktif oturum bulunamadığı için backend çağrısı yapılamadı.");
         }
 
         if (!loadedFromApi) {
-            state.logs = [...MOCK_LOGS];
+            state.logs = [];
+            state.logsBackendAvailable = false;
         }
 
         if (state.currentView === "logs") {
@@ -799,6 +733,24 @@
             });
         } else {
             console.error("[ADMIN LOGS]", message);
+        }
+    }
+
+    // Backend bağlantısı kurulamadığında çağrılır (ağ hatası / 5xx / 404 / boş cevap).
+    function showLogsBackendConnectionError(detail) {
+        const message =
+            "Sisteme bağlanılamıyor. Log verileri backend'den alınamadı.\n\n" +
+            "Lütfen backend servisinin çalıştığından emin olun ve sayfayı yenileyin.\n\n" +
+            (detail ? "Detay: " + detail : "");
+
+        if (window.GlobalModal && typeof window.GlobalModal.alert === "function") {
+            window.GlobalModal.alert({
+                type: "error",
+                title: "Sisteme Bağlanılamıyor",
+                message: message
+            });
+        } else {
+            console.error("[ADMIN LOGS] Sisteme bağlanılamıyor:", detail);
         }
     }
 
@@ -913,6 +865,24 @@
     function renderLogsTable() {
         if (!dom.logsTableBody) return;
         dom.logsTableBody.innerHTML = "";
+
+        // Backend bağlantısı kurulamamışsa tabloyu uyarı satırı ile kilitle.
+        if (state.logsBackendAvailable === false) {
+            dom.logsTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="admin-empty-state">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--admin-warning); font-weight: 600;">
+                            <span aria-hidden="true">⚠️</span>
+                            <span>Sisteme bağlanılamıyor. Log verileri gösterilemiyor.</span>
+                        </div>
+                        <div style="margin-top: 6px; font-size: 12px; color: var(--admin-text-muted);">
+                            Lütfen backend servisinin çalıştığından emin olun ve sayfayı yenileyin.
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
 
         const searchQuery = (dom.logSearchInput?.value || "").toLowerCase().trim();
         const levelFilter = state.logLevel;

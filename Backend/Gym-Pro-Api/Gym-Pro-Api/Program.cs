@@ -90,6 +90,8 @@ builder.Services.AddScoped<PasswordupdateService>(sp =>
         sp.GetRequiredService<Apı.Services.ILogService>()
     ));
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAdminService, AdminService>();
 #endregion
 
 #region JWT Authentication
