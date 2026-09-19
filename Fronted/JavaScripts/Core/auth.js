@@ -457,9 +457,13 @@
                     const payload =
                         await response.json();
 
-                    const isAdmin = !!(
+                    const requestSucceeded = !!(
                         payload &&
-                        payload.success &&
+                        (payload.success === true || payload.succes === true)
+                    );
+
+                    const isAdmin = !!(
+                        requestSucceeded &&
                         payload.data &&
                         payload.data.isAdmin
                     );

@@ -124,7 +124,11 @@
     // =========================================================================
     // BAŞLANGIÇ & KULLANICI BİLGİSİ
     // =========================================================================
-    function init() {
+    async function init() {
+        if (!await ensureAdminAccess()) {
+            return;
+        }
+
         resolveUser();
         initTheme();
         initEventListeners();
@@ -133,6 +137,45 @@
 
         renderView("dashboard");
         startLiveSystemSimulation();
+    }
+
+    async function ensureAdminAccess() {
+        if (!window.Auth || !window.Auth.isAuthenticated()) {
+            window.location.replace("Login.html");
+            return false;
+        }
+
+        const isAdmin = await window.Auth.fetchAdminAccess();
+
+        if (isAdmin) {
+            return true;
+        }
+
+        showAccessDeniedAndRedirect();
+        return false;
+    }
+
+    function showAccessDeniedAndRedirect() {
+        const redirectToIndex = () => window.location.replace("index.html");
+
+        if (!window.GlobalModal || typeof window.GlobalModal.alert !== "function") {
+            redirectToIndex();
+            return;
+        }
+
+        window.GlobalModal.alert({
+            type: "warning",
+            title: "Yetkisiz erişim",
+            message: "Bu sayfayı görüntüleme yetkiniz bulunmuyor.",
+            closeOnOverlay: false,
+            closeOnEscape: false,
+            closeButton: false,
+            buttons: [{
+                text: "Tamam",
+                variant: "primary",
+                callback: redirectToIndex
+            }]
+        });
     }
 
     function resolveUser() {
