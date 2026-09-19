@@ -419,6 +419,57 @@ input:focus-visible {
     font-size: 14px
 }
 
+.two-factor-verification {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border)
+}
+
+.two-factor-verification-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px
+}
+
+.two-factor-verification h3 {
+    margin: 0 0 5px;
+    font-size: 14px
+}
+
+.two-factor-verification p,
+.two-factor-code-form small {
+    color: var(--secondary);
+    font-size: 12px;
+    line-height: 1.5
+}
+
+.two-factor-verification p {
+    margin: 0
+}
+
+.two-factor-modal-code {
+    max-width: 380px
+}
+
+.two-factor-modal-code small {
+    display: block;
+    margin-top: 8px
+}
+
+.two-factor-code-input {
+    letter-spacing: .25em;
+    text-align: center;
+    font-variant-numeric: tabular-nums
+}
+
+.two-factor-modal-error {
+    margin: 14px 0 0;
+    color: #eeb956;
+    font-size: 12px;
+    line-height: 1.5
+}
+
 .status {
     display: inline-flex;
     align-items: center;
@@ -718,6 +769,15 @@ input:focus-visible {
 
     .setting-row {
         grid-template-columns: 1fr auto
+    }
+
+    .two-factor-verification-header {
+        align-items: stretch;
+        flex-direction: column
+    }
+
+    .two-factor-verification-header .button {
+        width: 100%
     }
 
     .setting-row .button {

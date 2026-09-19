@@ -52,6 +52,20 @@ public class JwtService
         };
 
         // =========================================================
+        // EMAIL CLAIM (JwtModel üzerinden gelir; boş ise eklenmez)
+        // =========================================================
+
+        if (!string.IsNullOrWhiteSpace(model.Email))
+        {
+            claims.Add(
+                new Claim(
+                    ClaimTypes.Email,
+                    model.Email.Trim()
+                )
+            );
+        }
+
+        // =========================================================
         // ROLE CLAIMLERİ
         // =========================================================
 

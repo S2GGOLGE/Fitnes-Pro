@@ -168,3 +168,6 @@ c:\Projects\Fitnes-Pro\Backend\Gym-Pro-Api\Gym-Pro-Api\bin\Debug\net10.0\Microso
 C:\Projects\Fitnes-Pro\Backend\Gym-Pro-Api\Gym-Pro-Api\bin\Debug\net10.0\Swashbuckle.AspNetCore.Swagger.dll
 C:\Projects\Fitnes-Pro\Backend\Gym-Pro-Api\Gym-Pro-Api\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerGen.dll
 C:\Projects\Fitnes-Pro\Backend\Gym-Pro-Api\Gym-Pro-Api\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+C:\Projects\Fitnes-Pro\Backend\Gym-Pro-Api\Gym-Pro-Api\bin\Debug\net10.0\BouncyCastle.Cryptography.dll
+C:\Projects\Fitnes-Pro\Backend\Gym-Pro-Api\Gym-Pro-Api\bin\Debug\net10.0\MailKit.dll
+C:\Projects\Fitnes-Pro\Backend\Gym-Pro-Api\Gym-Pro-Api\bin\Debug\net10.0\MimeKit.dll

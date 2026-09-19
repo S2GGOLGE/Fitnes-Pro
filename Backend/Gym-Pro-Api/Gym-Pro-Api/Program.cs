@@ -8,6 +8,7 @@ using Apı.Service.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -92,6 +93,9 @@ builder.Services.AddScoped<PasswordupdateService>(sp =>
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<ITwoFactorService, TwoFactorService>();
+builder.Services.AddScoped<ITwoFactorSettingsService, TwoFactorSettingsService>();
 #endregion
 
 #region JWT Authentication
@@ -141,7 +145,37 @@ builder.Services.AddCors(options =>
 
 #region Swagger
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Fitness Pro API",
+        Version = "v1"
+    });
+
+    // JWT Bearer Security Definition
+    // Swagger UI'da "Authorize" butonu bu tanım sayesinde görünür hale gelir
+    // ve girilen token otomatik olarak "Authorization: Bearer {token}" header'ına eklenir.
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Örnek: \"Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
+    });
+
+    // Global Security Requirement
+    // Tüm endpoint'lerde Bearer şeması zorunlu olarak işaretlenir;
+    // OpenAPI çıktısında components.securitySchemes.Bearer oluşur.
+    c.AddSecurityRequirement(document =>
+    {
+        var requirement = new OpenApiSecurityRequirement();
+        requirement[new OpenApiSecuritySchemeReference("Bearer", document, null)] = new List<string>();
+        return requirement;
+    });
+});
 #endregion
 
 var app = builder.Build();

@@ -179,7 +179,8 @@ public class LoginService
                 Username,
                 PasswordHash,
                 Salt,
-                Level
+                Level,
+                Email
             FROM dbo.Users
             WHERE Username = @Username
             """;
@@ -228,6 +229,18 @@ public class LoginService
             reader.GetString(
                 reader.GetOrdinal("Salt")
             );
+
+        // =========================================================
+        // EMAIL (JWT Email claim için)
+        // =========================================================
+
+        var emailOrdinal =
+            reader.GetOrdinal("Email");
+
+        var email =
+            reader.IsDBNull(emailOrdinal)
+                ? string.Empty
+                : reader.GetString(emailOrdinal);
 
         // =========================================================
         // LEVEL
@@ -298,6 +311,7 @@ public class LoginService
                 {
                     UserId = userId,
                     Username = models.Username,
+                    Email = email,
                     Roles = roles
                 }
             );
