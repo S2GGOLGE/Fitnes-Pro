@@ -1,0 +1,6 @@
+1 Nolu Resim 
+Arkadaş bul Diyince Harita Açılcak Ayrı sayfa Haritalar.html (Harita.html yok boş link olcak)
+2 Nolu Resim 
+Mesaj istekleri Table içinde gosterilecek backend ile doldurulacak sağ da onay/red btn olcak onay verildimi 3 nolu resimde goruncek 
+3 Nolu Resim
+Mesajlar Kısmında btn ler olmicak btn kısmında ise mevcut mesajlar olcak content kısmında ise input bu input kısmında Mesaj gonder btn olcak

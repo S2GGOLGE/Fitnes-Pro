@@ -266,11 +266,11 @@ button {
 .mobile-menu-btn {
     display: none;
 
-    width: 42px;
-    height: 42px;
+    width: 34px;
+    height: 34px;
 
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: 8px;
 
     background: var(--surface);
 
@@ -280,10 +280,10 @@ button {
 .mobile-menu-btn span {
     display: block;
 
-    width: 18px;
-    height: 2px;
+    width: 14px;
+    height: 1.5px;
 
-    margin: 4px auto;
+    margin: 3px auto;
 
     border-radius: 5px;
 

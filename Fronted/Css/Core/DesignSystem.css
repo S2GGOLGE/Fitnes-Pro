@@ -1,0 +1,57 @@
+/* Shared interaction rules used by every Fitness Pro screen.
+   Page styles own layout; this layer keeps feedback and accessibility consistent. */
+:root {
+    --focus-ring: rgba(34, 197, 94, 0.72);
+    --focus-ring-offset: #0b0f0d;
+}
+
+html {
+    min-width: 320px;
+    scrollbar-color: rgba(165, 174, 168, 0.45) transparent;
+    scrollbar-width: thin;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+    -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 3px;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+@media (max-width: 640px) {
+    input,
+    select,
+    textarea {
+        font-size: 16px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Fitness Pro Mesajlaşma ve Arkadaşlık İstekleri Paneli">
+    <title>Fitness Pro | Mesajlar</title>
+
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+    <!-- Global Modal CSS -->
+    <link rel="stylesheet" href="../Css/Core/GlobalModal.css">
+
+    <!-- Mesajlar CSS -->
+    <link rel="stylesheet" href="../Css/UI/Mesajlar.css">
+    <link rel="stylesheet" href="../Css/Core/DesignSystem.css">
+</head>
+
+<body>
+    <!-- Responsive Menü Karartma Katmanı (Overlay) -->
+    <div class="msg-sidebar-overlay" id="msgSidebarOverlay" aria-hidden="true"></div>
+
+    <div class="msg-layout">
+
+        <!-- ===================================================================
+             SOL MENÜ / SIDEBAR (1.png / 2.png / 3.png)
+             =================================================================== -->
+        <aside class="msg-sidebar" id="msgSidebar">
+            <!-- Mobilde Menü Kapatma Butonu -->
+            <button type="button" class="msg-sidebar-close" id="msgSidebarClose" aria-label="Menüyü kapat">
+                <i data-lucide="x"></i>
+            </button>
+
+            <!-- Profil Kartı (1.png Üst Kutu: Avatar + Username) -->
+            <div class="msg-profile-card">
+                <div class="msg-avatar" id="msgAvatar">
+                    <i data-lucide="user"></i>
+                </div>
+                <div class="msg-profile-info">
+                    <div class="msg-profile-name" id="sidebarUsername">Username</div>
+                    <div class="msg-profile-badge">
+                        <span class="msg-online-dot"></span> Çevrimiçi
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dinamik Navigasyon / Sohbet Listesi Bölümü (1.png / 2.png / 3.png) -->
+            <nav class="msg-nav-group" id="msgNavGroup" aria-label="Mesajlaşma Menüsü">
+                <!-- JavaScript tarafından geçerli görünüme göre doldurulur:
+                     1 & 2.png modunda: Butonlar ("Arkadaş Bul", "İsteklerim", "Mesajlarım")
+                     3.png modunda: Sohbetler listesi (Kural 3) -->
+            </nav>
+
+            <!-- Geri Dön Butonu (1.png / 2.png / 3.png Alt Kısım) -->
+            <div class="msg-sidebar-bottom">
+                <button type="button" class="msg-btn-back" id="msgBackBtn">
+                    <i data-lucide="arrow-left"></i>
+                    <span>Geri Dön</span>
+                </button>
+            </div>
+
+        </aside>
+
+        <!-- ===================================================================
+             ANA İÇERİK PANELİ (1.png, 2.png, 3.png İçerik Alanı)
+             =================================================================== -->
+        <main class="msg-main-panel" id="msgMainPanel">
+
+            <!-- Üst Başlık & Topbar -->
+            <header class="msg-header">
+                <div class="msg-top-bar">
+                    <button type="button" class="msg-menu-toggle" id="msgMenuToggle" aria-label="Menüyü Aç" aria-expanded="false" title="Menüyü Aç">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <div class="msg-breadcrumb" id="msgBreadcrumb">
+                        <button type="button" id="bcHomeBtn">Mesajlar</button>
+                        <span>/</span>
+                        <span id="breadcrumbCurrent">Genel Bakış</span>
+                    </div>
+                </div>
+
+                <div class="msg-header-row">
+                    <div>
+                        <h1 class="msg-title" id="msgHeaderTitle">Mesajlar & İstekler</h1>
+                        <p class="msg-subtitle" id="msgHeaderSubtitle">Arkadaşlarınla iletişimde kal, antrenmanlarını paylaş.</p>
+                    </div>
+                    <button type="button" class="msg-send-btn msg-compose-btn" id="btnOpenComposeModal">
+                        <i data-lucide="square-pen"></i>
+                        <span>Yeni Mesaj</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- ===============================================================
+                 GÖRÜNÜM 1: GENEL BAKIŞ / DASHBOARD (1.png)
+                 =============================================================== -->
+            <section class="msg-view-section" id="viewOverview">
+                
+                <!-- Özet Kartları -->
+                <div class="msg-overview-grid">
+                    
+                    <div class="msg-stat-card" id="cardGoToRequests" role="button" tabindex="0" aria-label="Gelen istekleri incele">
+                        <div class="msg-stat-top">
+                            <span>Bekleyen İstekler</span>
+                            <div class="msg-stat-icon"><i data-lucide="user-plus"></i></div>
+                        </div>
+                        <div class="msg-stat-val" id="statPendingCount">2</div>
+                        <div class="msg-stat-desc">İncelemen gereken yeni istek</div>
+                    </div>
+
+                    <div class="msg-stat-card" id="cardGoToChats" role="button" tabindex="0" aria-label="Aktif sohbetleri aç">
+                        <div class="msg-stat-top">
+                            <span>Aktif Sohbetler</span>
+                            <div class="msg-stat-icon"><i data-lucide="message-square"></i></div>
+                        </div>
+                        <div class="msg-stat-val" id="statChatsCount">3</div>
+                        <div class="msg-stat-desc">Mesajlaşılan kişiler</div>
+                    </div>
+
+                    <div class="msg-stat-card" id="cardGoToFindFriends" role="button" tabindex="0" aria-label="Bağlantı isteklerini aç">
+                        <div class="msg-stat-top">
+                            <span>Bağlantı İstekleri</span>
+                            <div class="msg-stat-icon"><i data-lucide="map-pin"></i></div>
+                        </div>
+                        <div class="msg-stat-val">İncele</div>
+                        <div class="msg-stat-desc">Yeni bağlantı isteklerini yönet</div>
+                    </div>
+
+                </div>
+
+                <!-- Hızlı Eylem Banner'ı -->
+                <div class="msg-quick-actions-banner">
+                    <div class="msg-banner-info">
+                        <h3>Spor Topluluğuna Katıl</h3>
+                        <p>Gelen bağlantı isteklerini incele, onayla ve yeni sporcularla iletişim kur.</p>
+                    </div>
+                    <div class="msg-banner-actions">
+                        <a href="#requests" class="msg-send-btn" id="bannerOpenRequestsLink" style="text-decoration:none;">
+                            <i data-lucide="user-plus"></i>
+                            <span>İstekleri İncele</span>
+                        </a>
+                        <button type="button" class="msg-action-btn approve" id="bannerOpenRequestsBtn" style="padding:12px 18px; font-size:14px;">
+                            <span>İstekleri İncele</span>
+                            <i data-lucide="arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ===============================================================
+                 GÖRÜNÜM 2: İSTEKLERİM TABLOSU (2.png)
+                 =============================================================== -->
+            <section class="msg-view-section" id="viewRequests" style="display: none;">
+                
+                <div class="msg-table-container">
+                    
+                    <!-- Araç Çubuğu -->
+                    <div class="msg-table-toolbar">
+                        <div class="msg-search-wrapper">
+                            <span class="msg-search-icon"><i data-lucide="search"></i></span>
+                            <input type="text" class="msg-search-input" id="requestSearchInput" placeholder="Kullanıcı veya istek notu ara...">
+                        </div>
+
+                        <div>
+                            <span style="font-size:13px; color:var(--msg-text-muted);" id="requestCountBadge">Toplam: 0 İstek</span>
+                        </div>
+                    </div>
+
+                    <!-- 2.png Kuralı: Mesaj istekleri Table içinde gösterilecek, sağda onay/red btn olacak -->
+                    <div class="msg-table-responsive">
+                        <table class="msg-table">
+                            <thead>
+                                <tr>
+                                    <th>Kullanıcı</th>
+                                    <th>Tarih</th>
+                                    <th>Mesaj Notu</th>
+                                    <th>Durum</th>
+                                    <th style="text-align: right;">Eylemler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="requestsTableBody">
+                                <!-- JS ile dinamik doldurulur -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Boş Durum (İstek yoksa) -->
+                    <div class="msg-empty-state" id="requestsEmptyState" style="display: none;">
+                        <div class="msg-empty-icon"><i data-lucide="mail"></i></div>
+                        <h3>Hiç Bekleyen İstek Yok</h3>
+                        <p>Şu anda bekleyen bir mesaj veya arkadaşlık isteğiniz bulunmuyor.</p>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- ===============================================================
+                 GÖRÜNÜM 3: MESAJLARIM & SOHBET EKRANI (3.png)
+                 =============================================================== -->
+            <section class="msg-view-section" id="viewChat" style="display: none;">
+                
+                <div class="msg-chat-container">
+
+                    <!-- Sohbet Üst Başlığı -->
+                    <div class="msg-chat-top-header">
+                        <div class="msg-chat-partner-info">
+                            <div class="msg-chat-partner-avatar" id="activeChatAvatar">A</div>
+                            <div>
+                                <div class="msg-chat-partner-name" id="activeChatName">Kullanıcı</div>
+                                <div class="msg-chat-partner-status">
+                                    <span class="msg-online-dot"></span> <span id="activeChatStatusText">Çevrimiçi</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sohbet Eylemleri: 3 Nokta Menüsü (Dropdown) -->
+                        <div class="msg-chat-header-actions">
+                            <div class="msg-dropdown-wrapper">
+                                <button type="button" class="msg-icon-btn" id="btnChatMenuToggle" aria-label="Sohbet Seçenekleri" title="Sohbet Seçenekleri">
+                                    <i data-lucide="more-vertical"></i>
+                                </button>
+                                <div class="msg-dropdown-menu" id="chatDropdownMenu">
+                                    <button type="button" class="msg-dropdown-item" id="btnClearChatHistory">
+                                        <i data-lucide="eraser"></i>
+                                        <span>Mesajları Temizle</span>
+                                    </button>
+                                    <button type="button" class="msg-dropdown-item text-danger" id="btnDeleteConversation">
+                                        <i data-lucide="trash-2"></i>
+                                        <span>Sohbeti Tamamen Sil</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3.png Kuralı: Mesaj Geçmişi (Content kısmı) -->
+                    <div class="msg-chat-body" id="chatMessagesArea">
+                        <!-- JS ile mesaj baloncukları doldurulur -->
+                    </div>
+
+                    <!-- 3.png Kuralı: Content kısmında Input ve Mesaj Gönder Butonu -->
+                    <form class="msg-input-bar" id="chatMessageForm">
+                        <input 
+                            type="text" 
+                            class="msg-input-field" 
+                            id="chatInputText" 
+                            placeholder="Mesajınızı yazın..." 
+                            autocomplete="off" 
+                            required>
+                        <button type="submit" class="msg-send-btn" id="chatSendBtn">
+                            <i data-lucide="send"></i>
+                            <span>Mesaj Gönder</span>
+                        </button>
+                    </form>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <!-- JavaScripts -->
+    <script src="../JavaScripts/Core/auth.js"></script>
+    <script src="../JavaScripts/Core/GlobalModalManager.js"></script>
+    <script src="../JavaScripts/UI/Mesajlar.js"></script>
+    <script>
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    </script>
+</body>
+
+</html>

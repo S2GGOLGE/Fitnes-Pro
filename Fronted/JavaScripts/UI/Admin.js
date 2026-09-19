@@ -826,10 +826,10 @@
             const actionsHtml = isPending ? `
                 <div class="admin-actions" style="justify-content: flex-end;">
                     <button type="button" class="admin-action-btn approve" onclick="window.AdminPanel.openDecisionModal(${item.id}, 'approve')">
-                        ✓ Onayla
+                        Onayla
                     </button>
                     <button type="button" class="admin-action-btn reject" onclick="window.AdminPanel.openDecisionModal(${item.id}, 'reject')">
-                        ✕ Reddet
+                        Reddet
                     </button>
                     <button type="button" class="admin-action-btn detail" onclick="window.AdminPanel.showAppealDetail(${item.id})">
                         Detay
@@ -872,7 +872,7 @@
                 <tr>
                     <td colspan="6" class="admin-empty-state">
                         <div style="display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--admin-warning); font-weight: 600;">
-                            <span aria-hidden="true">⚠️</span>
+                            <span aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
                             <span>Sisteme bağlanılamıyor. Log verileri gösterilemiyor.</span>
                         </div>
                         <div style="margin-top: 6px; font-size: 12px; color: var(--admin-text-muted);">
@@ -979,7 +979,7 @@
                 },
                 {
                     id: "btnModalConfirmDecision",
-                    text: isApprove ? "✓ Onayla ve Kilidi Aç" : "✕ Başvuruyu Reddet",
+                    text: isApprove ? "Onayla ve Kilidi Aç" : "Başvuruyu Reddet",
                     className: isApprove ? "global-modal-button-primary" : "global-modal-button-danger",
                     closeOnClick: false,
                     callback: async () => {
