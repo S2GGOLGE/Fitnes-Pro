@@ -373,7 +373,8 @@
 
         // Delete Goal
         document.getElementById('btnDeleteGoal')?.addEventListener('click', () => {
-            if (confirm(`"${goal.title}" hedefini silmek istediğinize emin misiniz?`)) {
+            // Native confirm() yerine merkezi GlobalModal kullanılıyor
+            const proceedWithDelete = () => {
                 goals = goals.filter(g => g.id !== goal.id);
                 saveGoals(goals);
                 activeGoalId = goals.length > 0 ? goals[0].id : null;
@@ -382,6 +383,32 @@
                     renderGoalDetail(activeGoalId);
                 } else {
                     renderEmptyOrAddView();
+                }
+
+                if (window.GlobalModal) {
+                    window.GlobalModal.open({
+                        type: 'success',
+                        title: 'Hedef Silindi',
+                        description: `"${goal.title}" hedefi başarıyla kaldırıldı.`,
+                        buttons: [{ text: 'Tamam', variant: 'primary', closeOnClick: true }]
+                    });
+                }
+            };
+
+            if (window.GlobalModal) {
+                // Silme onayı: özel buton metinleri için doğrudan open() kullanıyoruz
+                window.GlobalModal.open({
+                    type: 'warning',
+                    title: 'Hedefi Sil',
+                    description: `"${goal.title}" hedefini silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`,
+                    buttons: [
+                        { text: 'Vazgeç', variant: 'secondary', closeOnClick: true },
+                        { text: 'Sil', variant: 'danger', closeOnClick: true, callback: proceedWithDelete }
+                    ]
+                });
+            } else {
+                if (confirm(`"${goal.title}" hedefini silmek istediğinize emin misiniz?`)) {
+                    proceedWithDelete();
                 }
             }
         });
@@ -509,6 +536,35 @@
             const deadline = document.getElementById('newGoalDeadline').value.trim() || 'Tarih Belirtilmedi';
             const notes = document.getElementById('newGoalNotes').value.trim();
 
+            // Basit validasyon — GlobalModal üzerinden kullanıcıya bildir
+            if (isNaN(startVal) || isNaN(targetVal) || isNaN(currentVal)) {
+                if (window.GlobalModal) {
+                    window.GlobalModal.open({
+                        type: 'error',
+                        title: 'Eksik Bilgi',
+                        description: 'Başlangıç, hedef ve mevcut değer alanları sayısal olmalıdır.',
+                        buttons: [{ text: 'Tamam', variant: 'primary', closeOnClick: true }]
+                    });
+                } else {
+                    alert('Başlangıç, hedef ve mevcut değer alanları sayısal olmalıdır.');
+                }
+                return;
+            }
+
+            if (startVal === targetVal) {
+                if (window.GlobalModal) {
+                    window.GlobalModal.open({
+                        type: 'warning',
+                        title: 'Geçersiz Hedef',
+                        description: 'Başlangıç ve hedef değer aynı olamaz.',
+                        buttons: [{ text: 'Tamam', variant: 'primary', closeOnClick: true }]
+                    });
+                } else {
+                    alert('Başlangıç ve hedef değer aynı olamaz.');
+                }
+                return;
+            }
+
             const percent = recalculatePercent(startVal, currentVal, targetVal);
 
             const newGoal = {
@@ -535,6 +591,16 @@
             activeGoalId = newGoal.id;
             renderSidebar();
             renderGoalDetail(newGoal.id);
+
+            // Başarı bildirimi — GlobalModal üzerinden
+            if (window.GlobalModal) {
+                window.GlobalModal.open({
+                    type: 'success',
+                    title: 'Hedef Eklendi',
+                    description: `"${title}" hedefi takip listenize eklendi.`,
+                    buttons: [{ text: 'Tamam', variant: 'primary', closeOnClick: true }]
+                });
+            }
         });
     }
 

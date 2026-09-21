@@ -452,7 +452,19 @@
     <script src="../JavaScripts/UI/Bildimler.js"></script>
     <script src="../JavaScripts/UI/NotificationModalBridge.js"></script>
     <script>
-        lucide.createIcons();
+        // Lucide kütüphanesi sayfa yüklenirken arka arkaya iki kez
+        // çağrılabilir; Bildimler.js içindeki refreshIcons ile birlikte
+        // çalışır. Buradaki çağrı ilk boyama için garanti sağlar.
+        (function ensureLucide() {
+            if (window.lucide) { lucide.createIcons(); return; }
+            const interval = setInterval(() => {
+                if (window.lucide) {
+                    clearInterval(interval);
+                    lucide.createIcons();
+                }
+            }, 50);
+            setTimeout(() => clearInterval(interval), 5000);
+        })();
     </script>
 </body>
 

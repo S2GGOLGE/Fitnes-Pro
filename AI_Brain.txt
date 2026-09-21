@@ -1,0 +1,612 @@
+FITNESS PRO — AI_BRAIN
+========================
+Belge Türü: Proje Bağlamı / AI Çalışma Hafızası
+Proje: Fitness Pro
+Amaç: Fitness, kişisel gelişim takibi ve 1:1 koçluk özelliklerini birleştiren web uygulaması
+Belge Durumu: Geliştirme sürecinde, yaşayan doküman
+Son Güncelleme: 2026-09-21
+
+======================================================================
+1. AI İÇİN ANA TALİMAT
+======================================================================
+
+Bu dosya, Fitness Pro projesi üzerinde çalışan yapay zekâ sistemine proje
+bağlamı sağlamak amacıyla hazırlanmıştır.
+
+AI aşağıdaki kurallara kesinlikle uymalıdır:
+
+1. Önce mevcut kodu, klasör yapısını ve ilgili bağlantıları analiz et.
+2. Kullanıcının açıkça istemediği özellikleri ekleme.
+3. Mevcut çalışan özellikleri bozma.
+4. Kod değişikliği yapmadan önce kök nedeni tespit etmeye çalış.
+5. Varsayılan veya hayali endpoint, model, property, tablo ve dosya adı üretme.
+6. Emin olunmayan bilgileri gerçekmiş gibi sunma; dosyalardan doğrula.
+7. Controller katmanına gereksiz SQL, iş mantığı veya karmaşık işlemler
+   yerleştirme. Uygun servis katmanını kullan.
+8. Mevcut mimariye uymayan yeni bir mimari kurma.
+9. Güvenlik, yetkilendirme ve veri doğrulama kurallarını atlama.
+10. Değişiklikleri küçük, izlenebilir ve amaca yönelik tut.
+11. Bir dosyayı tamamen yeniden yazmadan önce mevcut işlevleri ve bağımlılıkları
+    kontrol et.
+12. Kullanıcı "analiz et, değişiklik yapma" derse kesinlikle kod değiştirme.
+13. Kullanıcı "düzelt" veya "uygula" derse yalnızca istenen kapsamda değişiklik yap.
+14. Kullanıcı testleri kendisinin yapacağını belirtirse test checklist'i
+    hazırlama; yalnızca yapılan değişiklikleri ve olası riskleri özetle.
+15. Her değişiklikten sonra hangi dosyaların değiştiğini ve ne yapıldığını
+    açıkça belirt.
+
+======================================================================
+2. PROJE TANIMI
+======================================================================
+
+Fitness Pro; fitness takibi, kişisel gelişim, kullanıcı profili, koçluk,
+başvurular, mesajlaşma, bildirimler, yönetici işlemleri ve sistem loglarını
+bir araya getirmeyi amaçlayan bir web uygulamasıdır.
+
+Temel hedefler:
+- Kullanıcı kayıt ve giriş sistemi
+- JWT tabanlı kimlik doğrulama
+- Rol tabanlı yetkilendirme
+- Giriş rate limiting ve hesap kilitleme
+- Ban ve ban itiraz sistemi
+- Admin paneli
+- Sistem ve kullanıcı logları
+- Koç başvuruları
+- Kullanıcılar arası ve kullanıcı-koç mesajlaşması
+- Profil fotoğrafı yönetimi
+- Bildirim sistemi
+- E-posta entegrasyonu
+- İlerleyen aşamalarda fitness ve kişisel gelişim özellikleri
+
+Proje bir bütün olarak ele alınmalıdır. Authentication, authorization,
+logging, messaging, notification ve profile modülleri birbirinden bağımsız
+gibi tasarlansa da aralarındaki veri ve güvenlik bağlantıları korunmalıdır.
+
+======================================================================
+3. TEKNOLOJİLER VE GELİŞTİRME ORTAMI
+======================================================================
+
+Backend:
+- .NET 10
+- ASP.NET Core Web API
+- Entity Framework Core 10.0.11 kullanılan bölümler
+- Microsoft.Data.SqlClient kullanılan doğrudan SQL bölümleri
+- JWT Bearer Authentication 10.0.3
+- Swagger
+- SQL Server / LocalDB
+
+Veritabanı:
+- Veritabanı adı: FitnesPro
+- Geliştirme ortamında SQL Server LocalDB kullanımı
+- Bazı başlangıç tabloları DatabaseInitializer tarafından oluşturuluyor.
+- DatabaseInitializer içinde Microsoft.Data.SqlClient kullanıldığı ve
+  Entity Framework kullanılmadan bazı tabloların oluşturulduğu bölümler olabilir.
+- Veritabanı işlemlerinde mevcut projenin gerçek yaklaşımı incelenmelidir.
+- EF ve doğrudan SQL kullanımı rastgele birbirine dönüştürülmemelidir.
+
+Swagger:
+- Geliştirme ortamında belirtilen adres: http://localhost:8081
+- Port ve ortam ayarları gerçek configuration dosyalarından doğrulanmalıdır.
+
+Frontend:
+- HTML, CSS ve JavaScript tabanlı yapı
+- Frontend klasör adı projede "Fronted" olarak kullanılmaktadır.
+- UI odaklı klasörler:
+  - Fronted/assets
+  - Fronted/Css/UI
+  - Fronted/JavaScripts/UI/Core
+  - Fronted/JavaScripts/UI/EndPoint
+  - Fronted/JavaScripts/UI/Components
+- Gerçek klasör ve dosya isimleri işlem öncesinde kontrol edilmelidir.
+
+API namespace:
+- Projede API namespace yazımı ve klasör adları mevcut koddan doğrulanmalıdır.
+- Kullanıcı tarafından daha önce "Apı" biçiminde ifade edilen klasör/namespace
+  adları doğrudan varsayım olarak kullanılmamalıdır.
+
+======================================================================
+4. BACKEND MİMARİSİ
+======================================================================
+
+Backend'de aşağıdaki sorumluluk ayrımı korunmalıdır:
+
+Controller:
+- HTTP isteğini alır.
+- Model binding ve temel giriş doğrulamasını yürütür.
+- Yetkilendirme attribute'larını kullanır.
+- Uygun servisi çağırır.
+- HTTP status code ve response formatını döndürür.
+- SQL sorgularını ve kapsamlı iş mantığını barındırmaz.
+
+Service:
+- İş mantığını yürütür.
+- Veritabanı işlemlerini uygun repository, DbContext veya SQL katmanına
+  yönlendirir.
+- Gerekli doğrulamaları yapar.
+- Servisler arası iş akışını yönetir.
+
+Model / DTO:
+- İstek ve yanıt veri yapılarını tanımlar.
+- Hassas verilerin response içinde açığa çıkmasını engeller.
+- Request ve response modelleri gerektiğinde birbirinden ayrılır.
+
+Interface:
+- Servis sözleşmelerini tanımlar.
+- Interface ile implementasyon arasında method imzaları tam uyumlu olmalıdır.
+- CS0535 gibi interface implementasyon hataları oluşmaması için tüm method
+  parametreleri, dönüş tipleri ve erişim belirleyicileri kontrol edilmelidir.
+
+Logging:
+- Log işlemleri merkezi bir servis üzerinden yürütülmelidir.
+- Controller içine tekrar tekrar log insert kodu yazılmamalıdır.
+- Log başarısız olsa bile ana iş akışının etkilenip etkilenmeyeceği bilinçli
+  şekilde belirlenmelidir.
+
+Bilinen servis / bileşen isimleri:
+- RegisterService
+- LoginService
+- PasswordupdateService
+- RoleService
+- JwtService
+- ILogService
+- DatabaseInitializer
+
+İsimlendirme ve gerçek method imzaları koddan doğrulanmalıdır.
+
+======================================================================
+5. FRONTEND MİMARİSİ
+======================================================================
+
+Frontend geliştirmelerinde aşağıdaki ilkeler uygulanmalıdır:
+
+1. Ortak UI bileşenleri tekrar kullanılmalıdır.
+2. Hamburger menü, sidebar, bildirim, profil ve modal yapıları sayfalar
+   arasında tutarlı olmalıdır.
+3. Index.html ile diğer sayfaların ortak menü tasarımı eşleşmelidir.
+4. CSS değişiklikleri yalnızca hedef bileşeni etkileyecek şekilde yapılmalıdır.
+5. Global selector kullanmadan önce başka sayfalara etkisi kontrol edilmelidir.
+6. JavaScript dosyalarının yüklenme sırası incelenmelidir.
+7. Dinamik olarak DOM'a eklenen ikonlar için gerekli render / initialize
+   işlemleri yapılmalıdır.
+8. API response yapısı doğrulanmadan property isimleri tahmin edilmemelidir.
+9. Loading, empty state, error state ve success state birbirinden ayrılmalıdır.
+10. Bildirim, mesaj ve modal durumları gerçek veriyle senkron tutulmalıdır.
+11. Kullanıcıya ait veriler, yetkisiz kullanıcıların DOM veya API üzerinden
+    erişebileceği şekilde açığa çıkarılmamalıdır.
+
+İkon standardı:
+- Projede Lucide SVG ikonları tercih edilmektedir.
+- Emoji veya Unicode karakterleri ikon yerine kullanılmamalıdır; mevcut
+  standartla çelişen kullanımlar tespit edilip proje kuralına göre ele alınmalıdır.
+- İkonlar sayfa açılışında ve dinamik içerik güncellemelerinde doğru
+  şekilde render edilmelidir.
+
+======================================================================
+6. VERİTABANI TABLOLARI VE İLİŞKİLER
+======================================================================
+
+Aşağıdaki tablolar proje kapsamında tanımlanmış veya planlanmıştır.
+Gerçek kolon adları, veri tipleri ve constraint'ler koddan doğrulanmalıdır.
+
+6.1. Users
+- Kullanıcı temel bilgilerini tutar.
+- Bilinen alanlar:
+  - Name
+  - Surname
+  - Username
+  - Email
+  - PasswordHash
+  - Salt
+  - Level (varsayılan: Acemi)
+  - CreatedAt
+- Username benzersiz olmalıdır.
+- Email benzersiz olmalıdır.
+- Şifre düz metin olarak saklanmamalıdır.
+
+6.2. Roles
+- Kullanıcı rollerini tutar.
+- Bilinen alanlar:
+  - UserId
+  - RoleName
+- UserId + RoleName kombinasyonu benzersiz olmalıdır.
+- Users tablosuna foreign key bağlantısı bulunur.
+- FK_Roles_Users_UserId üzerinde ON DELETE CASCADE kullanımı tanımlanmıştır.
+- Admin rolü ve diğer roller gerçek sistemdeki role kontrolüyle eşleşmelidir.
+
+6.3. BannedUsers
+- Yasaklanan kullanıcıları tutar.
+- Bilinen alanlar:
+  - Username (Primary Key)
+  - BannedAt
+  - Reason
+- Kalıcı ban işlemi yalnızca uygun iş akışıyla yapılmalıdır.
+- Ban kontrolü yalnızca frontend localStorage'a bırakılmamalıdır.
+
+6.4. BanAppeals
+- Ban itirazlarını tutar.
+- Bilinen alanlar:
+  - Id
+  - Username
+  - Message
+  - Status (varsayılan: Pending)
+  - CreatedAt
+  - DecidedAt
+  - DecidedBy
+  - AdminNote
+- Username + Status için index tanımlanmıştır.
+- İtiraz onaylandığında ilgili ban ve kullanıcı durumu güvenli biçimde
+  güncellenmelidir.
+- Admin kararı kayıt altına alınmalıdır.
+
+6.5. Log tabloları
+Proje tek bir karma log tablosu yerine ayrı log tabloları kullanmayı hedefler:
+- SystemLogs
+- UserLogs
+- AppealLogs
+- AdminLogs
+- GeneralLogs
+
+Log türleri birbirine karıştırılmamalıdır.
+Gerçek kolonlar ve ilişkiler ilgili SQL / model dosyalarından doğrulanmalıdır.
+
+======================================================================
+7. LOGGING SİSTEMİ
+======================================================================
+
+Bilinen servis methodu:
+- LogSystemAsync(level, action, message, source?, ipAddress?)
+
+Bu method imzası koddan kontrol edilmeden değiştirilmemelidir.
+
+Logging kuralları:
+- Login, register, ban, appeal, admin işlemleri ve kritik sistem olayları
+  uygun log türüne kaydedilmelidir.
+- Hassas bilgiler loglanmamalıdır.
+- Şifre, PasswordHash, Salt, JWT token ve gizli anahtarlar loglanmamalıdır.
+- IP adresi işleniyorsa güvenlik ve gizlilik etkileri dikkate alınmalıdır.
+- Log görüntüleme endpoint'leri Admin yetkisiyle korunmalıdır.
+- Pagination, filtreleme ve sıralama varsa mevcut API sözleşmesine uygun
+  şekilde uygulanmalıdır.
+- Log kayıtlarının silinmesi veya değiştirilmesi yetkili işlemlerle
+  sınırlandırılmalıdır.
+
+======================================================================
+8. AUTHENTICATION VE AUTHORIZATION
+======================================================================
+
+Authentication:
+- JWT Bearer kullanılmaktadır.
+- JWT içinde role claim'leri bulunur.
+- Kullanıcı giriş yaptıktan sonra token üretimi JwtService üzerinden
+  yürütülmelidir.
+- Token içeriği ve expiration değerleri configuration üzerinden yönetilmelidir.
+- Token, response veya loglarda gereksiz şekilde açığa çıkarılmamalıdır.
+
+Authorization:
+- [Authorize] kimlik doğrulaması gerektiren endpoint'lerde kullanılmalıdır.
+- [Authorize(Roles = "Admin")] Admin yetkisi gerektiren endpoint'lerde
+  kullanılmalıdır.
+- Frontend'deki role kontrolü tek başına güvenlik mekanizması değildir.
+- Tüm kritik yetki kontrolleri backend tarafında yapılmalıdır.
+- Kullanıcı kendi verisine erişebilir; başka kullanıcıların verilerine
+  erişim açıkça yetkilendirilmelidir.
+
+Frontend role UI:
+- data-role="admin" gibi role tabanlı UI alanları kullanılabilir.
+- UI'da bir butonun gizlenmesi backend authorization yerine geçmez.
+- Token parse işlemleri güvenli ve hata toleranslı olmalıdır.
+- Geçersiz, eksik veya süresi dolmuş token durumları düzgün ele alınmalıdır.
+
+======================================================================
+9. LOGIN RATE LIMITING VE BAN SİSTEMİ
+======================================================================
+
+Bilinen iş kuralı:
+- 5 başarısız giriş: 5 dakika kilit
+- 10 başarısız giriş: 10 dakika kilit
+- 15 başarısız giriş: kalıcı DB ban
+- Kalıcı ban localStorage'a dayalı olmamalıdır.
+- Ban kaldırma süreci itiraz ve Admin kararıyla yürütülmelidir.
+
+Kurallar:
+1. Başarısız giriş sayısı backend tarafında güvenilir şekilde izlenmelidir.
+2. Rate limit bilgisi frontend tarafından manipüle edilememelidir.
+3. AccountLocked, RemainingSeconds ve rateLimited gibi response alanlarının
+   gerçek response modeliyle eşleştiği doğrulanmalıdır.
+4. Kullanıcıya gereğinden fazla güvenlik bilgisi sızdırılmamalıdır.
+5. Başarılı girişten sonra başarısız deneme durumu iş kuralına göre
+   temizlenmeli veya güncellenmelidir.
+6. Login endpoint'leri brute force saldırılarına karşı korunmalıdır.
+7. Ban ve itiraz akışında kullanıcı adı doğrulaması ve yetki kontrolü
+   backend tarafında yapılmalıdır.
+
+Bilinen test scriptleri:
+- simulate-login-block.ps1
+- simulate-login-block-2.ps1
+
+Bu scriptler değiştirilecekse mevcut test akışının amacı korunmalıdır.
+
+======================================================================
+10. API ENDPOINTLERİ VE SERVİSLER
+======================================================================
+
+Bu bölümde endpoint isimleri yalnızca koddan doğrulanmışsa kesin olarak
+belirtilmelidir. AI, mevcut kodu görmeden yeni endpoint adı uydurmamalıdır.
+
+Bilinen veya daha önce kullanılan endpoint örnekleri:
+- POST /api/auth/ban-appeal
+  Request örneği:
+  {
+    "username": "example",
+    "message": "İtiraz açıklaması"
+  }
+
+- GET /api/rate/login
+  Login rate limit / kilit durumu ile ilgili kullanılır.
+
+Endpoint kuralları:
+- HTTP method, route, request body, response body ve status code mevcut
+  backend kodundan doğrulanmalıdır.
+- SQL işlemleri controller'a eklenmemelidir.
+- Endpoint response'ları ortak ApiResponseModel veya projenin mevcut
+  response standardıyla uyumlu olmalıdır.
+- Validation hataları tutarlı formatta döndürülmelidir.
+- Yetkisiz ve kimlik doğrulaması yapılmamış istekler doğru status code
+  ile cevaplanmalıdır.
+- Endpoint değişikliklerinde frontend çağrıları da kontrol edilmelidir.
+- CORS, authentication header ve content type ayarları mevcut yapıya
+  uygun tutulmalıdır.
+
+======================================================================
+11. E-POSTA ENTEGRASYONU
+======================================================================
+
+Projede e-posta gerektiren noktalara e-posta entegrasyonu eklenmektedir.
+
+AI şu konulara dikkat etmelidir:
+- SMTP veya kullanılan e-posta sağlayıcısının ayarlarını doğrudan kaynak
+  koda gömme.
+- API key, SMTP password ve secret bilgilerini Git'e gönderme.
+- Configuration / environment variable yaklaşımını kullan.
+- E-posta gönderimi başarısız olduğunda ana iş akışının nasıl davranacağını
+  açıkça belirle.
+- Spam, rate limit, doğrulama ve hata yönetimini dikkate al.
+- E-posta adreslerini loglarda veya hata mesajlarında gereksiz şekilde
+  açığa çıkarma.
+- E-posta entegrasyonunun frontend tarafındaki loading ve error durumlarını
+  doğru yönet.
+
+======================================================================
+12. TASARIM SİSTEMİ VE UI STANDARTLARI
+======================================================================
+
+Ana görsel yaklaşım:
+- Dark green / dark mode odaklı tasarım
+- Sol tarafta profil ve navigasyon
+- Sağ tarafta ana içerik
+- Tutarlı kart, modal, buton ve menü bileşenleri
+
+Renk paleti:
+- Background: #0B0F0D
+- Surface: #121815
+- Card: #18201B
+- Primary: #22C55E
+- Primary Hover: #16A34A
+- Text: #F5F7F6
+- Muted: #A7B0AA
+- Border: #29332D
+
+UI kuralları:
+1. Yeni bileşenler mevcut renk sistemine uymalıdır.
+2. Rastgele renk veya farklı tasarım dili eklenmemelidir.
+3. Index.html hamburger menü tasarımı diğer sayfalarla uyumlu olmalıdır.
+4. Menü açık ve kapalı durumları tutarlı olmalıdır.
+5. Responsive tasarım masaüstü ve mobil ekranlarda korunmalıdır.
+6. `width`, `position`, `z-index`, `overflow` ve `transform` değişiklikleri
+   diğer sayfaları etkilemeyecek şekilde yapılmalıdır.
+7. Empty state, loading state ve error state görsel olarak ayrılmalıdır.
+8. Bildirim varsa "Mevcut bildirim yok" alanı görünmemelidir.
+9. Bildirim yoksa empty state görünmelidir.
+10. İkonlar SVG tabanlı ve tutarlı ölçü / stroke değerleriyle kullanılmalıdır.
+11. Erişilebilirlik için buton, aria-label, klavye erişimi ve kontrast
+    gereksinimleri mümkün olduğunca korunmalıdır.
+
+======================================================================
+13. MEVCUT GELİŞTİRME DURUMU
+======================================================================
+
+Tamamlanan veya büyük ölçüde tamamlanan bölümler:
+- Temel Register işlemleri
+- Login işlemleri
+- Password Update işlemleri
+- Login rate limiting
+- Ban itiraz modalı
+- POST /api/auth/ban-appeal akışı
+- JWT ve role tabanlı yetkilendirme üzerinde çalışmalar
+- E-posta entegrasyonu üzerinde çalışmalar
+- E-posta gönderiminin backend tarafında çalıştığı ve frontend bağlantısının
+  kalan işlerden biri olduğu belirtilmiştir.
+- Bazı logging işlemlerinin başarıyla kayıt yaptığı doğrulanmıştır.
+- Admin yetki kontrolünde bulunan bir hata giderilmiştir.
+- Git push işlemleri gerçekleştirilmiştir.
+
+Geliştirme veya tamamlanması gereken bölümler:
+- Admin panelinin kapsamlı şekilde tamamlanması
+- Log görüntüleme endpoint'i ve frontend log ekranı
+- Ban itirazlarının Admin tarafından onaylanması / reddedilmesi
+- Koç başvuruları
+- Koç rolüne geçiş iş akışı
+- Mesajlaşma sistemi
+- Profil fotoğrafı yükleme, silme ve güncelleme
+- Bildirim sistemi
+- E-posta entegrasyonunun frontend bağlantıları ve tüm gerekli kullanım noktaları
+- Refresh token sistemi
+- Fitness ve kişisel gelişim modülleri
+- Proje genelinde UI tutarlılığı ve ikon standardizasyonu
+
+Bu durum listesi yaşayan dokümandır. AI, işlem öncesinde gerçek kodu ve
+kullanıcının son talimatlarını esas almalıdır.
+
+======================================================================
+14. PROJE YOL HARİTASI
+======================================================================
+
+Faz 1 — Temel İşlemler
+- Register
+- Login
+- Password Update
+- Temel authentication akışı
+
+Faz 2 — Login Güvenliği
+- Başarısız giriş takibi
+- Rate limiting
+- Geçici kilitleme
+- Kalıcı ban
+- Ban itirazı
+- Admin karar akışı
+
+Faz 3 — Admin ve Loglar
+- Admin panelinin tamamlanması
+- Ban onay / ret sistemi
+- Sistem logları
+- Kullanıcı logları
+- Appeal logları
+- Admin logları
+- Log görüntüleme endpoint'leri
+- Koç başvuruları
+- Başvuruların Admin tarafından değerlendirilmesi
+
+Faz 4 — Mesajlaşma ve Profil
+- Kullanıcı-koç mesajlaşması
+- Kullanıcı-kullanıcı mesajlaşması
+- Profil fotoğrafı yükleme
+- Profil fotoğrafı silme / güncelleme
+- Kullanıcı profil bilgilerinin kontrollü görüntülenmesi
+- Bildirim sistemi
+
+Faz 5 — Sistem Genişletme
+- E-posta entegrasyonunun bütün gerekli noktalara yayılması
+- Refresh token
+- Gelişmiş bildirimler
+- Gelişmiş profil ve kullanıcı yönetimi
+- Fitness takibi
+- Kişisel gelişim takibi
+- Koçluk özelliklerinin genişletilmesi
+- Raporlama ve istatistikler
+
+Yol haritası kesin bir uygulama sırası olarak kabul edilmemelidir. Kullanıcının
+güncel önceliği her zaman önce gelir.
+
+======================================================================
+15. AI KOD ANALİZİ VE DEĞİŞİKLİK PROTOKOLÜ
+======================================================================
+
+Bir görev geldiğinde AI aşağıdaki sırayı izlemelidir:
+
+AŞAMA 1 — Kapsamı Anla
+- Kullanıcının tam olarak ne istediğini belirle.
+- İstenen dosyaları ve modülleri tespit et.
+- İlgisiz modüllere müdahale etme.
+
+AŞAMA 2 — Mevcut Yapıyı İncele
+- İlgili HTML, CSS, JS, controller, service, model, DTO ve configuration
+  dosyalarını oku.
+- Fonksiyonun nereden çağrıldığını ve hangi veriye bağlı olduğunu tespit et.
+- Endpoint ve response yapısını doğrula.
+- Aynı işlevin başka dosyalarda tekrar edilip edilmediğini kontrol et.
+
+AŞAMA 3 — Kök Nedeni Belirle
+- Belirti ile kök nedeni birbirinden ayır.
+- Sadece semptomu gizleyen geçici çözüm uygulama.
+- Asenkron akış, DOM sırası, CSS önceliği, state yönetimi, API response,
+  authorization ve veri doğrulama ihtimallerini incele.
+
+AŞAMA 4 — Çözümü Uygula
+- En küçük güvenli değişiklik setini seç.
+- Mevcut isimlendirme ve mimariyi koru.
+- Gereksiz refactor yapma.
+- Güvenlik kontrollerini kaldırma.
+- Kullanıcı istemediyse yeni kütüphane ekleme.
+
+AŞAMA 5 — Sonuç Özeti
+- Değişen dosyaları listele.
+- Kök nedeni açıkla.
+- Yapılan düzeltmeyi açıkla.
+- Kalan belirsizlikleri veya kullanıcı tarafından kontrol edilmesi gereken
+  noktaları belirt.
+- Kullanıcı test yapacağını söylediyse test checklist'i yazma.
+
+======================================================================
+16. GÜVENLİK KURALLARI
+======================================================================
+
+- Şifreleri düz metin saklama.
+- PasswordHash, Salt, JWT secret ve API key bilgilerini kaynak koda gömme.
+- Secret bilgilerini loglama.
+- Admin yetkisini frontend'de gizlenen butonlarla sınırlama.
+- Her kritik endpoint'te backend authorization kontrolü yap.
+- Kullanıcıdan gelen verileri doğrula ve güvenli şekilde işle.
+- SQL injection riskine karşı parametreli sorgular veya güvenli ORM yaklaşımı
+  kullan.
+- Kullanıcıya ait dosya yüklemelerinde uzantı, MIME type, boyut ve dosya adı
+  güvenliğini kontrol et.
+- Profil fotoğrafı ve mesaj içeriğinde XSS riskini dikkate al.
+- CORS ve authentication ayarlarını gereksiz şekilde gevşetme.
+- Hata response'larında stack trace, connection string veya gizli bilgileri
+  dışarı verme.
+- Ban, appeal, log ve admin işlemlerini denetlenebilir tut.
+
+======================================================================
+17. AI'NIN KAÇINMASI GEREKEN HATALAR
+======================================================================
+
+AI aşağıdaki davranışlardan kaçınmalıdır:
+
+- Dosyayı okumadan kod yazmak
+- Hayali endpoint üretmek
+- API response property'sini tahmin etmek
+- Var olan servis yerine controller'a SQL yazmak
+- Bir CSS sorununu çözmek için bütün tasarımı değiştirmek
+- Global CSS ile diğer sayfaları bozmak
+- JWT güvenlik kontrollerini frontend'e bırakmak
+- Admin kontrolünü yalnızca HTML attribute'larıyla yapmak
+- Kullanılmayan ve gereksiz paketler eklemek
+- Çalışan kodu gerekçesiz şekilde yeniden yazmak
+- Kullanıcı istemeden migration veya veritabanı silme işlemi yapmak
+- Test sonucu varmış gibi davranmak
+- Yapılmayan bir değişikliği yapılmış gibi bildirmek
+- Hata kaynağı doğrulanmadan kesin açıklama yapmak
+
+======================================================================
+18. DOKÜMAN GÜNCELLEME KURALI
+======================================================================
+
+Bu dosya yaşayan bir proje dokümanıdır.
+
+Yeni bir modül tamamlandığında:
+- Mevcut geliştirme durumu güncellenebilir.
+- Yeni endpoint'ler doğrulanarak eklenebilir.
+- Yeni tablolar ve ilişkiler doğrulanarak eklenebilir.
+- Değişen güvenlik kuralları güncellenebilir.
+- Yol haritasında tamamlanan işler işaretlenebilir.
+
+AI, bu dosyada yazan eski bir bilgi ile gerçek kod arasında çelişki görürse
+gerçek kodu ve kullanıcının son talimatını öncelikli kabul etmeli, çelişkiyi
+belirtmelidir.
+
+======================================================================
+19. SON KURAL
+======================================================================
+
+Fitness Pro üzerinde yapılan her işlemde hedef:
+- Güvenli kod
+- Sürdürülebilir mimari
+- Tutarlı UI
+- Doğrulanmış API sözleşmesi
+- Minimum yan etki
+- Açık ve izlenebilir değişiklikler
+
+Kod yazmadan önce düşün.
+Varsayım yapmadan önce doğrula.
+Değişiklik yapmadan önce kapsamı anla.
+Kullanıcının talimatına sadık kal.

@@ -400,10 +400,17 @@ a {
 .sidebar.collapsed .sidebar-toggle {
     position: absolute;
 
-    top: 20px;
-    right: -17px;
+    /* Menü kapalıyken hamburger ikonu sidebar'ın alt kısmına taşınır.
+       Logout butonunun üzerinde konumlanır; böylece diğer menü
+       öğelerinin hizası bozulmaz ve ikon erişilebilir kalır. */
+    top: auto;
+    right: auto;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
 
     background: var(--card);
+    z-index: 5;
 }
 
 .sidebar.collapsed .profile-card {
@@ -1253,6 +1260,12 @@ a {
         transition:
             opacity var(--transition),
             visibility var(--transition);
+    }
+
+    /* Mobil görünümde sidebar tamamen gizlendiği için
+       içerideki desktop toggle butonu görünür kalmamalı. */
+    .sidebar-toggle {
+        display: none;
     }
 
     .sidebar-overlay.active {

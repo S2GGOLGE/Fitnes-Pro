@@ -4,455 +4,208 @@
    Bu dosya modal açma/kapatma işlemi yapmaz.
    ========================================================= */
 
+document.addEventListener("DOMContentLoaded", () => {
 
-/* =========================================================
-   ELEMENTLER
-   ========================================================= */
+    /* =========================================================
+       LUCIDE YARDIMCISI
+       Lucide ikonları DOM'a eklendikten sonra yeniden
+       çalıştırılmalıdır; aksi halde yeni ikonlar görünmez.
+       ========================================================= */
 
-const notificationList = document.getElementById("notificationList");
-const emptyState = document.getElementById("emptyState");
-
-const totalNotifications = document.getElementById("totalNotifications");
-const unreadNotifications = document.getElementById("unreadNotifications");
-const weekNotifications = document.getElementById("weekNotifications");
-
-const searchInput = document.getElementById("notificationSearch");
-
-const filterButtons = document.querySelectorAll(".notification-filter");
-
-
-/* =========================================================
-   BİLDİRİM SAYILARINI GÜNCELLE
-   ========================================================= */
-
-function updateCounts() {
-
-    const notifications =
-        document.querySelectorAll(".notification-item");
-
-    const unread =
-        document.querySelectorAll(
-            ".notification-item.unread"
-        );
-
-    if (totalNotifications) {
-        totalNotifications.textContent =
-            notifications.length;
+    function refreshIcons(root = document) {
+        if (window.lucide && typeof window.lucide.createIcons === "function") {
+            window.lucide.createIcons({ root });
+        }
     }
 
-    if (unreadNotifications) {
-        unreadNotifications.textContent =
-            unread.length;
+
+    /* =========================================================
+       ELEMENTLER
+       ========================================================= */
+
+    const notificationList = document.getElementById("notificationList");
+    const emptyState = document.getElementById("emptyState");
+
+    // Sayfa istatistik sayaçları (Bildirimler.html)
+    const totalCount = document.getElementById("totalCount");
+    const unreadCount = document.getElementById("unreadCount");
+
+    const searchInput = document.getElementById("searchInput");
+    const markAllBtn = document.getElementById("markAllBtn");
+    const themeBtn = document.getElementById("themeBtn");
+
+    // Filtre butonları (.filter class'ı HTML ile eşleşir)
+    const filterButtons = document.querySelectorAll(".filter");
+
+
+    /* =========================================================
+       BOŞ DURUM KONTROLÜ
+       Bildirim varsa: gizle, yoksa: göster.
+       ========================================================= */
+
+    function checkEmpty() {
+        if (!notificationList || !emptyState) return;
+
+        const visibleNotifications = Array.from(
+            notificationList.querySelectorAll(".notification")
+        ).filter(item => item.style.display !== "none");
+
+        emptyState.style.display = visibleNotifications.length === 0 ? "flex" : "none";
     }
 
-    /*
-     * Bu hafta bildirimi.
-     * Eğer backend tarafında gerçek tarih kullanılacaksa
-     * burada data-date üzerinden hesaplama yapılabilir.
-     */
 
-    if (weekNotifications) {
+    /* =========================================================
+       BİLDİRİM SAYILARINI GÜNCELLE
+       ========================================================= */
 
-        const now = new Date();
+    function updateCounts() {
+        const notifications = document.querySelectorAll(".notification");
+        const unread = document.querySelectorAll(".notification.unread");
 
-        const startOfWeek = new Date(now);
+        if (totalCount) totalCount.textContent = notifications.length;
+        if (unreadCount) unreadCount.textContent = unread.length;
+    }
 
-        const day = now.getDay();
 
-        const diff = day === 0 ? 6 : day - 1;
+    /* =========================================================
+       BİLDİRİME TIKLAMA (okundu yap)
+       ========================================================= */
 
-        startOfWeek.setDate(
-            now.getDate() - diff
-        );
+    if (notificationList) {
 
-        startOfWeek.setHours(
-            0,
-            0,
-            0,
-            0
-        );
+        notificationList.addEventListener("click", event => {
 
-        let count = 0;
-
-        notifications.forEach(notification => {
-
-            const dateValue =
-                notification.dataset.date;
-
-            if (!dateValue) {
+            const deleteButton = event.target.closest(".delete");
+            if (deleteButton) {
+                event.stopPropagation();
+                const notification = deleteButton.closest(".notification");
+                if (!notification) return;
+                notification.remove();
+                updateCounts();
+                checkEmpty();
                 return;
             }
 
-            const notificationDate =
-                new Date(dateValue);
-
-            if (
-                !isNaN(notificationDate) &&
-                notificationDate >= startOfWeek
-            ) {
-                count++;
-            }
-
-        });
-
-        weekNotifications.textContent = count;
-    }
-}
-
-
-/* =========================================================
-   BOŞ DURUM KONTROLÜ
-   ========================================================= */
-
-function checkEmpty() {
-
-    if (!notificationList || !emptyState) {
-        return;
-    }
-
-    const visibleNotifications =
-        [...notificationList.querySelectorAll(
-            ".notification-item"
-        )].filter(item => {
-
-            return item.style.display !== "none";
-
-        });
-
-    if (visibleNotifications.length === 0) {
-
-        emptyState.style.display = "flex";
-
-    } else {
-
-        emptyState.style.display = "none";
-    }
-}
-
-
-/* =========================================================
-   BİLDİRİME TIKLAMA
-   ========================================================= */
-
-if (notificationList) {
-
-    notificationList.addEventListener(
-        "click",
-        function (event) {
-
-            const notification =
-                event.target.closest(
-                    ".notification-item"
-                );
-
-            if (!notification) {
+            const detailButton = event.target.closest(".detail");
+            if (detailButton) {
+                // Detay modalı NotificationModalBridge tarafından açılır.
                 return;
             }
 
+            const notification = event.target.closest(".notification");
+            if (!notification) return;
 
-            /*
-             * Silme butonuna basıldıysa
-             * bildirim okunmuş yapılmaz.
-             */
-
-            if (
-                event.target.closest(
-                    ".delete-notification"
-                )
-            ) {
-                return;
-            }
-
-
-            /*
-             * Detay butonuna basıldıysa
-             * HARİCİ MODAL sistemi çalışacak.
-             *
-             * Burada modal açmıyoruz.
-             */
-
-            if (
-                event.target.closest(
-                    ".detail"
-                )
-            ) {
-                return;
-            }
-
-
-            /*
-             * Bildirimi okundu yap
-             */
-
-            if (
-                notification.classList.contains(
-                    "unread"
-                )
-            ) {
-
-                notification.classList.remove(
-                    "unread"
-                );
-
+            if (notification.classList.contains("unread")) {
+                notification.classList.remove("unread");
                 updateCounts();
             }
-
-        }
-    );
-}
+        });
+    }
 
 
-/* =========================================================
-   TÜMÜNÜ OKUNDU YAP
-   ========================================================= */
+    /* =========================================================
+       TÜMÜNÜ OKUNDU YAP
+       ========================================================= */
 
-const markAllRead =
-    document.getElementById(
-        "markAllRead"
-    );
-
-if (markAllRead) {
-
-    markAllRead.addEventListener(
-        "click",
-        function () {
-
-            const unread =
-                document.querySelectorAll(
-                    ".notification-item.unread"
-                );
-
-            unread.forEach(notification => {
-
-                notification.classList.remove(
-                    "unread"
-                );
-
+    if (markAllBtn) {
+        markAllBtn.addEventListener("click", () => {
+            document.querySelectorAll(".notification.unread").forEach(item => {
+                item.classList.remove("unread");
             });
-
             updateCounts();
-        }
-    );
-}
+        });
+    }
 
 
-/* =========================================================
-   BİLDİRİM SİL
-   ========================================================= */
+    /* =========================================================
+       FİLTRELEME
+       ========================================================= */
 
-if (notificationList) {
+    filterButtons.forEach(button => {
+        button.addEventListener("click", () => {
 
-    notificationList.addEventListener(
-        "click",
-        function (event) {
+            filterButtons.forEach(btn => btn.classList.remove("active"));
+            button.classList.add("active");
 
-            const deleteButton =
-                event.target.closest(
-                    ".delete-notification"
-                );
+            const filter = button.dataset.filter || "all";
 
-            if (!deleteButton) {
-                return;
-            }
+            document.querySelectorAll(".notification").forEach(notification => {
 
-            event.stopPropagation();
+                let show = true;
 
-            const notification =
-                deleteButton.closest(
-                    ".notification-item"
-                );
-
-            if (!notification) {
-                return;
-            }
-
-            notification.remove();
-
-            updateCounts();
-            checkEmpty();
-        }
-    );
-}
-
-
-/* =========================================================
-   FİLTRELEME
-   ========================================================= */
-
-filterButtons.forEach(button => {
-
-    button.addEventListener(
-        "click",
-        function () {
-
-            /*
-             * Aktif filtre
-             */
-
-            filterButtons.forEach(btn => {
-
-                btn.classList.remove(
-                    "active"
-                );
-
-            });
-
-            button.classList.add(
-                "active"
-            );
-
-
-            const filter =
-                button.dataset.filter ||
-                "all";
-
-
-            const notifications =
-                document.querySelectorAll(
-                    ".notification-item"
-                );
-
-
-            notifications.forEach(
-                notification => {
-
-                    let show = true;
-
-
-                    /* -------------------------
-                       TÜMÜ
-                       ------------------------- */
-
-                    if (filter === "all") {
-
-                        show = true;
-
-                    }
-
-
-                    /* -------------------------
-                       OKUNMAMIŞ
-                       ------------------------- */
-
-                    else if (
-                        filter === "unread"
-                    ) {
-
-                        show =
-                            notification.classList
-                                .contains(
-                                    "unread"
-                                );
-
-                    }
-
-
-                    /* -------------------------
-                       KATEGORİ
-                       ------------------------- */
-
-                    else {
-
-                        const category =
-                            notification.dataset.category;
-
-                        show =
-                            category === filter;
-                    }
-
-
-                    notification.style.display =
-                        show ? "" : "none";
-
+                if (filter === "all") {
+                    show = true;
+                } else if (filter === "unread") {
+                    show = notification.classList.contains("unread");
+                } else {
+                    // Bildirim tipi (data-type) filtre ile eşleşmeli
+                    show = notification.dataset.type === filter;
                 }
-            );
 
+                notification.style.display = show ? "" : "none";
+            });
 
             checkEmpty();
-        }
-    );
+        });
+    });
+
+
+    /* =========================================================
+       ARAMA
+       ========================================================= */
+
+    if (searchInput) {
+
+        searchInput.addEventListener("input", () => {
+
+            const search = searchInput.value.trim().toLowerCase();
+
+            document.querySelectorAll(".notification").forEach(notification => {
+
+                const text = notification.textContent.toLowerCase();
+
+                notification.style.display = text.includes(search) ? "" : "none";
+
+            });
+
+            checkEmpty();
+        });
+    }
+
+
+    /* =========================================================
+       TEMA
+       ========================================================= */
+
+    if (themeBtn) {
+        themeBtn.addEventListener("click", () => {
+            document.body.classList.toggle("light-theme");
+        });
+    }
+
+
+    /* =========================================================
+       BAŞLANGIÇ
+       ========================================================= */
+
+    updateCounts();
+    checkEmpty();
+
+    // Lucide kütüphanesi yüklendikten sonra ikonları render et.
+    // Eğer lucide daha yüklenmediyse, kütüphane geldiğinde
+    // otomatik olarak ikonların render edilmesini sağla.
+    if (window.lucide) {
+        refreshIcons();
+    } else {
+        const lucideInterval = setInterval(() => {
+            if (window.lucide) {
+                clearInterval(lucideInterval);
+                refreshIcons();
+            }
+        }, 50);
+
+        // 5 saniye sonra vazgeç, sonsuz interval oluşmasın
+        setTimeout(() => clearInterval(lucideInterval), 5000);
+    }
+
 });
-
-
-/* =========================================================
-   ARAMA
-   ========================================================= */
-
-if (searchInput) {
-
-    searchInput.addEventListener(
-        "input",
-        function () {
-
-            const search =
-                searchInput.value
-                    .trim()
-                    .toLowerCase();
-
-
-            const notifications =
-                document.querySelectorAll(
-                    ".notification-item"
-                );
-
-
-            notifications.forEach(
-                notification => {
-
-                    const text =
-                        notification.textContent
-                            .toLowerCase();
-
-                    if (
-                        text.includes(search)
-                    ) {
-
-                        notification.style.display =
-                            "";
-
-                    } else {
-
-                        notification.style.display =
-                            "none";
-                    }
-
-                }
-            );
-
-
-            checkEmpty();
-        }
-    );
-}
-
-
-/* =========================================================
-   TEMA
-   ========================================================= */
-
-const themeToggle =
-    document.getElementById(
-        "themeToggle"
-    );
-
-if (themeToggle) {
-
-    themeToggle.addEventListener(
-        "click",
-        function () {
-
-            document.body.classList.toggle(
-                "light-theme"
-            );
-
-        }
-    );
-}
-
-
-/* =========================================================
-   BAŞLANGIÇ
-   ========================================================= */
-
-updateCounts();
-checkEmpty();
