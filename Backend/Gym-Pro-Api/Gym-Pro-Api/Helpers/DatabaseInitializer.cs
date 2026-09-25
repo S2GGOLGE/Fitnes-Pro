@@ -81,31 +81,63 @@ namespace Apı.Helpers
             var databaseName =
                 ExtractDatabaseName(connectionString) ?? DatabaseName;
 
-            using (var masterConnection =
-                new SqlConnection(masterConnectionString))
+            using var masterConnection =
+                new SqlConnection(masterConnectionString);
+
+            await masterConnection.OpenAsync();
+
+            bool exists =
+                await DatabaseExistsAsync(
+                    masterConnection,
+                    databaseName);
+
+            if (exists) return;
+
+            ValidateDatabaseName(databaseName);
+
+            // LocalDB varsayilan kullanici profil dizini
+            var userProfile = Environment.GetFolderPath(
+                Environment.SpecialFolder.UserProfile);
+
+            var mdfPath = System.IO.Path.Combine(
+                userProfile, $"{databaseName}.mdf");
+
+            var ldfPath = System.IO.Path.Combine(
+                userProfile, $"{databaseName}_log.ldf");
+
+            // MDF dosyasi disk uzerinde varsa ATTACH et (LocalDB sifirlama senaryosu).
+            // MDF yoksa normal CREATE DATABASE yap.
+            string createOrAttachSql;
+
+            if (System.IO.File.Exists(mdfPath))
             {
-                await masterConnection.OpenAsync();
-
-                bool exists =
-                    await DatabaseExistsAsync(
-                        masterConnection,
-                        databaseName);
-
-                if (!exists)
+                if (System.IO.File.Exists(ldfPath))
                 {
-                    ValidateDatabaseName(databaseName);
-
-                    var createDbSql =
-                        $"CREATE DATABASE [{databaseName}];";
-
-                    using var command =
-                        new SqlCommand(
-                            createDbSql,
-                            masterConnection);
-
-                    await command.ExecuteNonQueryAsync();
+                    createOrAttachSql = $"""
+                        CREATE DATABASE [{databaseName}]
+                        ON (FILENAME = N'{mdfPath}'),
+                           (FILENAME = N'{ldfPath}')
+                        FOR ATTACH;
+                        """;
+                }
+                else
+                {
+                    createOrAttachSql = $"""
+                        CREATE DATABASE [{databaseName}]
+                        ON (FILENAME = N'{mdfPath}')
+                        FOR ATTACH_REBUILD_LOG;
+                        """;
                 }
             }
+            else
+            {
+                createOrAttachSql = $"CREATE DATABASE [{databaseName}];";
+            }
+
+            using var command =
+                new SqlCommand(createOrAttachSql, masterConnection);
+
+            await command.ExecuteNonQueryAsync();
         }
 
         private static async Task<bool> DatabaseExistsAsync(

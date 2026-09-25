@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Projects\\Fitnes-Pro\\Backend\\Gym-Pro-Api\\Gym-Pro-Api\\Gym-Pro-Api.csproj": {}
+    "c:\\Projects\\Fitnes-Pro\\Backend\\Gym-Pro-Api\\Gym-Pro-Api\\Gym-Pro-Api.csproj": {}
   },
   "projects": {
-    "C:\\Projects\\Fitnes-Pro\\Backend\\Gym-Pro-Api\\Gym-Pro-Api\\Gym-Pro-Api.csproj": {
+    "c:\\Projects\\Fitnes-Pro\\Backend\\Gym-Pro-Api\\Gym-Pro-Api\\Gym-Pro-Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Projects\\Fitnes-Pro\\Backend\\Gym-Pro-Api\\Gym-Pro-Api\\Gym-Pro-Api.csproj",
+        "projectUniqueName": "c:\\Projects\\Fitnes-Pro\\Backend\\Gym-Pro-Api\\Gym-Pro-Api\\Gym-Pro-Api.csproj",
         "projectName": "Gym-Pro-Api",
-        "projectPath": "C:\\Projects\\Fitnes-Pro\\Backend\\Gym-Pro-Api\\Gym-Pro-Api\\Gym-Pro-Api.csproj",
+        "projectPath": "c:\\Projects\\Fitnes-Pro\\Backend\\Gym-Pro-Api\\Gym-Pro-Api\\Gym-Pro-Api.csproj",
         "packagesPath": "C:\\Users\\cetin\\.nuget\\packages\\",
-        "outputPath": "C:\\Projects\\Fitnes-Pro\\Backend\\Gym-Pro-Api\\Gym-Pro-Api\\obj\\",
+        "outputPath": "c:\\Projects\\Fitnes-Pro\\Backend\\Gym-Pro-Api\\Gym-Pro-Api\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
