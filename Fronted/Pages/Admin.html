@@ -338,6 +338,27 @@
                         </table>
                     </div>
 
+                    <!-- Log Pagination -->
+                    <nav class="admin-pagination" id="logsPagination" aria-label="Log sayfaları">
+                        <div class="admin-pagination-info">
+                            <span id="logsPaginationInfo">—</span>
+                        </div>
+                        <div class="admin-pagination-controls">
+                            <label class="admin-pagination-size">
+                                <span>Sayfa başına</span>
+                                <select id="logsPageSize">
+                                    <option value="10">10</option>
+                                    <option value="20" selected>20</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </label>
+                            <button type="button" class="admin-pagination-btn" id="logsPrevPage" aria-label="Önceki sayfa">‹</button>
+                            <span class="admin-pagination-pages" id="logsPageNumbers"></span>
+                            <button type="button" class="admin-pagination-btn" id="logsNextPage" aria-label="Sonraki sayfa">›</button>
+                        </div>
+                    </nav>
+
                 </div>
 
             </section>

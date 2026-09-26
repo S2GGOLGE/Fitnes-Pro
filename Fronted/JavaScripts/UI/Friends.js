@@ -51,10 +51,17 @@
         const requestsEmptyState =
             document.getElementById("requestsEmptyState");
 
+        const outgoingList =
+            document.getElementById("outgoingList");
+        const outgoingEmptyState =
+            document.getElementById("outgoingEmptyState");
+
         const friendsCount =
             document.getElementById("friendsCount");
         const requestsCount =
             document.getElementById("requestsCount");
+        const outgoingCount =
+            document.getElementById("outgoingCount");
 
         const refreshBtn =
             document.getElementById("refreshFriendsBtn");
@@ -64,7 +71,8 @@
 
         if (
             !friendsList ||
-            !requestsList
+            !requestsList ||
+            !outgoingList
         ) {
             return;
         }
@@ -122,8 +130,13 @@
         // ---------------------------------------------------------
 
         function showResult(result, successFallback) {
+            // Backend ApiResponseModel.Success alanini oncelikli olarak
+            // kullan. HTTP status (result.ok) tek basina yeterli degil:
+            // backend 200 donup Success=false ile hata mesaji verebilir.
+            // Bu durumda mesaj icerigi hataya ait olmasina ragmen,
+            // eski kod "Basarili" baslikli success modal gostermisti.
             const ok =
-                result && (result.success === true || result.ok === true);
+                result && result.success === true;
 
             if (
                 window.GlobalModal &&
@@ -170,7 +183,7 @@
             ) {
                 options.onCancel();
             }
-            return { close: () => {} };
+            return { close: () => { } };
         }
 
         // ---------------------------------------------------------
@@ -250,9 +263,11 @@
                 if (requestsEmptyState) {
                     requestsEmptyState.style.display = "flex";
                 }
+
                 if (requestsCount) {
                     requestsCount.textContent = "0";
                 }
+
                 return;
             }
 
@@ -267,19 +282,44 @@
             const fragment = document.createDocumentFragment();
 
             requests.forEach(req => {
+                // Backend'den gelen ID'yi güvenli şekilde al
+                const requestId =
+                    req.Id ??
+                    req.id ??
+                    req.RequestId ??
+                    req.requestId;
+
+                // Geçersiz ID varsa bu isteği oluşturma
+                if (requestId === undefined || requestId === null || requestId === "") {
+                    console.warn("[Friends] Geçersiz arkadaşlık isteği ID:", req);
+                    return;
+                }
+
                 const item = document.createElement("article");
                 item.className = "friend-request-card";
-                item.dataset.requestId = String(req.Id);
+                item.dataset.requestId = String(requestId);
 
                 const senderUsername =
-                    req.SenderUsername || "";
-                const senderName = req.SenderName || "";
-                const senderSurname = req.SenderSurname || "";
+                    req.SenderUsername ??
+                    req.senderUsername ??
+                    "";
+
+                const senderName =
+                    req.SenderName ??
+                    req.senderName ??
+                    "";
+
+                const senderSurname =
+                    req.SenderSurname ??
+                    req.senderSurname ??
+                    "";
+
                 const senderInitial = initialsOf(
                     senderName,
                     senderSurname,
                     senderUsername
                 );
+
                 const senderFullName =
                     [senderName, senderSurname]
                         .filter(Boolean)
@@ -289,37 +329,56 @@
                     ? "@" + escapeHtml(senderUsername)
                     : "";
 
+                const createdAt =
+                    req.CreatedAt ??
+                    req.createdAt ??
+                    null;
+
                 item.innerHTML =
                     '<div class="friend-request-avatar">' +
                     escapeHtml(senderInitial) +
                     "</div>" +
+
                     '<div class="friend-request-body">' +
                     '<strong class="friend-request-name">' +
                     escapeHtml(senderFullName) +
                     "</strong>" +
+
                     (handle
                         ? '<span class="friend-request-handle">' +
-                          handle +
-                          "</span>"
+                        handle +
+                        "</span>"
                         : "") +
+
                     '<span class="friend-request-meta">' +
                     "Arkadaslik istegi" +
-                    (req.CreatedAt
-                        ? " &middot; " + escapeHtml(formatDate(req.CreatedAt))
+                    (createdAt
+                        ? " &middot; " +
+                        escapeHtml(formatDate(createdAt))
                         : "") +
                     "</span>" +
                     "</div>" +
+
                     '<div class="friend-request-actions">' +
-                    '<button type="button" class="btn btn-primary btn-sm" data-action="accept" data-request-id="' +
-                    escapeHtml(String(req.Id)) +
+
+                    '<button type="button" ' +
+                    'class="btn btn-primary btn-sm" ' +
+                    'data-action="accept" ' +
+                    'data-request-id="' +
+                    escapeHtml(String(requestId)) +
                     '">' +
                     '<i data-lucide="check"></i> Kabul Et' +
                     "</button>" +
-                    '<button type="button" class="btn btn-outline btn-sm" data-action="reject" data-request-id="' +
-                    escapeHtml(String(req.Id)) +
+
+                    '<button type="button" ' +
+                    'class="btn btn-outline btn-sm" ' +
+                    'data-action="reject" ' +
+                    'data-request-id="' +
+                    escapeHtml(String(requestId)) +
                     '">' +
                     '<i data-lucide="x"></i> Reddet' +
                     "</button>" +
+
                     "</div>";
 
                 fragment.appendChild(item);
@@ -327,6 +386,133 @@
 
             requestsList.appendChild(fragment);
             refreshIcons(requestsList);
+        }
+
+        // ---------------------------------------------------------
+        // RENDER: Gonderilen arkadaslik istekleri
+        // ---------------------------------------------------------
+
+        function renderOutgoingRequests(requests) {
+            outgoingList.innerHTML = "";
+
+            if (!Array.isArray(requests) || requests.length === 0) {
+                if (outgoingEmptyState) {
+                    outgoingEmptyState.style.display = "flex";
+                }
+
+                if (outgoingCount) {
+                    outgoingCount.textContent = "0";
+                }
+
+                return;
+            }
+
+            if (outgoingEmptyState) {
+                outgoingEmptyState.style.display = "none";
+            }
+
+            if (outgoingCount) {
+                outgoingCount.textContent = String(requests.length);
+            }
+
+            const fragment = document.createDocumentFragment();
+
+            requests.forEach(req => {
+                // Backend'den gelen ID'yi güvenli şekilde al
+                const requestId =
+                    req.Id ??
+                    req.id ??
+                    req.RequestId ??
+                    req.requestId;
+
+                // Geçersiz ID varsa bu isteği oluşturma
+                if (requestId === undefined || requestId === null || requestId === "") {
+                    console.warn("[Friends] Geçersiz arkadaşlık isteği ID:", req);
+                    return;
+                }
+
+                const receiverUsername =
+                    req.ReceiverUsername ??
+                    req.receiverUsername ??
+                    "";
+
+                const receiverName =
+                    req.ReceiverName ??
+                    req.receiverName ??
+                    "";
+
+                const receiverSurname =
+                    req.ReceiverSurname ??
+                    req.receiverSurname ??
+                    "";
+
+                const receiverInitial = initialsOf(
+                    receiverName,
+                    receiverSurname,
+                    receiverUsername
+                );
+
+                const receiverFullName =
+                    [receiverName, receiverSurname]
+                        .filter(Boolean)
+                        .join(" ") || receiverUsername;
+
+                const handle = receiverUsername
+                    ? "@" + escapeHtml(receiverUsername)
+                    : "";
+
+                const createdAt =
+                    req.CreatedAt ??
+                    req.createdAt ??
+                    null;
+
+                const item = document.createElement("article");
+                item.className = "friend-request-card";
+                item.dataset.requestId = String(requestId);
+
+                item.innerHTML =
+                    '<div class="friend-request-avatar">' +
+                    escapeHtml(receiverInitial) +
+                    "</div>" +
+
+                    '<div class="friend-request-body">' +
+                    '<strong class="friend-request-name">' +
+                    escapeHtml(receiverFullName) +
+                    "</strong>" +
+
+                    (handle
+                        ? '<span class="friend-request-handle">' +
+                        handle +
+                        "</span>"
+                        : "") +
+
+                    '<span class="friend-request-meta">' +
+                    "Arkadaslik istegi gonderildi" +
+                    (createdAt
+                        ? " &middot; " +
+                        escapeHtml(formatDate(createdAt))
+                        : "") +
+                    "</span>" +
+                    "</div>" +
+
+                    '<div class="friend-request-actions">' +
+
+                    '<button type="button" ' +
+                    'class="btn btn-outline btn-sm" ' +
+                    'data-action="cancel" ' +
+                    'data-request-id="' +
+                    escapeHtml(String(requestId)) +
+                    '">' +
+                    '<i data-lucide="x"></i> Isteği Iptal Et' +
+                    "</button>" +
+
+                    "</div>";
+
+                fragment.appendChild(item);
+            });
+
+            outgoingList.appendChild(fragment);
+            refreshIcons(outgoingList);
         }
 
         // ---------------------------------------------------------
@@ -340,9 +526,11 @@
                 if (friendsEmptyState) {
                     friendsEmptyState.style.display = "flex";
                 }
+
                 if (friendsCount) {
                     friendsCount.textContent = "0";
                 }
+
                 return;
             }
 
@@ -357,22 +545,47 @@
             const fragment = document.createDocumentFragment();
 
             friends.forEach(friend => {
+                // Backend JSON property isimlerini güvenli şekilde al
+                const friendUserId =
+                    friend.FriendUserId ??
+                    friend.friendUserId ??
+                    friend.UserId ??
+                    friend.userId;
+
+                const username =
+                    friend.Username ??
+                    friend.username ??
+                    "";
+
+                const name =
+                    friend.Name ??
+                    friend.name ??
+                    "";
+
+                const surname =
+                    friend.Surname ??
+                    friend.surname ??
+                    "";
+
+                const createdAt =
+                    friend.CreatedAt ??
+                    friend.createdAt ??
+                    null;
+
                 const item = document.createElement("article");
                 item.className = "friend-card";
-                item.dataset.friendId =
-                    String(friend.FriendUserId);
+                item.dataset.friendId = String(friendUserId ?? "");
 
-                const username = friend.Username || "";
-                const name = friend.Name || "";
-                const surname = friend.Surname || "";
                 const initial = initialsOf(
                     name,
                     surname,
                     username
                 );
+
                 const fullName =
-                    [name, surname].filter(Boolean).join(" ") ||
-                    username;
+                    [name, surname]
+                        .filter(Boolean)
+                        .join(" ") || username;
 
                 const handle = username
                     ? "@" + escapeHtml(username)
@@ -382,29 +595,39 @@
                     '<div class="friend-avatar">' +
                     escapeHtml(initial) +
                     "</div>" +
+
                     '<div class="friend-body">' +
                     '<strong class="friend-name">' +
                     escapeHtml(fullName) +
                     "</strong>" +
+
                     (handle
                         ? '<span class="friend-handle">' +
-                          handle +
-                          "</span>"
+                        handle +
+                        "</span>"
                         : "") +
+
                     '<span class="friend-meta">' +
                     "Arkadaslik tarihi" +
-                    (friend.CreatedAt
-                        ? " &middot; " + escapeHtml(formatDate(friend.CreatedAt))
+                    (createdAt
+                        ? " &middot; " +
+                        escapeHtml(formatDate(createdAt))
                         : "") +
                     "</span>" +
                     "</div>" +
+
                     '<div class="friend-actions">' +
-                    '<button type="button" class="btn btn-outline btn-sm" data-action="remove" data-friend-id="' +
-                    escapeHtml(String(friend.FriendUserId)) +
-                    '" data-friend-name="' +
+                    '<button type="button" ' +
+                    'class="btn btn-outline btn-sm" ' +
+                    'data-action="remove" ' +
+                    'data-friend-id="' +
+                    escapeHtml(String(friendUserId ?? "")) +
+                    '" ' +
+                    'data-friend-name="' +
                     escapeHtml(fullName) +
                     '">' +
-                    '<i data-lucide="user-minus"></i> Arkadasligi Kaldir' +
+                    '<i data-lucide="user-minus"></i> ' +
+                    'Arkadasligi Kaldir' +
                     "</button>" +
                     "</div>";
 
@@ -434,11 +657,12 @@
             }
 
             try {
-                // Paralel olarak iki API cagir
-                const [friendsResult, requestsResult] =
+                // Paralel olarak uc API cagir
+                const [friendsResult, requestsResult, outgoingResult] =
                     await Promise.all([
                         window.FriendsAPI.getFriends(),
-                        window.FriendsAPI.getIncomingRequests()
+                        window.FriendsAPI.getIncomingRequests(),
+                        window.FriendsAPI.getOutgoingRequests()
                     ]);
 
                 if (
@@ -453,6 +677,12 @@
                 ) {
                     return;
                 }
+                if (
+                    outgoingResult &&
+                    outgoingResult.unauthorized
+                ) {
+                    return;
+                }
 
                 const friends =
                     friendsResult && friendsResult.success
@@ -462,9 +692,14 @@
                     requestsResult && requestsResult.success
                         ? extractList(requestsResult.data)
                         : [];
+                const outgoing =
+                    outgoingResult && outgoingResult.success
+                        ? extractList(outgoingResult.data)
+                        : [];
 
                 renderFriends(friends);
                 renderRequests(requests);
+                renderOutgoingRequests(outgoing);
 
                 if (
                     friendsResult &&
@@ -486,6 +721,17 @@
                     console.warn(
                         "[FriendsUI] Istek listesi alinamadi:",
                         requestsResult.message
+                    );
+                }
+
+                if (
+                    outgoingResult &&
+                    !outgoingResult.success &&
+                    !outgoingResult.unauthorized
+                ) {
+                    console.warn(
+                        "[FriendsUI] Gonderilen istek listesi alinamadi:",
+                        outgoingResult.message
                     );
                 }
             } catch (error) {
@@ -567,6 +813,39 @@
             showResult(
                 result,
                 "Arkadaslik istegi reddedildi."
+            );
+
+            if (result && result.success) {
+                // Listeyi yenile
+                await loadAll();
+            }
+        }
+
+        // ---------------------------------------------------------
+        // EVENT: Isteği Iptal Et (event delegation)
+        // ---------------------------------------------------------
+
+        outgoingList.addEventListener("click", async event => {
+            const cancelBtn = event.target.closest(
+                'button[data-action="cancel"]'
+            );
+            if (cancelBtn) {
+                const requestId = cancelBtn.dataset.requestId;
+                await handleCancel(requestId, cancelBtn);
+            }
+        });
+
+        async function handleCancel(requestId, button) {
+            if (!requestId) return;
+            setButtonLoading(button, true, "Iptal ediliyor...");
+
+            const result =
+                await window.FriendsAPI.cancelRequest(requestId);
+
+            setButtonLoading(button, false);
+            showResult(
+                result,
+                "Arkadaslik istegi iptal edildi."
             );
 
             if (result && result.success) {

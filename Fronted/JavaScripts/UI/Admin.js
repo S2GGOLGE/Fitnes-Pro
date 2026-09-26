@@ -18,6 +18,8 @@
         appeals: [],
         logs: [],
         logsBackendAvailable: false, // /api/logs başarıyla yüklendi mi?
+        logsCurrentPage: 1,
+        logsPageSize: 20,
         currentUser: null
     };
 
@@ -54,6 +56,12 @@
         logLevelFilter: document.getElementById("logLevelFilter"),
         logCategoryFilter: document.getElementById("logCategoryFilter"),
         logClearFiltersBtn: document.getElementById("logClearFiltersBtn"),
+        logsPagination: document.getElementById("logsPagination"),
+        logsPaginationInfo: document.getElementById("logsPaginationInfo"),
+        logsPageNumbers: document.getElementById("logsPageNumbers"),
+        logsPrevPage: document.getElementById("logsPrevPage"),
+        logsNextPage: document.getElementById("logsNextPage"),
+        logsPageSize: document.getElementById("logsPageSize"),
 
         // İstatistik Sayıcıları
         statUsersCount: document.getElementById("statUsersCount"),
@@ -490,17 +498,22 @@
 
         // Loglar Arama & Filtreleme
         if (dom.logSearchInput) {
-            dom.logSearchInput.addEventListener("input", () => renderLogsTable());
+            dom.logSearchInput.addEventListener("input", () => {
+                state.logsCurrentPage = 1;
+                renderLogsTable();
+            });
         }
         if (dom.logLevelFilter) {
             dom.logLevelFilter.addEventListener("change", () => {
                 state.logLevel = dom.logLevelFilter.value;
+                state.logsCurrentPage = 1;
                 renderLogsTable();
             });
         }
         if (dom.logCategoryFilter) {
             dom.logCategoryFilter.addEventListener("change", () => {
                 state.logCategory = dom.logCategoryFilter.value;
+                state.logsCurrentPage = 1;
                 renderSidebarNav("logs", state.logCategory);
                 renderLogsTable();
             });
@@ -512,7 +525,32 @@
                 if (dom.logCategoryFilter) dom.logCategoryFilter.value = "ALL";
                 state.logCategory = "ALL";
                 state.logLevel = "ALL";
+                state.logsCurrentPage = 1;
                 renderSidebarNav("logs", "ALL");
+                renderLogsTable();
+            });
+        }
+
+        // Log Tablosu Sayfalama
+        if (dom.logsPrevPage) {
+            dom.logsPrevPage.addEventListener("click", () => {
+                if (state.logsCurrentPage > 1) {
+                    state.logsCurrentPage -= 1;
+                    renderLogsTable();
+                }
+            });
+        }
+        if (dom.logsNextPage) {
+            dom.logsNextPage.addEventListener("click", () => {
+                state.logsCurrentPage += 1;
+                renderLogsTable();
+            });
+        }
+        if (dom.logsPageSize) {
+            dom.logsPageSize.addEventListener("change", () => {
+                const next = Math.max(1, Number(dom.logsPageSize.value) || 20);
+                state.logsPageSize = next;
+                state.logsCurrentPage = 1;
                 renderLogsTable();
             });
         }
@@ -636,6 +674,7 @@
         let loadedFromApi = false;
         state.logs = [];
         state.logsBackendAvailable = false;
+        state.logsCurrentPage = 1;
 
         if (
             window.Auth &&
@@ -905,6 +944,112 @@
     // =========================================================================
     // LOGLAR TABLOSU (3.png)
     // =========================================================================
+    function getFilteredLogs() {
+        const searchQuery = (dom.logSearchInput?.value || "").toLowerCase().trim();
+        const levelFilter = state.logLevel;
+        const categoryFilter = state.logCategory;
+
+        const safeStr = (v) =>
+            (v === null || v === undefined) ? "" : String(v).toLowerCase();
+
+        return state.logs.filter(log => {
+            const levelMatch = levelFilter === "ALL" || log.level === levelFilter;
+            const catMatch = categoryFilter === "ALL" || log.category === categoryFilter;
+            const searchMatch = !searchQuery ||
+                safeStr(log.message).includes(searchQuery) ||
+                safeStr(log.user).includes(searchQuery) ||
+                safeStr(log.category).includes(searchQuery) ||
+                safeStr(log.action).includes(searchQuery) ||
+                safeStr(log.ipAddress).includes(searchQuery);
+
+            return levelMatch && catMatch && searchMatch;
+        });
+    }
+
+    function computePageWindow(current, total) {
+        const out = [];
+        const maxButtons = 5;
+
+        if (total <= maxButtons + 2) {
+            for (let i = 1; i <= total; i += 1) out.push(i);
+            return out;
+        }
+
+        const left = Math.max(2, current - 1);
+        const right = Math.min(total - 1, current + 1);
+
+        out.push(1);
+        if (left > 2) out.push("…");
+        for (let i = left; i <= right; i += 1) out.push(i);
+        if (right < total - 1) out.push("…");
+        out.push(total);
+
+        return out;
+    }
+
+    function renderLogsPagination(filteredCount) {
+        if (!dom.logsPagination) return;
+
+        const pageSize = Math.max(1, Number(state.logsPageSize) || 20);
+        const totalPages = Math.max(1, Math.ceil(filteredCount / pageSize));
+
+        if (state.logsCurrentPage > totalPages) {
+            state.logsCurrentPage = totalPages;
+        }
+        if (state.logsCurrentPage < 1) {
+            state.logsCurrentPage = 1;
+        }
+
+        const currentPage = state.logsCurrentPage;
+        const start = filteredCount === 0 ? 0 : ((currentPage - 1) * pageSize) + 1;
+        const end = Math.min(filteredCount, currentPage * pageSize);
+
+        if (dom.logsPaginationInfo) {
+            dom.logsPaginationInfo.textContent = filteredCount === 0
+                ? "Gösterilecek kayıt yok"
+                : `${start}-${end} / ${filteredCount} kayıt`;
+        }
+
+        if (dom.logsPrevPage) {
+            dom.logsPrevPage.disabled = currentPage <= 1;
+        }
+        if (dom.logsNextPage) {
+            dom.logsNextPage.disabled = currentPage >= totalPages;
+        }
+
+        if (dom.logsPageNumbers) {
+            dom.logsPageNumbers.innerHTML = "";
+            const pages = computePageWindow(currentPage, totalPages);
+            pages.forEach(item => {
+                if (item === "…") {
+                    const ellipsis = document.createElement("span");
+                    ellipsis.className = "admin-pagination-ellipsis";
+                    ellipsis.textContent = "…";
+                    dom.logsPageNumbers.appendChild(ellipsis);
+                    return;
+                }
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "admin-pagination-page" + (item === currentPage ? " is-active" : "");
+                button.textContent = String(item);
+                button.setAttribute("aria-label", `Sayfa ${item}`);
+                if (item === currentPage) {
+                    button.setAttribute("aria-current", "page");
+                    button.disabled = true;
+                } else {
+                    button.addEventListener("click", () => {
+                        state.logsCurrentPage = item;
+                        renderLogsTable();
+                    });
+                }
+                dom.logsPageNumbers.appendChild(button);
+            });
+        }
+
+        const hidePagination = filteredCount === 0 || state.logsBackendAvailable === false;
+        dom.logsPagination.hidden = hidePagination;
+    }
+
     function renderLogsTable() {
         if (!dom.logsTableBody) return;
         dom.logsTableBody.innerHTML = "";
@@ -924,28 +1069,11 @@
                     </td>
                 </tr>
             `;
+            renderLogsPagination(0);
             return;
         }
 
-        const searchQuery = (dom.logSearchInput?.value || "").toLowerCase().trim();
-        const levelFilter = state.logLevel;
-        const categoryFilter = state.logCategory;
-
-        const safeStr = (v) =>
-            (v === null || v === undefined) ? "" : String(v).toLowerCase();
-
-        const filtered = state.logs.filter(log => {
-            const levelMatch = levelFilter === "ALL" || log.level === levelFilter;
-            const catMatch = categoryFilter === "ALL" || log.category === categoryFilter;
-            const searchMatch = !searchQuery ||
-                safeStr(log.message).includes(searchQuery) ||
-                safeStr(log.user).includes(searchQuery) ||
-                safeStr(log.category).includes(searchQuery) ||
-                safeStr(log.action).includes(searchQuery) ||
-                safeStr(log.ipAddress).includes(searchQuery);
-
-            return levelMatch && catMatch && searchMatch;
-        });
+        const filtered = getFilteredLogs();
 
         if (filtered.length === 0) {
             dom.logsTableBody.innerHTML = `
@@ -955,10 +1083,15 @@
                     </td>
                 </tr>
             `;
+            renderLogsPagination(0);
             return;
         }
 
-        filtered.forEach(log => {
+        const pageSize = Math.max(1, Number(state.logsPageSize) || 20);
+        const startIndex = (state.logsCurrentPage - 1) * pageSize;
+        const pageItems = filtered.slice(startIndex, startIndex + pageSize);
+
+        pageItems.forEach(log => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
                 <td><span class="admin-caption">${escapeHtml(log.time || "Bilinmiyor")}</span></td>
@@ -974,6 +1107,8 @@
             `;
             dom.logsTableBody.appendChild(tr);
         });
+
+        renderLogsPagination(filtered.length);
     }
 
     // =========================================================================

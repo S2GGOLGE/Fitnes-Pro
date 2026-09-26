@@ -41,6 +41,8 @@ document.addEventListener("DOMContentLoaded", () => {
     /* =========================================================
        BOŞ DURUM KONTROLÜ
        Bildirim varsa: gizle, yoksa: göster.
+       Boş durumda "Tümünü Okundu Yap" butonu da gizlenir
+       (okunacak bir şey yok).
        ========================================================= */
 
     function checkEmpty() {
@@ -50,7 +52,15 @@ document.addEventListener("DOMContentLoaded", () => {
             notificationList.querySelectorAll(".notification")
         ).filter(item => item.style.display !== "none");
 
-        emptyState.style.display = visibleNotifications.length === 0 ? "flex" : "none";
+        const isEmpty = visibleNotifications.length === 0;
+        emptyState.style.display = isEmpty ? "flex" : "none";
+
+        // Okunacak bildirim yokken "Tümünü Okundu Yap" butonu anlamsız.
+        if (markAllBtn) {
+            markAllBtn.hidden = isEmpty;
+            markAllBtn.setAttribute("aria-hidden", String(isEmpty));
+            markAllBtn.disabled = isEmpty;
+        }
     }
 
 

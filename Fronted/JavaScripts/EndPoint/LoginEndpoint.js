@@ -492,18 +492,56 @@
                         loginForm.reset();
 
                         // -----------------------------------------
+                        // E-POSTA DOĞRULAMA (frontend simülasyonu)
+                        // -----------------------------------------
+                        //
+                        // User data üzerinde emailVerified flag'i yoksa
+                        // veya false ise EmailVerificationModal tetiklenir.
+                        // Modal kapandıktan sonra yönlendirme yapılır.
+
+                        const isEmailVerified =
+                            userData &&
+                            userData.emailVerified === true;
+
+                        const triggerRedirect = () => {
+                            window.location.href = "index.html";
+                        };
+
+                        if (
+                            !isEmailVerified &&
+                            window.EmailVerificationModal &&
+                            typeof window.EmailVerificationModal.open === "function"
+                        ) {
+                            // Modalın içinde doğrulama sonrası yönlendirme
+                            // çağrılabilmesi için bir kerelik event dinle.
+                            const onVerified = () => {
+                                window.removeEventListener(
+                                    "fitnesspro:email-verified",
+                                    onVerified
+                                );
+                                setTimeout(triggerRedirect, 250);
+                            };
+                            window.addEventListener(
+                                "fitnesspro:email-verified",
+                                onVerified
+                            );
+
+                            // Yönlendirmeyi durdur — modal kapandığında
+                            // biz tetikleyeceğiz.
+                            showAlert(
+                                "Giriş başarılı! Lütfen e-postanızı doğrulayın.",
+                                "success"
+                            );
+                            window.EmailVerificationModal.open();
+
+                            return;
+                        }
+
+                        // -----------------------------------------
                         // YÖNLENDİRME (mevcut akış korunur)
                         // -----------------------------------------
 
-                        setTimeout(
-                            () => {
-
-                                window.location.href =
-                                    "index.html";
-
-                            },
-                            1000
-                        );
+                        setTimeout(triggerRedirect, 1000);
 
                         return;
                     }

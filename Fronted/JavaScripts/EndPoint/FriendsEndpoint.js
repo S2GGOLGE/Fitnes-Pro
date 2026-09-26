@@ -185,6 +185,17 @@
     }
 
     /**
+     * Gonderilen arkadaslik isteklerini getir.
+     * GET /api/friends/requests/outgoing
+     */
+    async function getOutgoingRequests() {
+        return await request(
+            "GET",
+            "/api/friends/requests/outgoing"
+        );
+    }
+
+    /**
      * Arkadaslik istegini kabul et.
      * POST /api/friends/requests/{requestId}/accept
      */
@@ -315,6 +326,7 @@
     window.FriendsAPI = {
         sendRequest,
         getIncomingRequests,
+        getOutgoingRequests,
         acceptRequest,
         rejectRequest,
         cancelRequest,

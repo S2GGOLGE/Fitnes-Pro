@@ -602,4 +602,71 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    /* =========================================================
+       FOTOĞRAF ÖNİZLEME (Frontend-only)
+       Backend entegrasyonu beklenmediği için dosyalar sadece
+       yerel olarak okunur ve <img> önizlemesinde gösterilir.
+       ========================================================= */
+
+    const MAX_PHOTO_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+    const ALLOWED_PHOTO_TYPES = /^image\/(png|jpeg|jpg|webp)$/i;
+
+    function bindPhotoUpload(input) {
+        if (!input) return;
+        const targetId = input.getAttribute("data-preview-target");
+        const preview = targetId ? document.getElementById(targetId) : null;
+        if (!preview) return;
+
+        input.addEventListener("change", event => {
+            const file = event.target.files && event.target.files[0];
+            if (!file) {
+                preview.hidden = true;
+                preview.removeAttribute("src");
+                return;
+            }
+
+            if (!ALLOWED_PHOTO_TYPES.test(file.type)) {
+                if (window.GlobalModal && typeof window.GlobalModal.alert === "function") {
+                    window.GlobalModal.alert({
+                        type: "error",
+                        title: "Geçersiz dosya",
+                        message: "Lütfen PNG, JPG veya WEBP formatında bir görsel seçin."
+                    });
+                }
+                input.value = "";
+                return;
+            }
+
+            if (file.size > MAX_PHOTO_SIZE_BYTES) {
+                if (window.GlobalModal && typeof window.GlobalModal.alert === "function") {
+                    window.GlobalModal.alert({
+                        type: "error",
+                        title: "Dosya çok büyük",
+                        message: "Fotoğraf 5 MB sınırını aşmamalıdır."
+                    });
+                }
+                input.value = "";
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = ev => {
+                preview.src = String(ev.target.result || "");
+                preview.hidden = false;
+            };
+            reader.onerror = () => {
+                if (window.GlobalModal && typeof window.GlobalModal.alert === "function") {
+                    window.GlobalModal.alert({
+                        type: "error",
+                        title: "Önizleme yüklenemedi",
+                        message: "Dosya okunurken bir hata oluştu."
+                    });
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    document.querySelectorAll(".ba-photo-input").forEach(bindPhotoUpload);
+
 });

@@ -802,6 +802,41 @@
     font-weight: 600;
     cursor: pointer;
     transition: all var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.ba-photo-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+    opacity: 0;
+}
+
+.ba-photo-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.ba-photo-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: var(--radius-lg);
+}
+
+.ba-photo-placeholder:has(.ba-photo-preview:not([hidden])) .ba-photo-empty {
+    display: none;
 }
 
 .ba-photo-placeholder:hover {

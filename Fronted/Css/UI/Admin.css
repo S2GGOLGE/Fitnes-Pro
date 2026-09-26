@@ -1182,3 +1182,116 @@ input:checked + .admin-slider:before {
         font-size: 12px;
     }
 }
+
+/* ==========================================
+   LOG TABLOSU - PAGINATION
+   ========================================== */
+
+.admin-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 14px 16px;
+    margin-top: 12px;
+    border: 1px solid var(--admin-border, rgba(255,255,255,0.08));
+    border-radius: var(--admin-radius, 10px);
+    background: var(--admin-surface-soft, rgba(255,255,255,0.02));
+    color: var(--admin-text, inherit);
+}
+
+.admin-pagination-info {
+    font-size: 12.5px;
+    color: var(--admin-text-muted, #8a948e);
+}
+
+.admin-pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.admin-pagination-size {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    color: var(--admin-text-muted, #8a948e);
+}
+
+.admin-pagination-size select {
+    background: var(--admin-surface, rgba(255,255,255,0.04));
+    color: inherit;
+    border: 1px solid var(--admin-border, rgba(255,255,255,0.08));
+    border-radius: 8px;
+    padding: 4px 8px;
+    font: inherit;
+    cursor: pointer;
+}
+
+.admin-pagination-btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 10px;
+    border-radius: 8px;
+    border: 1px solid var(--admin-border, rgba(255,255,255,0.08));
+    background: var(--admin-surface, rgba(255,255,255,0.04));
+    color: inherit;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.admin-pagination-btn:hover:not(:disabled) {
+    background: rgba(34, 197, 94, 0.12);
+    border-color: var(--admin-primary, #22c55e);
+}
+
+.admin-pagination-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.admin-pagination-pages {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.admin-pagination-page {
+    min-width: 30px;
+    height: 30px;
+    padding: 0 8px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.admin-pagination-page:hover:not(.is-active):not(:disabled) {
+    border-color: var(--admin-border, rgba(255,255,255,0.08));
+}
+
+.admin-pagination-page.is-active {
+    background: var(--admin-primary, #22c55e);
+    color: #0b0f0d;
+    border-color: var(--admin-primary, #22c55e);
+}
+
+.admin-pagination-page:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.admin-pagination-ellipsis {
+    padding: 0 4px;
+    color: var(--admin-text-muted, #8a948e);
+    user-select: none;
+}

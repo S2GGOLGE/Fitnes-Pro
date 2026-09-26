@@ -264,4 +264,31 @@ public class FriendController : ControllerBase
             );
         }
     }
+    // =========================================================
+    // ARKADAŞLIK İSTEKLERİNİ GETİR
+    // =========================================================
+    [HttpGet("requests/outgoing")]
+    public async Task<IActionResult> GetOutgoingRequests()
+    {
+        try
+        {
+            var userId = GetUserId();
+
+            var response =
+                await _friendService.GetOutgoingRequestsAsync(userId);
+
+            return Ok(response);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Unauthorized();
+        }
+        catch
+        {
+            return StatusCode(
+                500,
+                "Gönderilen arkadaşlık istekleri alınırken bir hata oluştu."
+            );
+        }
+    }
 }
