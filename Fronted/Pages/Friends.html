@@ -1,0 +1,260 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Fitness Pro arkadaşlık sistemi. Arkadaş listeniz ve bekleyen arkadaşlık istekleri.">
+
+    <title>Fitness Pro | Arkadaşlarım</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../Css/UI/Friends.css">
+    <link rel="stylesheet" href="../Css/Core/GlobalModal.css">
+    <link rel="stylesheet" href="../Css/Core/DesignSystem.css">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+    <!-- Core Scripts (sıra önemlidir) -->
+    <script src="../JavaScripts/config.js"></script>
+    <script src="../JavaScripts/Core/auth.js"></script>
+    <script src="../JavaScripts/Core/GlobalModalManager.js"></script>
+
+    <!-- Endpoint -->
+    <script src="../JavaScripts/EndPoint/FriendsEndpoint.js"></script>
+
+    <!-- UI -->
+    <script src="../JavaScripts/UI/Friends.js"></script>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+
+            <a href="index.html" class="logo" style="text-decoration:none; color:inherit;" title="Ana Sayfaya Dön">
+                <div class="logo-icon">F</div>
+                <div class="logo-text">Fitness<span>Pro</span></div>
+            </a>
+
+            <nav class="nav">
+
+                <a href="index.html" class="nav-item">
+                    <span class="nav-icon"><i data-lucide="home"></i></span>
+                    <span>Başlangıç</span>
+                </a>
+
+                <a href="Workouts.html" class="nav-item">
+                    <span class="nav-icon"><i data-lucide="dumbbell"></i></span>
+                    <span>İdmanlar</span>
+                </a>
+
+                <a href="Progress.html" class="nav-item">
+                    <span class="nav-icon"><i data-lucide="trending-up"></i></span>
+                    <span>İlerleme</span>
+                </a>
+
+                <a href="Goals.html" class="nav-item">
+                    <span class="nav-icon"><i data-lucide="target"></i></span>
+                    <span>Hedefler</span>
+                </a>
+
+                <a href="Profile.html" class="nav-item">
+                    <span class="nav-icon"><i data-lucide="user"></i></span>
+                    <span>Profil</span>
+                </a>
+
+                <a href="setting.html" class="nav-item">
+                    <span class="nav-icon"><i data-lucide="settings"></i></span>
+                    <span>Ayarlar</span>
+                </a>
+
+                <a href="Bildirimler.html" class="nav-item">
+                    <span class="nav-icon"><i data-lucide="bell"></i></span>
+                    <span>Bildirimler</span>
+                </a>
+
+                <a href="Mesajlar.html" class="nav-item">
+                    <span class="nav-icon"><i data-lucide="message-square"></i></span>
+                    <span>Mesajlar</span>
+                </a>
+
+                <a href="Friends.html" class="nav-item active">
+                    <span class="nav-icon"><i data-lucide="users"></i></span>
+                    <span>Arkadaşlarım</span>
+                </a>
+
+            </nav>
+
+            <div class="sidebar-bottom">
+            </div>
+
+        </aside>
+
+        <!-- MAIN -->
+        <main class="main">
+
+            <!-- TOPBAR -->
+            <header class="topbar">
+
+                <button class="top-action" id="themeBtn" title="Tema">
+                    <i data-lucide="sun"></i>
+                </button>
+
+                <a href="Bildirimler.html" class="top-action" title="Bildirimler">
+                    <i data-lucide="bell"></i>
+                </a>
+
+                <a href="Profile.html" class="profile" style="text-decoration:none; color:inherit;" title="Profilim">
+                    <div class="avatar" id="topbarAvatar">U</div>
+                    <div class="profile-info">
+                        <strong id="topbarUsername">Kullanıcı</strong>
+                        <small>Premium</small>
+                    </div>
+                </a>
+
+            </header>
+
+            <!-- CONTENT -->
+            <section class="content">
+
+                <!-- HEADER -->
+                <div class="page-header">
+
+                    <div class="page-title">
+                        <h1>Arkadaşlarım</h1>
+                        <p>Arkadaş listen ve bekleyen arkadaşlık isteklerin.</p>
+                    </div>
+
+                    <div class="header-actions">
+                        <button class="btn" id="refreshFriendsBtn" title="Listeleri Yenile">
+                            <i data-lucide="refresh-cw"></i> Yenile
+                        </button>
+
+                        <button class="btn btn-primary" id="sendRequestBtn">
+                            <i data-lucide="user-plus"></i> Arkadaş Ekle
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- STATS -->
+                <div class="stats">
+
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <span>Toplam Arkadaş</span>
+                            <div class="stat-icon"><i data-lucide="users"></i></div>
+                        </div>
+                        <div class="stat-number" id="friendsCount">0</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <span>Bekleyen İstek</span>
+                            <div class="stat-icon"><i data-lucide="user-plus"></i></div>
+                        </div>
+                        <div class="stat-number" id="requestsCount">0</div>
+                    </div>
+
+                </div>
+
+                <!-- BEKLEYEN ARKADAŞLIK İSTEKLERİ -->
+                <section class="friends-section">
+                    <div class="section-header">
+                        <h2>
+                            <i data-lucide="inbox"></i>
+                            Bekleyen Arkadaşlık İstekleri
+                        </h2>
+                    </div>
+
+                    <div class="friends-list" id="requestsList">
+                        <!-- Dinamik olarak render edilir -->
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="empty-state" id="requestsEmptyState">
+                        <span class="empty-icon">
+                            <i data-lucide="inbox"></i>
+                        </span>
+                        <h3>Bekleyen arkadaşlık isteği bulunmuyor.</h3>
+                        <p>Yeni gelen istekler burada görünecek.</p>
+                    </div>
+                </section>
+
+                <!-- ARKADAŞ LİSTESİ -->
+                <section class="friends-section">
+                    <div class="section-header">
+                        <h2>
+                            <i data-lucide="users"></i>
+                            Arkadaş Listesi
+                        </h2>
+                    </div>
+
+                    <div class="friends-list" id="friendsList">
+                        <!-- Dinamik olarak render edilir -->
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="empty-state" id="friendsEmptyState">
+                        <span class="empty-icon">
+                            <i data-lucide="users"></i>
+                        </span>
+                        <h3>Henüz arkadaşınız bulunmuyor.</h3>
+                        <p>Antrenman arkadaşları ekleyerek başlayabilirsin.</p>
+                        <button type="button" class="btn btn-primary btn-sm" id="emptyStateSendBtn">
+                            <i data-lucide="user-plus"></i> Arkadaş Ekle
+                        </button>
+                    </div>
+                </section>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <!-- Lucide render trigger -->
+    <script>
+        // DOMContentLoaded sonrasi Lucide hazir oldugunda ikonlari render et.
+        (function () {
+            function init() {
+                if (window.lucide && typeof window.lucide.createIcons === "function") {
+                    window.lucide.createIcons();
+                } else {
+                    setTimeout(init, 50);
+                }
+            }
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", init, { once: true });
+            } else {
+                init();
+            }
+        })();
+
+        // Empty state uzerindeki "Arkadas Ekle" butonu
+        document.addEventListener("DOMContentLoaded", () => {
+            const emptyStateBtn = document.getElementById("emptyStateSendBtn");
+            const mainSendBtn = document.getElementById("sendRequestBtn");
+            if (emptyStateBtn && mainSendBtn) {
+                emptyStateBtn.addEventListener("click", () => {
+                    mainSendBtn.click();
+                });
+            }
+        });
+    </script>
+
+</body>
+
+</html>

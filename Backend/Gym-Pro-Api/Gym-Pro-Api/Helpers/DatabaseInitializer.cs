@@ -65,6 +65,10 @@ namespace Apı.Helpers
 
                 // ADIM 13: TwoFactorCodes tablosu
                 await EnsureTwoFactorCodesTableAsync(connection);
+                // ADIM 14 Friends Tablosu
+                await EnsureFriendsTableAsync(connection);
+                //ADIMN 15: FriendRequests Tablosu
+                await EnsureFriendRequestsTableAsync(connection);
             }
         }
 
@@ -1100,6 +1104,164 @@ namespace Apı.Helpers
                 CREATE INDEX [IX_TwoFactorCodes_ExpiresAt]
                     ON [dbo].[TwoFactorCodes] ([ExpiresAt]);
                 """;
+
+            using var command =
+                new SqlCommand(
+                    createSql,
+                    connection);
+
+            await command.ExecuteNonQueryAsync();
+        }
+        // -------------------------------------------------------------------
+        // 14) FRIENDS
+        //     Onaylanmış arkadaşlık ilişkilerini tutar.
+        //     Arkadaşlık iki yönlü olduğu için iki kayıt oluşturulur.
+        // -------------------------------------------------------------------
+
+        private static async Task EnsureFriendsTableAsync(
+            SqlConnection connection)
+        {
+            if (await TableExistsAsync(
+                connection,
+                "Friends"))
+            {
+                return;
+            }
+
+            const string createSql = """
+        CREATE TABLE [dbo].[Friends]
+        (
+            [Id]
+                INT IDENTITY(1, 1) NOT NULL,
+
+            [UserId]
+                INT NOT NULL,
+
+            [FriendUserId]
+                INT NOT NULL,
+
+            [CreatedAt]
+                DATETIME2 NOT NULL
+                DEFAULT GETUTCDATE(),
+
+            CONSTRAINT [PK_Friends]
+                PRIMARY KEY CLUSTERED ([Id] ASC),
+
+            CONSTRAINT [FK_Friends_Users_UserId]
+                FOREIGN KEY ([UserId])
+                REFERENCES [dbo].[Users]([Id])
+                ON DELETE CASCADE,
+
+            CONSTRAINT [FK_Friends_Users_FriendUserId]
+                FOREIGN KEY ([FriendUserId])
+                REFERENCES [dbo].[Users]([Id])
+                ON DELETE NO ACTION,
+
+            CONSTRAINT [UQ_Friends_UserId_FriendUserId]
+                UNIQUE ([UserId], [FriendUserId]),
+
+            CONSTRAINT [CK_Friends_NoSelfFriend]
+                CHECK ([UserId] <> [FriendUserId])
+        );
+
+        CREATE INDEX [IX_Friends_UserId]
+            ON [dbo].[Friends] ([UserId]);
+
+        CREATE INDEX [IX_Friends_FriendUserId]
+            ON [dbo].[Friends] ([FriendUserId]);
+        """;
+
+            using var command =
+                new SqlCommand(
+                    createSql,
+                    connection);
+
+            await command.ExecuteNonQueryAsync();
+        }
+        // -------------------------------------------------------------------
+        // 15) FRIEND REQUESTS
+        //     Arkadaşlık isteklerini ve durumlarını tutar.
+        // -------------------------------------------------------------------
+
+        private static async Task EnsureFriendRequestsTableAsync(
+            SqlConnection connection)
+        {
+            if (await TableExistsAsync(
+                connection,
+                "FriendRequests"))
+            {
+                return;
+            }
+
+            const string createSql = """
+        CREATE TABLE [dbo].[FriendRequests]
+        (
+            [Id]
+                INT IDENTITY(1, 1) NOT NULL,
+
+            [SenderId]
+                INT NOT NULL,
+
+            [ReceiverId]
+                INT NOT NULL,
+
+            [Status]
+                NVARCHAR(20) NOT NULL
+                CONSTRAINT [DF_FriendRequests_Status]
+                DEFAULT N'Pending',
+
+            [CreatedAt]
+                DATETIME2 NOT NULL
+                DEFAULT GETUTCDATE(),
+
+            [RespondedAt]
+                DATETIME2 NULL,
+
+            CONSTRAINT [PK_FriendRequests]
+                PRIMARY KEY CLUSTERED ([Id] ASC),
+
+            CONSTRAINT [FK_FriendRequests_Sender_Users]
+                FOREIGN KEY ([SenderId])
+                REFERENCES [dbo].[Users]([Id])
+                ON DELETE CASCADE,
+
+            CONSTRAINT [FK_FriendRequests_Receiver_Users]
+                FOREIGN KEY ([ReceiverId])
+                REFERENCES [dbo].[Users]([Id])
+                ON DELETE NO ACTION,
+
+            CONSTRAINT [CK_FriendRequests_NoSelfRequest]
+                CHECK ([SenderId] <> [ReceiverId]),
+
+            CONSTRAINT [CK_FriendRequests_Status]
+                CHECK (
+                    [Status] IN
+                    (
+                        N'Pending',
+                        N'Accepted',
+                        N'Rejected',
+                        N'Cancelled'
+                    )
+                )
+        );
+
+        CREATE INDEX [IX_FriendRequests_SenderId]
+            ON [dbo].[FriendRequests] ([SenderId]);
+
+        CREATE INDEX [IX_FriendRequests_ReceiverId]
+            ON [dbo].[FriendRequests] ([ReceiverId]);
+
+        CREATE INDEX [IX_FriendRequests_ReceiverId_Status]
+            ON [dbo].[FriendRequests]
+            ([ReceiverId], [Status]);
+
+        CREATE INDEX [IX_FriendRequests_SenderId_Status]
+            ON [dbo].[FriendRequests]
+            ([SenderId], [Status]);
+
+        CREATE INDEX [IX_FriendRequests_CreatedAt]
+            ON [dbo].[FriendRequests] ([CreatedAt]);
+        """;
 
             using var command =
                 new SqlCommand(

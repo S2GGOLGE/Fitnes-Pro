@@ -96,6 +96,13 @@ builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ITwoFactorService, TwoFactorService>();
 builder.Services.AddScoped<ITwoFactorSettingsService, TwoFactorSettingsService>();
+
+// =========================================================
+// FRIEND SERVICE
+// =========================================================
+
+builder.Services.AddScoped<FriendService>(sp =>
+    new FriendService(defaultConnection));
 #endregion
 
 #region JWT Authentication

@@ -1,0 +1,6 @@
+1-İndex Btn f5 sonrası görünme hatası (1.png)
+Hata f5 den sonra gorunuyor
+2- Mesaj ve ıcon uyumsuzluğu mevcut(2.png) 
+ -Arkadaşlık isteği başarıyla gönderildi Yeşil Tik
+ - Arkadaşlık isteği reddedildi Kırmızı çarpı olması gerekmektedir
+3-Sistemde İstek Olmasına rağmen istekler görünmüyor(4.png)
