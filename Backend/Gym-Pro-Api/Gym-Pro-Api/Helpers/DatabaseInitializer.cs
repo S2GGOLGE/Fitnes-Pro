@@ -69,6 +69,11 @@ namespace Apı.Helpers
                 await EnsureFriendsTableAsync(connection);
                 //ADIMN 15: FriendRequests Tablosu
                 await EnsureFriendRequestsTableAsync(connection);
+                // ADIM 16: UserPrivacySettings tablosu
+                await EnsureUserPrivacySettingsTableAsync(connection);
+
+                // ADIM 17: MessageRequests tablosu
+                await EnsureMessageRequestsTableAsync(connection);
             }
         }
 
@@ -1261,6 +1266,169 @@ namespace Apı.Helpers
 
         CREATE INDEX [IX_FriendRequests_CreatedAt]
             ON [dbo].[FriendRequests] ([CreatedAt]);
+        """;
+
+            using var command =
+                new SqlCommand(
+                    createSql,
+                    connection);
+
+            await command.ExecuteNonQueryAsync();
+        }
+        // -------------------------------------------------------------------
+        // 16) USER PRIVACY SETTINGS
+        //     Kullanıcının mesaj isteği gizlilik tercihlerini tutar.
+        //     Everyone     -> Herkes
+        //     FriendsOnly  -> Sadece Arkadaşlarım
+        //     Nobody       -> Hiç Kimse
+        // -------------------------------------------------------------------
+
+        private static async Task EnsureUserPrivacySettingsTableAsync(
+            SqlConnection connection)
+        {
+            if (await TableExistsAsync(
+                connection,
+                "UserPrivacySettings"))
+            {
+                return;
+            }
+
+            const string createSql = """
+        CREATE TABLE [dbo].[UserPrivacySettings]
+        (
+            [UserId]
+                INT NOT NULL,
+
+            [MessageRequestPermission]
+                NVARCHAR(20) NOT NULL
+                CONSTRAINT [DF_UserPrivacySettings_MessageRequestPermission]
+                DEFAULT N'Everyone',
+
+            [UpdatedAt]
+                DATETIME2 NOT NULL
+                DEFAULT GETUTCDATE(),
+
+            CONSTRAINT [PK_UserPrivacySettings]
+                PRIMARY KEY CLUSTERED ([UserId] ASC),
+
+            CONSTRAINT [FK_UserPrivacySettings_Users_UserId]
+                FOREIGN KEY ([UserId])
+                REFERENCES [dbo].[Users]([Id])
+                ON DELETE CASCADE,
+
+            CONSTRAINT [CK_UserPrivacySettings_MessageRequestPermission]
+                CHECK
+                (
+                    [MessageRequestPermission] IN
+                    (
+                        N'Everyone',
+                        N'FriendsOnly',
+                        N'Nobody'
+                    )
+                )
+        );
+        """;
+
+            using var command =
+                new SqlCommand(
+                    createSql,
+                    connection);
+
+            await command.ExecuteNonQueryAsync();
+        }
+        // -------------------------------------------------------------------
+        // 17) MESSAGE REQUESTS
+        //     Kullanıcılar arasındaki mesaj isteklerini tutar.
+        // -------------------------------------------------------------------
+
+        private static async Task EnsureMessageRequestsTableAsync(
+            SqlConnection connection)
+        {
+            if (await TableExistsAsync(
+                connection,
+                "MessageRequests"))
+            {
+                return;
+            }
+
+            const string createSql = """
+        CREATE TABLE [dbo].[MessageRequests]
+        (
+            [Id]
+                INT IDENTITY(1, 1) NOT NULL,
+
+            [SenderId]
+                INT NOT NULL,
+
+            [ReceiverId]
+                INT NOT NULL,
+
+            [Status]
+                NVARCHAR(20) NOT NULL
+                CONSTRAINT [DF_MessageRequests_Status]
+                DEFAULT N'Pending',
+
+            [CreatedAt]
+                DATETIME2 NOT NULL
+                DEFAULT GETUTCDATE(),
+
+            [RespondedAt]
+                DATETIME2 NULL,
+
+            [ExpiresAt]
+                DATETIME2 NULL,
+
+            CONSTRAINT [PK_MessageRequests]
+                PRIMARY KEY CLUSTERED ([Id] ASC),
+
+            CONSTRAINT [FK_MessageRequests_Sender_Users]
+                FOREIGN KEY ([SenderId])
+                REFERENCES [dbo].[Users]([Id])
+                ON DELETE CASCADE,
+
+            CONSTRAINT [FK_MessageRequests_Receiver_Users]
+                FOREIGN KEY ([ReceiverId])
+                REFERENCES [dbo].[Users]([Id])
+                ON DELETE NO ACTION,
+
+            CONSTRAINT [CK_MessageRequests_NoSelfRequest]
+                CHECK ([SenderId] <> [ReceiverId]),
+
+            CONSTRAINT [CK_MessageRequests_Status]
+                CHECK
+                (
+                    [Status] IN
+                    (
+                        N'Pending',
+                        N'Accepted',
+                        N'Rejected',
+                        N'Cancelled',
+                        N'Expired'
+                    )
+                )
+        );
+
+        CREATE INDEX [IX_MessageRequests_SenderId]
+            ON [dbo].[MessageRequests] ([SenderId]);
+
+        CREATE INDEX [IX_MessageRequests_ReceiverId]
+            ON [dbo].[MessageRequests] ([ReceiverId]);
+
+        CREATE INDEX [IX_MessageRequests_ReceiverId_Status]
+            ON [dbo].[MessageRequests]
+            ([ReceiverId], [Status]);
+
+        CREATE INDEX [IX_MessageRequests_SenderId_Status]
+            ON [dbo].[MessageRequests]
+            ([SenderId], [Status]);
+
+        CREATE INDEX [IX_MessageRequests_CreatedAt]
+            ON [dbo].[MessageRequests] ([CreatedAt]);
+
+        CREATE UNIQUE INDEX [UX_MessageRequests_Pending]
+            ON [dbo].[MessageRequests]
+            ([SenderId], [ReceiverId])
+            WHERE [Status] = N'Pending';
         """;
 
             using var command =
