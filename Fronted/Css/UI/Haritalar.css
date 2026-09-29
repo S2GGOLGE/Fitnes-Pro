@@ -1,0 +1,1463 @@
+/* =========================================================
+   FITNESS PRO - HARİTALAR SAYFASI STİLLERİ (Haritalar.css)
+   Mevcut DesignSystem.css ve Goals.css mimarisi referans alınarak,
+   Tasarım Şartnamesi (Açıklama.txt) ve Haritalar.png taslağına
+   birebir uygun şekilde tasarlanmıştır.
+   ========================================================= */
+
+:root {
+    --bg: #0B0F0D;
+    --surface: #121815;
+    --surface-soft: #0f1511;
+    --card: #18201B;
+    --card-hover: #1f2b23;
+    --border: #29332D;
+    --border-focus: rgba(34, 197, 94, 0.5);
+    --border-green: rgba(34, 197, 94, 0.3);
+    --primary: #22C55E;
+    --primary-hover: #16A34A;
+    --primary-glow: rgba(34, 197, 94, 0.25);
+    --text: #F5F7F6;
+    --secondary: #A7B0AA;
+    --muted: #718076;
+
+    /* Harita Vurguları */
+    --friend: #38bdf8;
+    --friend-bg: rgba(56, 189, 248, 0.12);
+    --friend-border: rgba(56, 189, 248, 0.35);
+
+    --trainer: #eab308;
+    --trainer-bg: rgba(234, 179, 8, 0.12);
+    --trainer-border: rgba(234, 179, 8, 0.35);
+
+    --shadow: 0 16px 38px rgba(0, 0, 0, 0.35);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-full: 9999px;
+    --transition: 200ms cubic-bezier(0.2, 0.75, 0.25, 1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    background: var(--bg);
+    scroll-behavior: smooth;
+}
+
+body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    background: radial-gradient(circle at 100% 0, rgba(34, 197, 94, 0.04), transparent 30rem), var(--bg);
+    color: var(--text);
+    font-family: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    overflow-x: hidden;
+}
+
+button, input, select, textarea {
+    font: inherit;
+}
+
+button {
+    border: 0;
+    cursor: pointer;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* =========================================================
+   SHELL & LAYOUT
+   ========================================================= */
+
+.haritalar-shell {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* =========================================================
+   SIDEBAR (Matches Haritalar.png & Goals.html)
+   ========================================================= */
+
+.haritalar-sidebar {
+    width: 270px;
+    min-width: 270px;
+    min-height: 100vh;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    padding: 20px 14px;
+    border-right: 1px solid var(--border);
+    background: rgba(18, 24, 21, 0.96);
+    backdrop-filter: blur(12px);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    transition: transform var(--transition);
+}
+
+/* Brand Header */
+.sidebar-header {
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding: 0;
+}
+
+.brand-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: -0.4px;
+    transition: opacity var(--transition);
+}
+
+.brand-link:hover {
+    opacity: 0.85;
+}
+
+.brand-badge {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    border-radius: 9px;
+    background: rgba(34, 197, 94, 0.12);
+    color: var(--primary);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.brand-title {
+    font-size: 15px;
+    letter-spacing: 0.5px;
+}
+
+.brand-title span {
+    color: var(--primary);
+}
+
+.sidebar-close-btn {
+    display: none;
+    width: 34px;
+    height: 34px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--secondary);
+    font-size: 18px;
+    line-height: 1;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Profile Card - Username (Matches Haritalar.png Top Box) */
+.sidebar-profile {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    margin: 0 0 16px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    transition: border-color var(--transition);
+}
+
+.sidebar-profile:hover {
+    border-color: var(--border-green);
+}
+
+.profile-avatar {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(34, 197, 94, 0.08));
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    color: #b8f8cb;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.profile-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.profile-username {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 4px;
+    padding: 2px 8px;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    border-radius: var(--radius-full);
+    color: var(--primary);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.profile-badge-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--primary);
+}
+
+/* =========================================================
+   SIDEBAR NEARBY USERS (Matches Haritalar.png Green Buttons)
+   ========================================================= */
+
+.sidebar-nearby-group {
+    margin-bottom: 20px;
+}
+
+.sidebar-section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px 8px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+}
+
+.nearby-count-tag {
+    font-size: 10px;
+    background: var(--card);
+    padding: 2px 7px;
+    border-radius: var(--radius-full);
+    color: var(--secondary);
+}
+
+.sidebar-quick-users {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 2px;
+}
+
+.sidebar-quick-users::-webkit-scrollbar {
+    width: 3px;
+}
+
+.sidebar-quick-users::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+/* Green pill button matching Haritalar.png */
+.btn-user-pill {
+    width: 100%;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 12px;
+    background: var(--primary);
+    color: #061e0f;
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 4px 14px var(--primary-glow);
+    transition: all var(--transition);
+    text-align: left;
+}
+
+.btn-user-pill:hover {
+    background: var(--primary-hover);
+    transform: translateX(2px);
+    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.35);
+}
+
+.btn-user-pill.active {
+    outline: 2px solid #fff;
+    outline-offset: 1px;
+}
+
+.btn-user-pill-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.2);
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: 800;
+    color: #061e0f;
+    flex-shrink: 0;
+}
+
+.btn-user-pill-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.btn-user-pill-username {
+    font-size: 12px;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.btn-user-pill-meta {
+    font-size: 10px;
+    font-weight: 600;
+    opacity: 0.85;
+}
+
+/* Sidebar Navigation */
+.sidebar-nav-list {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 16px;
+}
+
+.sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 9px;
+    color: var(--secondary);
+    font-size: 13px;
+    font-weight: 600;
+    transition: all var(--transition);
+    border: 1px solid transparent;
+}
+
+.sidebar-nav-item:hover {
+    background: var(--card-hover);
+    color: var(--text);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-nav-item.active {
+    background: rgba(34, 197, 94, 0.12);
+    border-color: rgba(34, 197, 94, 0.3);
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.sidebar-nav-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.sidebar-nav-text {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+}
+
+.sidebar-back-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 4px;
+    transition: color var(--transition);
+}
+
+.sidebar-back-link:hover {
+    color: var(--text);
+}
+
+/* Mobile Overlay */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    z-index: 95;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition);
+}
+
+/* =========================================================
+   MAIN CONTENT AREA
+   ========================================================= */
+
+.haritalar-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+}
+
+/* Mobile Topbar */
+.mobile-topbar {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    padding: 0 18px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(18, 24, 21, 0.95);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 90;
+}
+
+.mobile-menu-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0;
+}
+
+.mobile-menu-btn span {
+    display: block;
+    width: 15px;
+    height: 1.5px;
+    background: var(--text);
+    border-radius: 2px;
+}
+
+.mobile-page-title {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--text);
+}
+
+/* Main Content Wrapper */
+.haritalar-content-wrapper {
+    flex: 1;
+    padding: 32px 40px;
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    animation: fadeIn 250ms ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================================================
+   1. PAGE HEADER (Goals.html hiyerarşisi)
+   ========================================================= */
+
+.page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.page-header-text .eyebrow {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.page-header-text h1 {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+}
+
+.page-header-text .subtitle {
+    font-size: 14px;
+    color: var(--secondary);
+    line-height: 1.5;
+}
+
+.btn-location-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border-green);
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: var(--radius-full);
+    box-shadow: 0 4px 14px rgba(34, 197, 94, 0.12);
+    transition: all var(--transition);
+    white-space: nowrap;
+}
+
+.btn-location-action:hover {
+    background: var(--primary);
+    color: #061e0f;
+    border-color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px var(--primary-glow);
+}
+
+/* =========================================================
+   2. MAP TOOLBAR & FILTERS
+   ========================================================= */
+
+.map-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+}
+
+.filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+}
+
+.filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    color: var(--secondary);
+    font-size: 13px;
+    font-weight: 600;
+    transition: all var(--transition);
+    white-space: nowrap;
+}
+
+.filter-btn:hover {
+    background: var(--card-hover);
+    color: var(--text);
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.filter-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #061e0f;
+    font-weight: 700;
+    box-shadow: 0 4px 14px var(--primary-glow);
+}
+
+.filter-count {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.08);
+    color: inherit;
+}
+
+.filter-btn.active .filter-count {
+    background: rgba(0, 0, 0, 0.2);
+    color: #061e0f;
+}
+
+.filter-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.dot-friend {
+    background: var(--friend);
+}
+
+.dot-trainer {
+    background: var(--trainer);
+}
+
+.filter-btn.active .filter-dot {
+    background: #061e0f;
+}
+
+.map-legend {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.user-dot {
+    background: var(--primary);
+    box-shadow: 0 0 8px var(--primary);
+}
+
+.friend-dot {
+    background: var(--friend);
+    box-shadow: 0 0 8px var(--friend);
+}
+
+.trainer-dot {
+    background: var(--trainer);
+    box-shadow: 0 0 8px var(--trainer);
+}
+
+/* Location Status Banner */
+.location-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 16px;
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    border-radius: var(--radius-md);
+    margin-bottom: 16px;
+    color: #fde68a;
+    font-size: 13px;
+}
+
+.location-banner-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-banner-retry {
+    padding: 6px 16px;
+    background: rgba(245, 158, 11, 0.35);
+    border: 1px solid rgba(245, 158, 11, 0.6);
+    border-radius: var(--radius-full);
+    color: #fef3c7;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.btn-banner-retry:hover {
+    background: rgba(245, 158, 11, 0.55);
+    transform: translateY(-1px);
+}
+
+.btn-banner-retry:active {
+    transform: translateY(0);
+}
+
+/* Konum izni reddedildi varyantı — dikkat çekici */
+.location-banner.location-banner--denied {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.45);
+    color: #fecaca;
+    animation: bannerShake 0.4s ease;
+}
+
+.location-banner.location-banner--denied .btn-banner-retry {
+    background: rgba(239, 68, 68, 0.35);
+    border-color: rgba(239, 68, 68, 0.7);
+    color: #fff;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+    animation: retryPulse 1.8s ease-in-out infinite;
+}
+
+.location-banner.location-banner--denied .btn-banner-retry:hover {
+    background: rgba(239, 68, 68, 0.55);
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.25);
+}
+
+@keyframes retryPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+    }
+    50% {
+        box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.05);
+    }
+}
+
+@keyframes bannerShake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-4px); }
+    40% { transform: translateX(4px); }
+    60% { transform: translateX(-2px); }
+    80% { transform: translateX(2px); }
+}
+
+/* =========================================================
+   3. ANA HARİTA ALANI (Madde 5)
+   ========================================================= */
+
+.map-container-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-bottom: 36px;
+    position: relative;
+}
+
+.map-wrapper {
+    position: relative;
+    width: 100%;
+    height: 480px;
+    background: #0d120f;
+}
+
+.fitness-map {
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    background: #0b0f0d;
+}
+
+/* Map Dark Filter */
+.leaflet-tile-pane {
+    filter: brightness(0.85) contrast(1.15) saturate(0.85);
+}
+
+/* Floating Center on User Button (Madde 8) */
+.map-floating-center-btn {
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(18, 24, 21, 0.92);
+    border: 1.5px solid var(--primary);
+    color: var(--primary);
+    display: grid;
+    place-items: center;
+    z-index: 30;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 12px var(--primary-glow);
+    transition: all var(--transition);
+}
+
+.map-floating-center-btn:hover {
+    background: var(--primary);
+    color: #061e0f;
+    transform: scale(1.08);
+}
+
+/* Map Loading Overlay */
+.map-loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(11, 15, 13, 0.85);
+    backdrop-filter: blur(4px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    z-index: 40;
+    transition: opacity 300ms ease;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(34, 197, 94, 0.15);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--secondary);
+}
+
+/* =========================================================
+   CUSTOM MAP MARKERS (Madde 6, 10, 11)
+   ========================================================= */
+
+/* 1. Kullanıcının Kendi Konumu (Sen) */
+.user-location-marker {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-pulse-ring {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(34, 197, 94, 0.25);
+    animation: radarPulse 2s cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
+}
+
+@keyframes radarPulse {
+    0% {
+        transform: scale(0.6);
+        opacity: 0.9;
+    }
+    100% {
+        transform: scale(2.2);
+        opacity: 0;
+    }
+}
+
+.user-center-core {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--primary);
+    border: 3px solid #fff;
+    box-shadow: 0 0 14px var(--primary);
+    z-index: 2;
+}
+
+.user-marker-label {
+    position: absolute;
+    bottom: -20px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid var(--primary);
+    border-radius: var(--radius-full);
+    color: var(--primary);
+    font-size: 10px;
+    font-weight: 800;
+    padding: 1px 6px;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+}
+
+/* 2. Diğer Kullanıcı / Antrenör Markerları */
+.custom-user-marker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: transform var(--transition);
+}
+
+.custom-user-marker:hover {
+    transform: translateY(-4px) scale(1.1);
+    z-index: 500 !important;
+}
+
+.marker-avatar-wrap {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--card);
+    display: grid;
+    place-items: center;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+}
+
+.marker-avatar-wrap.marker-friend {
+    border: 2.5px solid var(--friend);
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+}
+
+.marker-avatar-wrap.marker-trainer {
+    border: 2.5px solid var(--trainer);
+    box-shadow: 0 0 10px rgba(234, 179, 8, 0.4);
+}
+
+.marker-avatar-inner {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--surface);
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text);
+    overflow: hidden;
+}
+
+.marker-avatar-inner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.marker-type-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--card);
+}
+
+.marker-type-badge.badge-friend {
+    background: var(--friend);
+}
+
+.marker-type-badge.badge-trainer {
+    background: var(--trainer);
+}
+
+.marker-pin-tip {
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 7px solid var(--friend);
+    margin-top: -1px;
+}
+
+.marker-trainer .marker-pin-tip {
+    border-top-color: var(--trainer);
+}
+
+/* =========================================================
+   LEAFLET POPUP STYLES (Madde 12: Bilgi Kartı)
+   ========================================================= */
+
+.leaflet-popup-content-wrapper {
+    background: var(--card) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: var(--shadow) !important;
+    padding: 0 !important;
+    overflow: hidden;
+}
+
+.leaflet-popup-tip {
+    background: var(--card) !important;
+    border: 1px solid var(--border) !important;
+}
+
+.leaflet-popup-content {
+    margin: 0 !important;
+    line-height: 1.4 !important;
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+    color: var(--secondary) !important;
+    padding: 8px !important;
+    top: 4px !important;
+    right: 4px !important;
+}
+
+.leaflet-container a.leaflet-popup-close-button:hover {
+    color: var(--text) !important;
+}
+
+/* Popup Inner Layout */
+.map-popup-card {
+    padding: 16px 18px;
+    min-width: 230px;
+    color: var(--text);
+}
+
+.popup-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.popup-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--surface);
+    display: grid;
+    place-items: center;
+    font-size: 16px;
+    font-weight: 800;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+}
+
+.popup-avatar.avatar-friend {
+    border-color: var(--friend);
+}
+
+.popup-avatar.avatar-trainer {
+    border-color: var(--trainer);
+}
+
+.popup-user-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.popup-username {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.popup-fullname {
+    font-size: 12px;
+    color: var(--secondary);
+    margin-bottom: 4px;
+}
+
+.popup-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    border-radius: var(--radius-full);
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.popup-badge.badge-friend {
+    background: var(--friend-bg);
+    color: var(--friend);
+    border: 1px solid var(--friend-border);
+}
+
+.popup-badge.badge-trainer {
+    background: var(--trainer-bg);
+    color: var(--trainer);
+    border: 1px solid var(--trainer-border);
+}
+
+.popup-distance-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 14px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.popup-distance-val {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.popup-btn-profile {
+    width: 100%;
+    padding: 8px 14px;
+    background: var(--primary);
+    color: #061e0f;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all var(--transition);
+}
+
+.popup-btn-profile:hover {
+    background: var(--primary-hover);
+}
+
+/* =========================================================
+   4. YAKINDAKİ KİŞİLER LİSTESİ (Madde 15)
+   ========================================================= */
+
+.nearby-section {
+    margin-top: 24px;
+}
+
+.section-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.section-heading h2 {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.4px;
+    margin-bottom: 4px;
+}
+
+.section-subtitle {
+    font-size: 13px;
+    color: var(--secondary);
+}
+
+.badge-count {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--secondary);
+    background: var(--surface);
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border);
+}
+
+.nearby-users-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+}
+
+.user-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 14px;
+    transition: all var(--transition);
+}
+
+.user-card:hover {
+    border-color: var(--border-green);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.user-card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.user-card-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--surface);
+    display: grid;
+    place-items: center;
+    font-size: 17px;
+    font-weight: 800;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+}
+
+.user-card-avatar.card-avatar-friend {
+    border-color: var(--friend);
+}
+
+.user-card-avatar.card-avatar-trainer {
+    border-color: var(--trainer);
+}
+
+.user-card-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-card-username {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user-card-fullname {
+    font-size: 12px;
+    color: var(--secondary);
+    margin-bottom: 6px;
+}
+
+.user-card-badges {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.user-card-distance {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--primary);
+    background: rgba(34, 197, 94, 0.08);
+    padding: 2px 7px;
+    border-radius: var(--radius-full);
+}
+
+.user-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.btn-card-map {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: var(--radius-full);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 700;
+    transition: all var(--transition);
+}
+
+.btn-card-map:hover {
+    background: var(--primary);
+    color: #061e0f;
+    border-color: var(--primary);
+}
+
+.btn-card-profile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    color: var(--secondary);
+    font-size: 12px;
+    font-weight: 600;
+    transition: all var(--transition);
+}
+
+.btn-card-profile:hover {
+    color: var(--text);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* =========================================================
+   5. BOŞ DURUM (Madde 17)
+   ========================================================= */
+
+.empty-users-box {
+    grid-column: 1 / -1;
+    min-height: 240px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 36px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+
+.empty-users-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--primary);
+    display: grid;
+    place-items: center;
+    margin-bottom: 14px;
+}
+
+.empty-users-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 6px;
+}
+
+.empty-users-subtitle {
+    font-size: 13px;
+    color: var(--secondary);
+    margin-bottom: 18px;
+}
+
+/* =========================================================
+   6. RESPONSIVE DESIGN (Madde 20: 320px–480px)
+   ========================================================= */
+
+@media (max-width: 960px) {
+    .haritalar-sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+        box-shadow: 12px 0 32px rgba(0, 0, 0, 0.5);
+    }
+
+    .haritalar-sidebar.is-open {
+        transform: translateX(0);
+    }
+
+    .sidebar-overlay.is-active {
+        display: block;
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .sidebar-close-btn {
+        display: flex;
+    }
+
+    .mobile-topbar {
+        display: flex;
+    }
+
+    .haritalar-content-wrapper {
+        padding: 24px 18px;
+    }
+
+    .map-wrapper {
+        height: 380px;
+    }
+}
+
+@media (max-width: 640px) {
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+    }
+
+    .btn-location-action {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .map-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .map-legend {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .nearby-users-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .section-heading {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+}
+
+/* 320px–480px Mobil Aralığı Özel Kontrolleri */
+@media (max-width: 480px) {
+    .haritalar-content-wrapper {
+        padding: 14px 12px;
+    }
+
+    .page-header-text h1 {
+        font-size: 22px;
+    }
+
+    .map-wrapper {
+        height: 320px;
+    }
+
+    .map-floating-center-btn {
+        bottom: 14px;
+        right: 14px;
+        width: 38px;
+        height: 38px;
+    }
+
+    .filter-btn {
+        padding: 7px 12px;
+        font-size: 12px;
+    }
+}

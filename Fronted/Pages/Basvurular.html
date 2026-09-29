@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Fitness Pro - Başvurularım. Yaptığınız başvuruları ve başvuru durumlarını buradan anlık olarak takip edin.">
+    <meta name="theme-color" content="#0B0F0D">
+
+    <title>Fitness Pro | Başvurularım</title>
+
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../Css/Core/DesignSystem.css">
+    <link rel="stylesheet" href="../Css/Core/GlobalModal.css">
+    <link rel="stylesheet" href="../Css/UI/Basvurular.css">
+    <script src="../JavaScripts/config.js"></script>
+</head>
+
+<body>
+
+    <div class="basvurular-shell">
+
+        <!-- ==================== SIDEBAR ==================== -->
+        <aside class="basvurular-sidebar" id="basvurularSidebar" aria-label="Başvurular Gezinme Menüsü">
+
+            <!-- 1. Marka Başlığı (index.html'e Dönüş) -->
+            <div class="sidebar-header">
+                <a href="index.html" class="brand-link" title="Fitness Pro Ana Sayfasına Dön" aria-label="Fitness Pro Ana Sayfası">
+                    <div class="brand-badge">FP</div>
+                    <div class="brand-title">FITNESS<span>PRO</span></div>
+                </a>
+                <button type="button" class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Menüyü Kapat">×</button>
+            </div>
+
+            <!-- 2. Kullanıcı Profili (Matches 1.png & Goals.html) -->
+            <div class="sidebar-profile">
+                
+                <div class="profile-avatar" id="sidebarAvatar" aria-hidden="true">U</div>
+                <div class="profile-meta">
+                    <strong class="profile-username" id="sidebarUsername" title="Kullanıcı">Username</strong>
+                    <div class="profile-badge">
+                        <span class="profile-badge-dot"></span>
+                        <span id="sidebarUserRole">Rol: User</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Hızlı Eylem Butonu (1.png Başvuru Yap) -->
+            <div class="sidebar-action-wrap">
+                <button type="button" class="btn-sidebar-action" id="btnNewAppSidebar" aria-label="Yeni Başvuru Yap">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span>Başvuru Yap</span>
+                </button>
+            </div>
+
+            <!-- 4. Mevcut Başvurularım Listesi (Hamburger menüde görünür) -->
+            <div class="sidebar-section-title">
+                <span>MEVCUT BAŞVURULARIM</span>
+                <span class="sidebar-app-count" id="sidebarAppsListCount">0</span>
+            </div>
+
+            <div class="sidebar-applications-list" id="sidebarApplicationsList" aria-live="polite">
+                <!-- JavaScript tarafından doldurulur -->
+            </div>
+
+            
+
+            <!-- 5. Alt Navigasyon (Geri Dön - Matches 1.png & Goals.html) -->
+            <div class="sidebar-footer">
+                <a href="index.html" class="sidebar-back-link" title="Dashboard Ana Sayfasına Git">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    <span>Dashboard'a Dön</span>
+                </a>
+            </div>
+
+        </aside>
+
+        <!-- Mobil Menü Karartması (Overlay) -->
+        <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+        <!-- ==================== MAIN CONTENT ==================== -->
+        <main class="basvurular-main" id="basvurularMain">
+
+            <!-- Mobil Üst Çubuk (Mobile Topbar) -->
+            <header class="mobile-topbar">
+                <button type="button" class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menüyü Aç">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <span class="mobile-page-title">BAŞVURULARIM</span>
+                <a href="index.html" class="brand-badge" title="Ana Sayfa" style="text-decoration:none;">FP</a>
+            </header>
+
+            <!-- Ana İçerik Kapsayıcısı -->
+            <div class="basvurular-content-wrapper">
+
+                <!-- 1. Başlık Alanı (Goals.html referans hiyerarşisi) -->
+                <header class="page-header">
+                    <div class="page-header-text">
+                        <p class="eyebrow">BAŞVURU YÖNETİMİ</p>
+                        <h1>Başvurularım</h1>
+                        <p class="subtitle">Yaptığınız başvuruları ve başvuru durumlarını buradan takip edebilirsiniz.</p>
+                    </div>
+                    <div class="page-header-actions">
+                        <button type="button" class="btn-primary-action" id="btnNewAppHeader" aria-label="Yeni Başvuru Yap">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            <span>Yeni Başvuru Yap</span>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- 2. Özet İstatistik Kartları -->
+                <section class="stats-overview" aria-label="Başvuru İstatistikleri">
+                    <div class="stat-card">
+                        <div class="stat-icon-wrap icon-all">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Toplam Başvuru</span>
+                            <strong class="stat-value" id="statTotalCount">0</strong>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon-wrap icon-pending">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Beklemede</span>
+                            <strong class="stat-value" id="statPendingCount">0</strong>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon-wrap icon-approved">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Onaylandı</span>
+                            <strong class="stat-value" id="statApprovedCount">0</strong>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon-wrap icon-rejected">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Reddedildi</span>
+                            <strong class="stat-value" id="statRejectedCount">0</strong>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. Filtreleme Çubuğu (7. Madde) -->
+                <nav class="filter-bar" aria-label="Başvuru Durumu Filtreleri">
+                    <button type="button" class="filter-btn active" data-filter="all">
+                        <span>Tümü</span>
+                        <span class="filter-count" id="filterCountAll">0</span>
+                    </button>
+                    <button type="button" class="filter-btn" data-filter="pending">
+                        <span class="filter-dot dot-pending"></span>
+                        <span>Beklemede</span>
+                        <span class="filter-count" id="filterCountPending">0</span>
+                    </button>
+                    <button type="button" class="filter-btn" data-filter="approved">
+                        <span class="filter-dot dot-approved"></span>
+                        <span>Onaylandı</span>
+                        <span class="filter-count" id="filterCountApproved">0</span>
+                    </button>
+                    <button type="button" class="filter-btn" data-filter="rejected">
+                        <span class="filter-dot dot-rejected"></span>
+                        <span>Reddedildi</span>
+                        <span class="filter-count" id="filterCountRejected">0</span>
+                    </button>
+                </nav>
+
+                <!-- 4. Dinamik Başvurular Alanı (Kartlar / Empty State / Loading) -->
+                <section class="applications-container" id="applicationsContainer" aria-live="polite">
+                    <!-- JavaScript tarafından dinamik olarak yüklenecektir -->
+                </section>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="../JavaScripts/Core/auth.js"></script>
+    <script src="../JavaScripts/Core/GlobalModalManager.js"></script>
+    <script src="../JavaScripts/UI/Basvurular.js"></script>
+
+</body>
+
+</html>

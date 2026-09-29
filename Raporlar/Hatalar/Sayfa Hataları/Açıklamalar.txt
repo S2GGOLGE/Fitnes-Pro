@@ -4,3 +4,4 @@ Bildirim boş durumunun center alignment'ı
 Gereksiz BTN'lerin silinmesi
 Log pagination
 Mail kod 2 kere gonderebilme
+Profil Resmi sil btn css yok

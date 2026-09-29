@@ -1,0 +1,1482 @@
+/* =========================================================
+   FITNESS PRO - BAŞVURULAR SAYFASI STİLLERİ (Basvurular.css)
+   Mevcut DesignSystem.css ve Goals.css mimarisi referans alınarak,
+   Tasarım Şartnamesi (Yapılacaklar.txt) ve 1.png / 2.png taslaklarına
+   birebir uygun şekilde tasarlanmıştır.
+   ========================================================= */
+
+:root {
+    --bg: #0B0F0D;
+    --surface: #121815;
+    --surface-soft: #0f1511;
+    --card: #18201B;
+    --card-hover: #1f2b23;
+    --border: #29332D;
+    --border-focus: rgba(34, 197, 94, 0.5);
+    --border-green: rgba(34, 197, 94, 0.3);
+    --primary: #22C55E;
+    --primary-hover: #16A34A;
+    --primary-glow: rgba(34, 197, 94, 0.25);
+    --text: #F5F7F6;
+    --secondary: #A7B0AA;
+    --muted: #718076;
+    
+    /* Durum Renkleri */
+    --warning: #F59E0B;
+    --warning-bg: rgba(245, 158, 11, 0.12);
+    --warning-border: rgba(245, 158, 11, 0.3);
+    
+    --success: #22C55E;
+    --success-bg: rgba(34, 197, 94, 0.12);
+    --success-border: rgba(34, 197, 94, 0.3);
+    
+    --danger: #EF4444;
+    --danger-bg: rgba(239, 68, 68, 0.12);
+    --danger-border: rgba(239, 68, 68, 0.3);
+
+    --shadow: 0 16px 38px rgba(0, 0, 0, 0.35);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-full: 9999px;
+    --transition: 200ms cubic-bezier(0.2, 0.75, 0.25, 1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    background: var(--bg);
+    scroll-behavior: smooth;
+}
+
+body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    background: radial-gradient(circle at 100% 0, rgba(34, 197, 94, 0.04), transparent 30rem), var(--bg);
+    color: var(--text);
+    font-family: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    overflow-x: hidden;
+}
+
+button, input, select, textarea {
+    font: inherit;
+}
+
+button {
+    border: 0;
+    cursor: pointer;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* =========================================================
+   SHELL & LAYOUT
+   ========================================================= */
+
+.basvurular-shell {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* =========================================================
+   SIDEBAR (Matches Goals.html & 1.png)
+   ========================================================= */
+
+.basvurular-sidebar {
+    width: 260px;
+    min-width: 260px;
+    min-height: 100vh;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    padding: 20px 14px;
+    border-right: 1px solid var(--border);
+    background: rgba(18, 24, 21, 0.96);
+    backdrop-filter: blur(12px);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    transition: transform var(--transition);
+}
+
+/* Brand Header */
+.sidebar-header {
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding: 0;
+}
+
+.brand-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: -0.4px;
+    transition: opacity var(--transition);
+}
+
+.brand-link:hover {
+    opacity: 0.85;
+}
+
+.brand-badge {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    border-radius: 9px;
+    background: rgba(34, 197, 94, 0.12);
+    color: var(--primary);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.brand-title {
+    font-size: 15px;
+    letter-spacing: 0.5px;
+}
+
+.brand-title span {
+    color: var(--primary);
+}
+
+.sidebar-close-btn {
+    display: none;
+    width: 34px;
+    height: 34px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--secondary);
+    font-size: 18px;
+    line-height: 1;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Profile Card - Username and Rol: User (Matches 1.png & Goals.html) */
+.sidebar-profile {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    margin: 0 0 16px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    transition: border-color var(--transition);
+}
+
+.sidebar-profile:hover {
+    border-color: var(--border-green);
+}
+
+.profile-avatar {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(34, 197, 94, 0.08));
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    color: #b8f8cb;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.profile-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.profile-username {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 4px;
+    padding: 2px 8px;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    border-radius: var(--radius-full);
+    color: var(--primary);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.profile-badge-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--primary);
+}
+
+/* Sidebar Action Wrap (Matches 1.png "Başvuru Yap" button) */
+.sidebar-action-wrap {
+    margin-bottom: 20px;
+}
+
+.btn-sidebar-action {
+    width: 100%;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    padding: 10px 14px;
+    background: var(--primary);
+    color: #061e0f;
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 4px 16px var(--primary-glow);
+    transition: all var(--transition);
+}
+
+.btn-sidebar-action:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.35);
+}
+
+/* Nav Section */
+.sidebar-section-title {
+    padding: 0 6px 8px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+}
+
+.sidebar-nav-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 16px;
+}
+
+.sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 9px;
+    color: var(--secondary);
+    font-size: 13px;
+    font-weight: 600;
+    transition: all var(--transition);
+    border: 1px solid transparent;
+}
+
+.sidebar-nav-item:hover {
+    background: var(--card-hover);
+    color: var(--text);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-nav-item.active {
+    background: rgba(34, 197, 94, 0.12);
+    border-color: rgba(34, 197, 94, 0.3);
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.sidebar-nav-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.sidebar-nav-text {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-nav-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: var(--radius-full);
+    background: rgba(34, 197, 94, 0.2);
+    color: var(--primary);
+}
+
+/* Sidebar Applications List (Mevcut Başvurularım - hamburger menüde görünür) */
+.sidebar-app-count {
+    background: rgba(34, 197, 94, 0.12);
+    color: var(--primary);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.sidebar-applications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+    max-height: 360px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.sidebar-applications-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-applications-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-applications-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+}
+
+.sidebar-applications-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.sidebar-app-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition);
+    text-align: left;
+    width: 100%;
+    font-family: inherit;
+    color: var(--text);
+}
+
+.sidebar-app-item:hover {
+    background: var(--card-hover);
+    border-color: rgba(34, 197, 94, 0.45);
+    transform: translateX(2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.sidebar-app-item:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.sidebar-app-item.active {
+    border-color: var(--primary);
+    background: rgba(34, 197, 94, 0.08);
+}
+
+.sidebar-app-item-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.sidebar-app-id {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    font-family: 'Courier New', monospace;
+}
+
+.sidebar-app-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.sidebar-app-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.sidebar-app-status.status-pending {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fde68a;
+}
+
+.sidebar-app-status.status-pending .sidebar-app-status-dot {
+    background: #f59e0b;
+}
+
+.sidebar-app-status.status-approved {
+    background: rgba(34, 197, 94, 0.15);
+    color: #86efac;
+}
+
+.sidebar-app-status.status-approved .sidebar-app-status-dot {
+    background: #22c55e;
+}
+
+.sidebar-app-status.status-rejected {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fecaca;
+}
+
+.sidebar-app-status.status-rejected .sidebar-app-status-dot {
+    background: #ef4444;
+}
+
+.sidebar-app-type {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.sidebar-app-date {
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.sidebar-apps-empty {
+    padding: 16px 14px;
+    background: rgba(34, 197, 94, 0.05);
+    border: 1px dashed rgba(34, 197, 94, 0.25);
+    border-radius: var(--radius-md);
+    color: var(--muted);
+    font-size: 12px;
+    text-align: center;
+    line-height: 1.5;
+}
+
+/* Sidebar Footer (Matches 1.png <- Geri Dön) */
+.sidebar-footer {
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+}
+
+.sidebar-back-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 4px;
+    transition: color var(--transition);
+}
+
+.sidebar-back-link:hover {
+    color: var(--text);
+}
+
+/* Mobile Overlay */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    z-index: 95;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition);
+}
+
+/* =========================================================
+   MAIN CONTENT AREA
+   ========================================================= */
+
+.basvurular-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+}
+
+/* Mobile Topbar */
+.mobile-topbar {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    padding: 0 18px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(18, 24, 21, 0.95);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 90;
+}
+
+.mobile-menu-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0;
+}
+
+.mobile-menu-btn span {
+    display: block;
+    width: 15px;
+    height: 1.5px;
+    background: var(--text);
+    border-radius: 2px;
+}
+
+.mobile-page-title {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--text);
+}
+
+/* Main Content Wrapper */
+.basvurular-content-wrapper {
+    flex: 1;
+    padding: 36px 44px;
+    max-width: 1140px;
+    width: 100%;
+    margin: 0 auto;
+    animation: fadeIn 250ms ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================================================
+   1. PAGE HEADER (Goals.html hiyerarşisi)
+   ========================================================= */
+
+.page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+.page-header-text .eyebrow {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.page-header-text h1 {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+}
+
+.page-header-text .subtitle {
+    font-size: 14px;
+    color: var(--secondary);
+    line-height: 1.5;
+}
+
+.btn-primary-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 22px;
+    background: var(--primary);
+    color: #061e0f;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: var(--radius-full);
+    box-shadow: 0 4px 18px var(--primary-glow);
+    transition: all var(--transition);
+    white-space: nowrap;
+}
+
+.btn-primary-action:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(34, 197, 94, 0.35);
+}
+
+/* =========================================================
+   2. STATS OVERVIEW
+   ========================================================= */
+
+.stats-overview {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: border-color var(--transition);
+}
+
+.stat-card:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.stat-icon-wrap {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+
+.icon-all {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.icon-pending {
+    background: var(--warning-bg);
+    color: var(--warning);
+    border: 1px solid var(--warning-border);
+}
+
+.icon-approved {
+    background: var(--success-bg);
+    color: var(--success);
+    border: 1px solid var(--success-border);
+}
+
+.icon-rejected {
+    background: var(--danger-bg);
+    color: var(--danger);
+    border: 1px solid var(--danger-border);
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.stat-value {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.5px;
+}
+
+/* =========================================================
+   3. FILTER BAR (7. Madde)
+   ========================================================= */
+
+.filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.filter-bar::-webkit-scrollbar {
+    height: 4px;
+}
+
+.filter-bar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    color: var(--secondary);
+    font-size: 13px;
+    font-weight: 600;
+    transition: all var(--transition);
+    white-space: nowrap;
+}
+
+.filter-btn:hover {
+    background: var(--card-hover);
+    color: var(--text);
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.filter-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #061e0f;
+    font-weight: 700;
+    box-shadow: 0 4px 16px var(--primary-glow);
+}
+
+.filter-count {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.08);
+    color: inherit;
+}
+
+.filter-btn.active .filter-count {
+    background: rgba(0, 0, 0, 0.2);
+    color: #061e0f;
+}
+
+.filter-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.dot-pending {
+    background: var(--warning);
+}
+
+.dot-approved {
+    background: var(--success);
+}
+
+.dot-rejected {
+    background: var(--danger);
+}
+
+.filter-btn.active .filter-dot {
+    background: #061e0f;
+}
+
+/* =========================================================
+   4. APPLICATION CARDS (8. & 9. Madde)
+   ========================================================= */
+
+.applications-container {
+    min-height: 380px;
+}
+
+.applications-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+}
+
+.app-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all var(--transition);
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.app-card:hover {
+    border-color: var(--border-green);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* Card Header */
+.app-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.app-card-id {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.app-card-id-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--secondary);
+}
+
+/* Status Badges (9. Madde) */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.status-badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.status-pending {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    color: var(--warning);
+}
+
+.status-pending .status-badge-dot {
+    background: var(--warning);
+}
+
+.status-approved {
+    background: var(--success-bg);
+    border: 1px solid var(--success-border);
+    color: var(--success);
+}
+
+.status-approved .status-badge-dot {
+    background: var(--success);
+}
+
+.status-rejected {
+    background: var(--danger-bg);
+    border: 1px solid var(--danger-border);
+    color: var(--danger);
+}
+
+.status-rejected .status-badge-dot {
+    background: var(--danger);
+}
+
+/* Card Body */
+.app-card-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 12px;
+    letter-spacing: -0.3px;
+}
+
+.app-card-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    background: var(--surface);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: var(--radius-sm);
+    margin-bottom: 14px;
+}
+
+.meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+}
+
+.meta-key {
+    color: var(--muted);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.meta-val {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.app-card-desc {
+    font-size: 13px;
+    color: var(--secondary);
+    line-height: 1.5;
+    margin-bottom: 18px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Card Footer & Action Button */
+.app-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.btn-detail {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.28);
+    border-radius: var(--radius-full);
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 700;
+    transition: all var(--transition);
+}
+
+.btn-detail:hover {
+    background: var(--primary);
+    color: #061e0f;
+    border-color: var(--primary);
+    transform: translateX(2px);
+    box-shadow: 0 4px 14px var(--primary-glow);
+}
+
+/* =========================================================
+   5. EMPTY STATES (Matches 2.png, 11. & 12. Madde)
+   ========================================================= */
+
+.empty-state-box {
+    min-height: 380px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 48px 24px;
+    background: var(--surface);
+    border: 2px dashed rgba(34, 197, 94, 0.25);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    animation: fadeIn 250ms ease-out;
+}
+
+.empty-icon-wrap {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: var(--primary);
+    display: grid;
+    place-items: center;
+    margin-bottom: 20px;
+}
+
+.empty-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 10px;
+    letter-spacing: -0.4px;
+}
+
+.empty-subtitle {
+    font-size: 14px;
+    color: var(--secondary);
+    max-width: 440px;
+    line-height: 1.5;
+    margin-bottom: 28px;
+}
+
+/* Big Button matching 2.png */
+.btn-empty-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px 38px;
+    background: var(--primary);
+    color: #061e0f;
+    font-size: 16px;
+    font-weight: 800;
+    border-radius: var(--radius-full);
+    box-shadow: 0 6px 24px var(--primary-glow);
+    transition: all var(--transition);
+}
+
+.btn-empty-action:hover {
+    background: var(--primary-hover);
+    transform: scale(1.03);
+    box-shadow: 0 10px 30px rgba(34, 197, 94, 0.4);
+}
+
+/* Filter Empty State (12. Madde) */
+.filter-empty-box {
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 36px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+
+.btn-reset-filter {
+    margin-top: 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 22px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+    transition: all var(--transition);
+}
+
+.btn-reset-filter:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+/* =========================================================
+   6. LOADING & ERROR STATES (20. & 21. Madde)
+   ========================================================= */
+
+.loading-state-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 320px;
+    gap: 16px;
+}
+
+.loading-spinner {
+    width: 42px;
+    height: 42px;
+    border: 3px solid rgba(34, 197, 94, 0.15);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--secondary);
+}
+
+.error-state-box {
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 32px 20px;
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid var(--danger-border);
+    border-radius: var(--radius-lg);
+}
+
+.error-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--danger);
+    margin-bottom: 8px;
+}
+
+.error-text {
+    font-size: 13px;
+    color: var(--secondary);
+    margin-bottom: 20px;
+}
+
+/* =========================================================
+   7. MODAL CUSTOM STYLING (Global Modal Extensions)
+   ========================================================= */
+
+.app-detail-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.app-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.detail-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.app-detail-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.app-detail-section h4 {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.app-detail-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    font-size: 13px;
+    color: var(--secondary);
+    line-height: 1.5;
+}
+
+.app-detail-box.admin-note {
+    border-left: 3px solid var(--primary);
+    background: rgba(34, 197, 94, 0.04);
+}
+
+.app-detail-box.reject-reason {
+    border-left: 3px solid var(--danger);
+    background: rgba(239, 68, 68, 0.04);
+}
+
+/* Inline Detail View (modal yerine ana içerik alanında) */
+.app-detail-view {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    animation: detailFadeIn 0.3s ease;
+}
+
+@keyframes detailFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.app-detail-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.btn-back-to-list {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition);
+    font-family: inherit;
+}
+
+.btn-back-to-list:hover {
+    background: var(--card-hover);
+    border-color: var(--border-green);
+    color: var(--primary);
+    transform: translateX(-2px);
+}
+
+.app-detail-eyebrow {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+}
+
+.app-detail-hero {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 22px 24px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    flex-wrap: wrap;
+}
+
+.app-detail-id {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    margin-bottom: 6px;
+}
+
+.app-detail-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.2;
+    letter-spacing: -0.3px;
+}
+
+/* Detay modunda iken istatistikleri ve filtre çubuğunu hafifçe soldur */
+body.app-detail-active .stats-overview,
+body.app-detail-active .filter-bar {
+    opacity: 0.55;
+    transition: opacity var(--transition);
+}
+
+@media (max-width: 640px) {
+    .app-detail-hero {
+        padding: 18px 16px;
+    }
+
+    .app-detail-title {
+        font-size: 20px;
+    }
+}
+    color: #fca5a5;
+}
+
+/* Modal Form Styles */
+.modal-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.modal-form-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--secondary);
+}
+
+.modal-form-control {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    color: var(--text);
+    font-size: 14px;
+    transition: border-color var(--transition);
+}
+
+.modal-form-control:focus {
+    border-color: var(--primary);
+    outline: none;
+}
+
+textarea.modal-form-control {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* =========================================================
+   8. RESPONSIVE TASARIM (13. Madde: 320px–480px, Tablet, vb.)
+   ========================================================= */
+
+@media (max-width: 960px) {
+    .basvurular-sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+        box-shadow: 12px 0 32px rgba(0, 0, 0, 0.5);
+    }
+
+    .basvurular-sidebar.is-open {
+        transform: translateX(0);
+    }
+
+    .sidebar-overlay.is-active {
+        display: block;
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .sidebar-close-btn {
+        display: flex;
+    }
+
+    .mobile-topbar {
+        display: flex;
+    }
+
+    .basvurular-content-wrapper {
+        padding: 24px 20px;
+    }
+
+    .stats-overview {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+}
+
+@media (max-width: 640px) {
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+
+    .btn-primary-action {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .stats-overview {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .applications-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .app-detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 320px–480px Mobil Aralığı Özel Kontrolleri */
+@media (max-width: 480px) {
+    .basvurular-content-wrapper {
+        padding: 16px 14px;
+    }
+
+    .page-header-text h1 {
+        font-size: 24px;
+    }
+
+    .stats-overview {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-btn {
+        padding: 8px 14px;
+        font-size: 12px;
+    }
+
+    .btn-empty-action {
+        width: 100%;
+        padding: 14px 20px;
+        font-size: 15px;
+    }
+}

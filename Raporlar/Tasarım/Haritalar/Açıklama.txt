@@ -1,0 +1,715 @@
+# FITNESS PRO — HARİTALAR SAYFASI FRONTEND TASARIMI
+
+Fitness Pro projesine yeni bir **Haritalar** sayfası tasarlanacaktır.
+
+## ÖNEMLİ KURAL
+
+Bu çalışma **SADECE FRONTEND** kapsamındadır.
+
+Şu aşamada:
+
+* Backend yazılmayacak.
+* API oluşturulmayacak.
+* API bağlantısı yapılmayacak.
+* Database kullanılmayacak.
+* JWT/auth backend entegrasyonu yapılmayacak.
+* Endpoint oluşturulmayacak.
+* Backend dosyaları değiştirilmeyecek.
+* Mevcut backend sistemi incelenip değiştirilmek zorunda değildir.
+
+Tüm kullanıcı verileri ve harita üzerindeki kişiler **frontend mock verileri** ile simüle edilmelidir.
+
+Daha sonraki aşamada backend entegrasyonu yapılabilecek şekilde temiz ve modüler frontend kodu hazırlanmalıdır.
+
+---
+
+# 1. YENİ SAYFA
+
+Yeni sayfa:
+
+`Haritalar.html`
+
+CSS:
+
+`Css/UI/Haritalar.css`
+
+JavaScript:
+
+`JavaScripts/UI/Haritalar.js`
+
+Mevcut proje yapısına ve isimlendirme sistemine uyulmalıdır.
+
+---
+
+# 2. TASARIM REFERANSI
+
+Haritalar sayfası mevcut Fitness Pro tasarımının bir parçası gibi görünmelidir.
+
+Özellikle:
+
+* Goals.html
+* Profile.html
+* Workouts.html
+* Progress.html
+* Ayarlar.html
+
+sayfalarının mevcut tasarım dili referans alınmalıdır.
+
+Yeni ve bağımsız bir tema oluşturulmamalıdır.
+
+Mevcut:
+
+`DesignSystem.css`
+
+kullanılmalıdır.
+
+---
+
+# 3. HAMBURGER MENÜ
+
+Haritalar sayfasındaki hamburger menü diğer sayfalardaki hamburger menüyle aynı olmalıdır.
+
+Yeni bir hamburger menü tasarımı oluşturulmayacaktır.
+
+Menü:
+
+* Aynı konumda
+* Aynı boyutta
+* Aynı animasyonda
+* Aynı açılıp kapanma mantığında
+* Aynı ikon sisteminde
+* Aynı responsive davranışta
+
+çalışmalıdır.
+
+Haritalar sayfası menü içerisinde diğer sayfalarla **eşit seviyede** bulunmalıdır.
+
+Örneğin mevcut navigasyon yapısına uygun olarak:
+
+```text
+Ana Sayfa
+Profil
+Antrenmanlar
+İlerleme
+Hedefler
+Arkadaşlar
+Haritalar
+Mesajlar
+Bildirimler
+Ayarlar
+```
+
+Haritalar aktif sayfayken ilgili menü öğesi aktif görünmelidir.
+
+Mevcut navigasyon yapısı değiştirilmemeli, sadece Haritalar sayfası sisteme uygun şekilde eklenmelidir.
+
+---
+
+# 4. SAYFA BAŞLIĞI
+
+Sayfanın üst kısmında:
+
+**Haritalar**
+
+başlığı bulunmalıdır.
+
+Alt açıklama:
+
+**Yakınındaki arkadaşlarını ve antrenörleri keşfet.**
+
+şeklinde olabilir.
+
+Başlık yapısı Goals.html ile aynı görsel hiyerarşiyi kullanmalıdır.
+
+---
+
+# 5. ANA HARİTA
+
+Sayfanın ana bölümü harita olmalıdır.
+
+Harita ekranın mümkün olduğunca büyük kısmını kullanmalıdır.
+
+Örnek yapı:
+
+```text
+┌─────────────────────────────────────────────┐
+│ ☰                                           │
+│                                             │
+│                 HARİTALAR                   │
+│      Yakınındaki kişileri keşfet.           │
+│                                             │
+├─────────────────────────────────────────────┤
+│                                             │
+│ [ Tümü ] [ Arkadaşlar ] [ Antrenörler ]    │
+│                                             │
+│                                             │
+│              ●                              │
+│                                             │
+│                     ◎                       │
+│                                             │
+│                            ●                │
+│                                             │
+│                                     ●       │
+│                                             │
+│                                  [ ◎ ]      │
+│                                             │
+└─────────────────────────────────────────────┘
+```
+
+Harita gerçek bir harita servisi kullanılabiliyorsa kullanılabilir.
+
+Ancak bu aşamada gerçek kullanıcı konum verileri veya backend verileri kullanılmayacaktır.
+
+Gerekirse harita alanı frontend prototipi/mock harita görünümüyle hazırlanabilir.
+
+---
+
+# 6. KULLANICININ KENDİ KONUMU
+
+Kullanıcının kendi konumu harita üzerinde diğer kişilerden farklı bir marker ile gösterilmelidir.
+
+Marker:
+
+* Daha belirgin
+* Kolay fark edilebilir
+* Fitness Pro tasarımına uygun
+* Emoji içermeyen
+* SVG/Lucide ikon kullanan
+
+bir yapıda olmalıdır.
+
+Örneğin:
+
+```text
+◎
+```
+
+şeklindeki görsel mantık kullanılabilir.
+
+Marker'ın yanında:
+
+**Sen**
+
+gibi bir etiket bulunabilir.
+
+---
+
+# 7. TARAYICI KONUMU
+
+Frontend aşamasında kullanıcı isterse tarayıcının:
+
+`navigator.geolocation`
+
+özelliği kullanılarak kendi konumu alınabilir.
+
+Bu özellik yalnızca **kullanıcının kendi konumunu haritada göstermek** amacıyla kullanılacaktır.
+
+Konum herhangi bir backend'e gönderilmeyecektir.
+
+Konum alınamazsa sayfa bozulmamalıdır.
+
+Örneğin:
+
+**Konumun alınamadı.**
+
+mesajı gösterilebilir.
+
+Kullanıcı isterse:
+
+**Konumumu Bul**
+
+butonuna basarak tekrar deneyebilmelidir.
+
+---
+
+# 8. KENDİ KONUMUNA DÖN BUTONU
+
+Haritanın uygun bir köşesinde konum butonu bulunmalıdır.
+
+Örneğin:
+
+```text
+┌─────┐
+│  ◎  │
+└─────┘
+```
+
+Butona basıldığında harita kullanıcının kendi konumuna odaklanmalıdır.
+
+Bu buton mobil cihazlarda da kolay kullanılabilir olmalıdır.
+
+---
+
+# 9. YAKINDAKİ KİŞİLER
+
+Harita üzerinde kullanıcıya yakın kişiler gösterilecektir.
+
+İki kullanıcı tipi olacaktır:
+
+### Arkadaş
+
+Kullanıcının arkadaşları.
+
+### Antrenör
+
+Fitness Pro içerisindeki antrenörler.
+
+Bu kişiler frontend içerisinde **mock data** olarak oluşturulmalıdır.
+
+Örnek:
+
+```javascript
+const nearbyUsers = [
+    {
+        id: 1,
+        username: "fitness_master",
+        profilePhoto: "assets/profiles/default.svg",
+        type: "friend",
+        latitude: 38.355,
+        longitude: 38.309
+    },
+    {
+        id: 2,
+        username: "coach_ali",
+        profilePhoto: "assets/profiles/default.svg",
+        type: "trainer",
+        latitude: 38.362,
+        longitude: 38.315
+    }
+];
+```
+
+Gerçek kullanıcı verileri kullanılmayacaktır.
+
+---
+
+# 10. PROFİL FOTOĞRAFI
+
+Harita üzerindeki kişi markerlarında kullanıcının profil fotoğrafı gösterilmelidir.
+
+Örneğin:
+
+```text
+    ┌───────┐
+    │ FOTO  │
+    └───────┘
+        ●
+```
+
+Profil fotoğrafı bulunmadığında varsayılan Fitness Pro profil görseli kullanılmalıdır.
+
+Kırık görsel durumunda fallback uygulanmalıdır.
+
+---
+
+# 11. USERNAME
+
+Kullanıcının profil fotoğrafının yanında veya bilgi kartında:
+
+`Username`
+
+gösterilmelidir.
+
+Örneğin:
+
+```text
+@fitness_master
+```
+
+Username mock veriden alınmalıdır.
+
+Gerçek ad ve soyad zorunlu değildir.
+
+Bu sayfanın temel kullanıcı tanımlayıcısı Username olmalıdır.
+
+---
+
+# 12. MARKER'A TIKLAMA
+
+Harita üzerindeki bir kullanıcı markerına tıklandığında küçük bir kullanıcı bilgi kartı açılmalıdır.
+
+Örneğin:
+
+```text
+┌────────────────────────────┐
+│       [ PROFİL ]           │
+│                            │
+│       @fitness_master      │
+│       Arkadaş              │
+│                            │
+│       350 m uzaklıkta      │
+│                            │
+│       [ Profili Gör ]      │
+└────────────────────────────┘
+```
+
+Bilgi kartında:
+
+* Profil fotoğrafı
+* Username
+* Kullanıcı tipi
+* Yaklaşık mesafe
+* Profili Gör butonu
+
+bulunabilir.
+
+---
+
+# 13. PROFİLİ GÖR BUTONU
+
+Frontend prototipinde buton çalışır durumda olmalıdır.
+
+Mevcut Fitness Pro profil yönlendirme sistemine uygun şekilde ilgili profil sayfasına yönlendirme yapılabilir.
+
+Backend bağlantısı yapılmayacaktır.
+
+---
+
+# 14. FİLTRE SİSTEMİ
+
+Haritanın üst kısmında filtre butonları bulunmalıdır:
+
+```text
+[ Tümü ] [ Arkadaşlar ] [ Antrenörler ]
+```
+
+### Tümü
+
+Mock arkadaş ve antrenörlerin tamamını gösterir.
+
+### Arkadaşlar
+
+Sadece `friend` tipindeki kullanıcıları gösterir.
+
+### Antrenörler
+
+Sadece `trainer` tipindeki kullanıcıları gösterir.
+
+Filtre değiştiğinde sayfa yenilenmemelidir.
+
+Markerlar ve kullanıcı listesi anında güncellenmelidir.
+
+Aktif filtre Fitness Pro'nun primary yeşil rengiyle belirtilmelidir.
+
+---
+
+# 15. YAKIN KİŞİLER LİSTESİ
+
+Haritanın altında veya uygun bir yanında yakın kullanıcıların liste görünümü bulunabilir.
+
+Örnek:
+
+```text
+Yakınındakiler
+
+┌──────────────────────────────┐
+│ [Foto]  @fitness_master      │
+│         Arkadaş • 350 m      │
+└──────────────────────────────┘
+
+┌──────────────────────────────┐
+│ [Foto]  @coach_ali           │
+│         Antrenör • 1.2 km    │
+└──────────────────────────────┘
+```
+
+Liste içerisindeki kullanıcıya tıklandığında harita ilgili marker'a odaklanmalıdır.
+
+---
+
+# 16. MESAFE
+
+Mock kullanıcılar için mesafe bilgisi gösterilmelidir.
+
+Örneğin:
+
+```text
+350 m
+720 m
+1.2 km
+2.4 km
+```
+
+Mesafe frontend tarafında hesaplanabilir.
+
+Haversine algoritması kullanılabilir.
+
+Gerçek backend mesafesi kullanılmayacaktır.
+
+---
+
+# 17. BOŞ DURUM
+
+Filtre sonucunda gösterilecek kullanıcı kalmadığında:
+
+**Bu kategoride yakınında kimse bulunmuyor.**
+
+mesajı gösterilmelidir.
+
+Sayfa boş bırakılmamalıdır.
+
+---
+
+# 18. KONUM HATASI
+
+Tarayıcı konum erişimi başarısız olursa:
+
+```text
+Konumun alınamadı.
+
+Konum iznini kontrol ederek tekrar deneyebilirsin.
+```
+
+gösterilmelidir.
+
+Altında:
+
+`[ Tekrar Dene ]`
+
+butonu bulunabilir.
+
+---
+
+# 19. LOADING DURUMU
+
+Harita hazırlanırken ve mock kullanıcılar yüklenirken loading state kullanılmalıdır.
+
+Örneğin:
+
+```text
+Harita hazırlanıyor...
+```
+
+veya mevcut Fitness Pro loading sistemi kullanılabilir.
+
+---
+
+# 20. RESPONSIVE TASARIM
+
+Sayfa:
+
+* Desktop
+* Laptop
+* Tablet
+* Mobil
+
+ekranlarda düzgün çalışmalıdır.
+
+Mobilde:
+
+* Hamburger menü aynı sistemde çalışmalı.
+* Harita ekranın büyük bölümünü kaplamalı.
+* Filtreler yatay kaydırılabilir olmalı.
+* Kullanıcı listesi tek kolon olmalı.
+* Marker bilgi kartı ekran dışına taşmamalı.
+* Konum butonu rahat kullanılabilir olmalı.
+* Uzun Username değerleri tasarımı bozmamalı.
+
+Özellikle:
+
+`320px`
+
+ile
+
+`480px`
+
+arasındaki mobil ekranlar kontrol edilmelidir.
+
+---
+
+# 21. TASARIM SİSTEMİ
+
+Mevcut Fitness Pro renkleri kullanılmalıdır:
+
+```text
+Background: #0B0F0D
+Surface:    #121815
+Card:       #18201B
+Primary:    #22C55E
+Hover:      #16A34A
+Text:       #F5F7F6
+Muted:      #A7B0AA
+Border:     #29332D
+```
+
+Yeni renk sistemi oluşturulmayacaktır.
+
+Mevcut:
+
+`DesignSystem.css`
+
+mümkün olduğunca kullanılmalıdır.
+
+---
+
+# 22. İKONLAR
+
+Emoji kullanılmayacaktır.
+
+Özellikle:
+
+* Konum
+* Harita
+* Kullanıcı
+* Arkadaş
+* Antrenör
+* Menü
+* Kapatma
+* Profil
+
+ikonlarında mevcut Lucide/SVG sistemi kullanılmalıdır.
+
+---
+
+# 23. JAVASCRIPT YAPISI
+
+`Haritalar.js` modüler yazılmalıdır.
+
+Önerilen fonksiyonlar:
+
+```javascript
+initializeMapPage()
+initializeMap()
+requestUserLocation()
+handleLocationSuccess()
+handleLocationError()
+
+loadMockUsers()
+renderUserMarkers()
+renderNearbyUsers()
+
+filterUsers(type)
+
+showUserInfo(userId)
+focusUser(userId)
+
+centerOnUser()
+
+showLoading()
+showEmptyState()
+showError()
+```
+
+Kod gereksiz şekilde tek bir büyük fonksiyon haline getirilmemelidir.
+
+---
+
+# 24. MOCK DATA
+
+Tüm kullanıcılar frontend içerisinde mock data olarak tutulmalıdır.
+
+En az:
+
+* 3 arkadaş
+* 3 antrenör
+
+olacak şekilde örnek veri oluşturulabilir.
+
+Örnek:
+
+```javascript
+const nearbyUsers = [
+    {
+        id: 1,
+        username: "fitness_master",
+        profilePhoto: "assets/profiles/default.svg",
+        type: "friend",
+        latitude: 38.355,
+        longitude: 38.309
+    },
+    {
+        id: 2,
+        username: "sporcu_ali",
+        profilePhoto: "assets/profiles/default.svg",
+        type: "friend",
+        latitude: 38.358,
+        longitude: 38.312
+    },
+    {
+        id: 3,
+        username: "coach_ahmet",
+        profilePhoto: "assets/profiles/default.svg",
+        type: "trainer",
+        latitude: 38.361,
+        longitude: 38.316
+    }
+];
+```
+
+Mock veriler gerçek backend verisi gibi davranmalıdır.
+
+---
+
+# 25. DOSYA SINIRLARI
+
+Bu çalışma sırasında yalnızca frontend tarafında gerekli dosyalar değiştirilmelidir.
+
+Öncelikli dosyalar:
+
+```text
+Haritalar.html
+Css/UI/Haritalar.css
+JavaScripts/UI/Haritalar.js
+```
+
+Gerekirse mevcut hamburger menü veya ortak frontend dosyalarına yalnızca Haritalar bağlantısını eklemek için minimal değişiklik yapılabilir.
+
+Backend klasörlerine kesinlikle dokunulmayacaktır.
+
+---
+
+# 26. BACKEND ENTEGRASYONU YOK
+
+Tekrar özellikle:
+
+Bu aşamada aşağıdakiler yapılmayacaktır:
+
+```text
+❌ API
+❌ Controller
+❌ Service
+❌ Repository
+❌ Database
+❌ SQL
+❌ Entity Framework
+❌ JWT endpoint
+❌ Backend konum kaydı
+❌ Backend kullanıcı sorgusu
+❌ Backend profil sorgusu
+```
+
+Tüm sistem frontend mock data ile çalışacaktır.
+
+---
+
+# 27. SONUÇ
+
+Ortaya çıkacak Haritalar sayfası:
+
+```text
+Hamburger Menü
+       ↓
+Haritalar
+       ↓
+Filtreler
+       ↓
+Ana Harita
+       ↓
+Kullanıcının Kendi Konumu
+       ↓
+Yakındaki Arkadaşlar
+       ↓
+Yakındaki Antrenörler
+       ↓
+Profil Fotoğrafı + Username
+       ↓
+Kullanıcı Bilgi Kartı
+       ↓
+Yakın Kullanıcı Listesi
+```
+
+mantığında çalışmalıdır.
+
+Amaç şu aşamada **backend geliştirmek değil**, Haritalar sayfasının frontend tasarımını ve kullanıcı deneyimini tamamen bitirmektir.
+
+Daha sonraki aşamada mock data kaldırılarak gerçek verilerle çalışabilecek şekilde kod

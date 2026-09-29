@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Fitness Pro - Haritalar. Yakınındaki spor arkadaşlarını ve uzman antrenörleri anlık harita üzerinde keşfet.">
+    <meta name="theme-color" content="#0B0F0D">
+
+    <title>Fitness Pro | Haritalar</title>
+
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../Css/Core/DesignSystem.css">
+    <link rel="stylesheet" href="../Css/Core/GlobalModal.css">
+    <link rel="stylesheet" href="../Css/UI/Haritalar.css">
+    <script src="../JavaScripts/config.js"></script>
+</head>
+
+<body>
+
+    <div class="haritalar-shell">
+
+        <!-- ==================== SIDEBAR ==================== -->
+        <aside class="haritalar-sidebar" id="haritalarSidebar" aria-label="Haritalar Menüsü">
+
+            <!-- 1. Marka Başlığı -->
+            <div class="sidebar-header">
+                <a href="index.html" class="brand-link" title="Fitness Pro Ana Sayfasına Dön" aria-label="Fitness Pro Ana Sayfası">
+                    <div class="brand-badge">FP</div>
+                    <div class="brand-title">FITNESS<span>PRO</span></div>
+                </a>
+                <button type="button" class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Menüyü Kapat">×</button>
+            </div>
+
+            <!-- 2. Kullanıcı Profili (Matches Haritalar.png Top Box) -->
+            <div class="sidebar-profile">
+                <div class="profile-avatar" id="sidebarAvatar" aria-hidden="true">U</div>
+                <div class="profile-meta">
+                    <strong class="profile-username" id="sidebarUsername" title="Kullanıcı">Username</strong>
+                    <div class="profile-badge">
+                        <span class="profile-badge-dot"></span>
+                        <span id="sidebarUserRole">Rol: User</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Sidebar Yakındaki Kişiler Hızlı Listesi (Haritalar.png Yeşil Butonlar) -->
+            <div class="sidebar-nearby-group">
+                <div class="sidebar-section-title">
+                    <span>YAKINDAKİLER</span>
+                    <span class="nearby-count-tag" id="sidebarNearbyCount">6 Kişi</span>
+                </div>
+                <div class="sidebar-quick-users" id="sidebarQuickUsers">
+                    <!-- Dinamik olarak doldurulur: Haritalar.png'deki yeşil kullanıcı pill butonları -->
+                </div>
+            </div>
+
+            
+
+            <!-- 5. Alt Navigasyon (Geri Dön) -->
+            <div class="sidebar-footer">
+                <a href="index.html" class="sidebar-back-link" title="Dashboard Ana Sayfasına Git">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    <span>Dashboard'a Dön</span>
+                </a>
+            </div>
+
+        </aside>
+
+        <!-- Mobil Menü Karartması (Overlay) -->
+        <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+        <!-- ==================== MAIN CONTENT ==================== -->
+        <main class="haritalar-main" id="haritalarMain">
+
+            <!-- Mobil Üst Çubuk (Mobile Topbar) -->
+            <header class="mobile-topbar">
+                <button type="button" class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menüyü Aç">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <span class="mobile-page-title">HARİTALAR</span>
+                <a href="index.html" class="brand-badge" title="Ana Sayfa" style="text-decoration:none;">FP</a>
+            </header>
+
+            <!-- Ana İçerik Kapsayıcısı -->
+            <div class="haritalar-content-wrapper">
+
+                <!-- 1. Sayfa Başlığı (Madde 4) -->
+                <header class="page-header">
+                    <div class="page-header-text">
+                        <p class="eyebrow">HARİTA & KONUM</p>
+                        <h1>Haritalar</h1>
+                        <p class="subtitle">Yakınındaki arkadaşlarını ve antrenörleri keşfet.</p>
+                    </div>
+                    <div class="page-header-actions">
+                        <button type="button" class="btn-location-action" id="btnRequestLocationHeader" aria-label="Konumumu Bul">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
+                            <span id="btnLocationText">Konumumu Güncelle</span>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- 2. Filtre ve Gösterge Çubuğu (Madde 14) -->
+                <div class="map-toolbar">
+                    <nav class="filter-bar" aria-label="Kullanıcı Filtreleri">
+                        <button type="button" class="filter-btn active" data-filter="all">
+                            <span>Tümü</span>
+                            <span class="filter-count" id="filterCountAll">0</span>
+                        </button>
+                        <button type="button" class="filter-btn" data-filter="friend">
+                            <span class="filter-dot dot-friend"></span>
+                            <span>Arkadaşlar</span>
+                            <span class="filter-count" id="filterCountFriend">0</span>
+                        </button>
+                        <button type="button" class="filter-btn" data-filter="trainer">
+                            <span class="filter-dot dot-trainer"></span>
+                            <span>Antrenörler</span>
+                            <span class="filter-count" id="filterCountTrainer">0</span>
+                        </button>
+                    </nav>
+
+                    <div class="map-legend">
+                        <span class="legend-item"><span class="legend-dot user-dot"></span> Sen</span>
+                        <span class="legend-item"><span class="legend-dot friend-dot"></span> Arkadaş</span>
+                        <span class="legend-item"><span class="legend-dot trainer-dot"></span> Antrenör</span>
+                    </div>
+                </div>
+
+                <!-- Konum Durum Bildirim Çubuğu (Gerekirse gizlenir / gösterilir) -->
+                <div class="location-banner" id="locationBanner" role="alert" style="display: none;">
+                    <div class="location-banner-content">
+                        <span class="location-banner-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        </span>
+                        <span id="locationBannerText">Konum bilgisi bekleniyor...</span>
+                    </div>
+                    <button type="button" class="btn-banner-retry" id="btnBannerRetry">Tekrar Dene</button>
+                </div>
+
+                <!-- 3. Ana Harita Alanı (Madde 5, 6, 8) -->
+                <section class="map-container-card" aria-label="İnteraktif Fitness Pro Haritası">
+
+                    <div class="map-wrapper">
+                        <!-- Harita DOM Öğesi -->
+                        <div id="fitnessMap" class="fitness-map"></div>
+
+                        <!-- Harita Yükleniyor Göstergesi -->
+                        <div class="map-loading-overlay" id="mapLoadingOverlay">
+                            <div class="loading-spinner"></div>
+                            <span class="loading-text">Harita hazırlanıyor...</span>
+                        </div>
+
+                        <!-- Harita Üzerindeki Kendi Konumuna Dön Butonu (Madde 8) -->
+                        <button type="button" class="map-floating-center-btn" id="btnCenterOnUser" title="Konumuma Odaklan" aria-label="Kendi Konumuma Odaklan">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                </section>
+
+                <!-- 4. Yakındaki Kişiler Liste Görünümü (Madde 15 & 17) -->
+                <section class="nearby-section" aria-label="Yakındaki Kullanıcılar">
+                    <div class="section-heading">
+                        <div>
+                            <h2>Yakınındakiler</h2>
+                            <p class="section-subtitle">Listeden bir kullanıcı seçerek harita üzerinde odaklanabilirsin.</p>
+                        </div>
+                        <span class="badge-count" id="activeFilterCountBadge">6 Kişi Listeleniyor</span>
+                    </div>
+
+                    <!-- Dinamik Kullanıcı Listesi veya Boş Durum -->
+                    <div class="nearby-users-grid" id="nearbyUsersGrid" aria-live="polite">
+                        <!-- JavaScript tarafından render edilecektir -->
+                    </div>
+                </section>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- Scripts -->
+    <script src="../JavaScripts/Core/auth.js"></script>
+    <script src="../JavaScripts/Core/GlobalModalManager.js"></script>
+    <script src="../JavaScripts/UI/Haritalar.js"></script>
+
+</body>
+
+</html>

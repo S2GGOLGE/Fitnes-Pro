@@ -1,0 +1,600 @@
+# FITNESS PRO — BAŞVURULAR SAYFASI TASARIMI
+
+## 1. Genel Amaç
+
+Fitness Pro içerisinde kullanıcıların yaptığı başvuruları görüntüleyebileceği, başvuruların durumlarını takip edebileceği ve başvuru detaylarını inceleyebileceği yeni bir **Başvurular sayfası** oluşturulacaktır.
+
+Sayfa genel tasarım ve kullanım mantığı açısından mevcut **Goals.html / Hedefler sayfasını referans almalıdır.**
+
+Ancak Başvurular sayfası hedef yönetimi değil, başvuru listeleme ve başvuru durum takibi amacıyla kullanılacaktır.
+
+---
+
+# 2. Dosya
+
+Yeni sayfa:
+
+`Basvurular.html`
+
+Sayfanın CSS dosyası:
+
+`Css/UI/Basvurular.css`
+
+Gerekirse JavaScript:
+
+`JavaScripts/UI/Basvurular.js`
+
+Mevcut Design System kullanılmalıdır.
+
+Yeni ve bağımsız bir tasarım dili oluşturulmamalıdır.
+
+---
+
+# 3. Hamburger Menü
+
+Sayfada mevcut Fitness Pro sayfalarıyla aynı hamburger menü kullanılmalıdır.
+
+Özellikle mevcut:
+
+* Index
+* Goals
+* Profile
+* Workouts
+* Progress
+* Admin
+
+sayfalarındaki hamburger menü mantığı referans alınmalıdır.
+
+Hamburger menü:
+
+* Mobil cihazlarda düzgün çalışmalı.
+* Masaüstünde mevcut tasarım sistemine uygun davranmalı.
+* Menü açıldığında diğer içeriklerin üzerine kontrollü şekilde gelmeli.
+* Menü kapatıldığında hamburger ikonunun konumu mevcut sistemle aynı olmalı.
+* Menü içerisindeki ikonlar emoji yerine mevcut Lucide/SVG ikon sistemini kullanmalıdır.
+* Başvurular sayfasında kullanıcı zaten Başvurular sayfasındaysa ilgili menü öğesi aktif görünmelidir.
+
+---
+
+# 4. Ayarlar.html Değişikliği
+
+Mevcut:
+
+`Ayarlar.html`
+
+sayfasındaki:
+
+**Başvurularım**
+
+bölümü tamamen kaldırılmalıdır.
+
+Yani kullanıcı artık başvurularını Ayarlar sayfası içerisinden görüntülememelidir.
+
+Başvurular ayrı bir sayfa haline getirilecektir:
+
+`Basvurular.html`
+
+Ayarlar sayfasında:
+
+* Başvurularım başlığı
+* Başvurularım kartları
+* Başvurulara ait butonlar
+* Başvurulara ait açıklamalar
+* Başvuru listeleme alanları
+
+bulunmamalıdır.
+
+Ayarlar sayfasındaki diğer ayarlar kesinlikle bozulmamalıdır.
+
+---
+
+# 5. Başvurular Sayfası Genel Yapısı
+
+Sayfanın genel yapısı Goals.html ile benzer olmalıdır.
+
+Önerilen yapı:
+
+```text
+┌──────────────────────────────────────────────┐
+│ ☰                                            │
+│                                              │
+│              BAŞVURULARIM                    │
+│       Başvurularınızı buradan takip edin.    │
+│                                              │
+├──────────────────────────────────────────────┤
+│                                              │
+│  [ Tümü ] [ Beklemede ] [ Onaylandı ]        │
+│  [ Reddedildi ]                               │
+│                                              │
+├──────────────────────────────────────────────┤
+│                                              │
+│  Başvuru Kartı                                │
+│  ┌────────────────────────────────────────┐  │
+│  │ Başvuru #1024                          │  │
+│  │ Başvuru Türü: Koç Başvurusu            │  │
+│  │ Tarih: 29.09.2026                      │  │
+│  │ Durum: Beklemede                       │  │
+│  │                                        │  │
+│  │                    [ Detayları Gör ]   │  │
+│  └────────────────────────────────────────┘  │
+│                                              │
+│  Başvuru Kartı                                │
+│  ┌────────────────────────────────────────┐  │
+│  │ Başvuru #1023                          │  │
+│  │ Başvuru Türü: ...                      │  │
+│  │ Tarih: ...                             │  │
+│  │ Durum: Onaylandı                       │  │
+│  │                                        │  │
+│  │                    [ Detayları Gör ]   │  │
+│  └────────────────────────────────────────┘  │
+│                                              │
+└──────────────────────────────────────────────┘
+```
+
+Bu yapı örnektir. Mevcut Fitness Pro Design System'a göre görsel olarak uyarlanmalıdır.
+
+---
+
+# 6. Başlık Alanı
+
+Sayfanın üst bölümünde:
+
+**Başvurularım**
+
+başlığı bulunmalıdır.
+
+Altında kısa açıklama:
+
+**Yaptığınız başvuruları ve başvuru durumlarını buradan takip edebilirsiniz.**
+
+Başlık alanı Goals.html içerisindeki sayfa başlığıyla aynı görsel hiyerarşiyi kullanmalıdır.
+
+---
+
+# 7. Filtreleme Sistemi
+
+Başvuruların kolay bulunabilmesi için filtreleme alanı oluşturulmalıdır.
+
+Filtreler:
+
+* Tümü
+* Beklemede
+* Onaylandı
+* Reddedildi
+
+şeklinde olabilir.
+
+Aktif filtre Fitness Pro'nun yeşil ana renk sistemiyle belirtilmelidir.
+
+Örnek:
+
+```text
+[ Tümü ] [ Beklemede ] [ Onaylandı ] [ Reddedildi ]
+```
+
+Filtre değiştirildiğinde sayfa yenilenmemeli, mevcut başvurular frontend tarafında filtrelenmelidir.
+
+Backend entegrasyonu daha sonra yapılabilecek şekilde yapı hazırlanmalıdır.
+
+---
+
+# 8. Başvuru Kartı
+
+Her başvuru bir kart içerisinde gösterilmelidir.
+
+Kart içerisinde minimum olarak:
+
+* Başvuru ID
+* Başvuru türü
+* Başvuru tarihi
+* Son güncelleme tarihi
+* Durum
+* Kısa açıklama
+* Detayları Gör butonu
+
+bulunmalıdır.
+
+Örnek:
+
+```text
+Başvuru #1024
+
+Koçluk Başvurusu
+
+Başvuru Tarihi
+29.09.2026
+
+Son Güncelleme
+29.09.2026
+
+Durum
+Beklemede
+
+Başvurunuz incelenmek üzere sıraya alınmıştır.
+
+[ Detayları Gör ]
+```
+
+---
+
+# 9. Başvuru Durumları
+
+Durumlar görsel olarak birbirinden ayırt edilmelidir.
+
+## Beklemede
+
+Başvuru henüz sonuçlandırılmamıştır.
+
+Örnek:
+
+`Beklemede`
+
+## Onaylandı
+
+Başvuru kabul edilmiştir.
+
+Örnek:
+
+`Onaylandı`
+
+## Reddedildi
+
+Başvuru reddedilmiştir.
+
+Örnek:
+
+`Reddedildi`
+
+Durum renkleri mevcut Design System ile uyumlu olmalıdır.
+
+Renkler doğrudan rastgele seçilmemeli, mevcut Fitness Pro renk değişkenleri kullanılmalıdır.
+
+---
+
+# 10. Detay Modalı
+
+`Detayları Gör` butonuna basıldığında yeni sayfaya gitmek yerine mevcut Global Modal sistemi kullanılmalıdır.
+
+Kullanılacak sistem:
+
+`GlobalModalManager.js`
+
+Modal içerisinde:
+
+* Başvuru ID
+* Başvuru türü
+* Başvuru tarihi
+* Güncelleme tarihi
+* Başvuru durumu
+* Kullanıcının gönderdiği açıklama
+* Yönetici cevabı / açıklaması
+* Gerekirse reddedilme nedeni
+
+gösterilebilir.
+
+Örnek:
+
+```text
+┌────────────────────────────────────┐
+│ Başvuru Detayı                 ×   │
+├────────────────────────────────────┤
+│                                    │
+│ Başvuru #1024                      │
+│                                    │
+│ Tür                                  │
+│ Koçluk Başvurusu                   │
+│                                    │
+│ Tarih                               │
+│ 29.09.2026                         │
+│                                    │
+│ Durum                               │
+│ Beklemede                          │
+│                                    │
+│ Açıklama                           │
+│ Kullanıcının başvuru açıklaması... │
+│                                    │
+│ [ Kapat ]                          │
+└────────────────────────────────────┘
+```
+
+Modal tasarımı Fitness Pro'nun mevcut Global Modal tasarımıyla aynı olmalıdır.
+
+---
+
+# 11. Boş Durum
+
+Kullanıcının hiç başvurusu yoksa boş bir ekran bırakılmamalıdır.
+
+Örneğin:
+
+**Henüz bir başvurunuz bulunmuyor.**
+
+Altında:
+
+**Yaptığınız başvurular burada görüntülenecektir.**
+
+gösterilebilir.
+
+Boş durumda mevcut Fitness Pro ikon sistemi kullanılmalıdır.
+
+Emoji kullanılmamalıdır.
+
+---
+
+# 12. Filtre Sonucu Boşsa
+
+Örneğin kullanıcı:
+
+`Reddedildi`
+
+filtresine bastığında hiç reddedilmiş başvurusu yoksa:
+
+**Bu kategoride başvuru bulunmuyor.**
+
+mesajı gösterilmelidir.
+
+Bu durum genel "hiç başvuru yok" durumundan farklı ele alınmalıdır.
+
+---
+
+# 13. Responsive Tasarım
+
+Sayfa:
+
+* Masaüstü
+* Laptop
+* Tablet
+* Mobil
+
+ekranlarda düzgün çalışmalıdır.
+
+Mobilde:
+
+* Hamburger menü kullanılmalı.
+* Başvuru kartları tek kolon olmalı.
+* Filtre butonları taşma yapmamalı.
+* Uzun başvuru açıklamaları kartı bozmayacak şekilde sınırlandırılmalı.
+* Modal ekran dışına taşmamalı.
+* Butonlar dokunmatik kullanıma uygun büyüklükte olmalıdır.
+
+Özellikle 320px–480px genişlik aralığı kontrol edilmelidir.
+
+---
+
+# 14. Tasarım Sistemi
+
+Fitness Pro'nun mevcut tasarım değişkenleri kullanılmalıdır.
+
+Ana renkler:
+
+```text
+Background: #0B0F0D
+Surface:    #121815
+Card:       #18201B
+Primary:    #22C55E
+Hover:      #16A34A
+Text:       #F5F7F6
+Muted:      #A7B0AA
+Border:     #29332D
+```
+
+Yeni renk sistemi oluşturulmamalıdır.
+
+Kartlar, butonlar, inputlar, modal ve filtreler mevcut DesignSystem.css ile uyumlu olmalıdır.
+
+---
+
+# 15. Goals.html Referans Mantığı
+
+Başvurular sayfası oluşturulurken Goals.html tamamen kopyalanmamalıdır.
+
+Sadece aşağıdaki davranışlar referans alınmalıdır:
+
+* Sayfa genel yerleşimi
+* Header yapısı
+* Hamburger menü
+* Kart sistemi
+* Responsive davranış
+* Modal kullanımı
+* Buton tasarımı
+* Boş durum tasarımı
+* Spacing
+* Typography
+* Design System değişkenleri
+
+Goals.html'deki hedefe özel:
+
+* Hedef yüzdesi
+* İlerleme barı
+* Hedef tarihi
+* Hedef tamamlanma sistemi
+
+gibi özellikler Başvurular sayfasına aktarılmamalıdır.
+
+---
+
+# 16. JavaScript Mantığı
+
+`Basvurular.js` aşağıdaki fonksiyonları destekleyecek şekilde hazırlanmalıdır:
+
+```text
+loadApplications()
+renderApplications()
+filterApplications(status)
+showApplicationDetails(id)
+renderEmptyState()
+```
+
+Backend henüz hazır değilse geçici mock data kullanılabilir.
+
+Örneğin:
+
+```javascript
+[
+    {
+        id: 1024,
+        type: "Koçluk Başvurusu",
+        createdAt: "2026-09-29",
+        updatedAt: "2026-09-29",
+        status: "pending",
+        description: "Başvuru açıklaması...",
+        adminResponse: null
+    }
+]
+```
+
+Ancak mock data gerçek backend sistemi gibi tasarlanmalı ve daha sonra API response ile kolayca değiştirilebilmelidir.
+
+---
+
+# 17. API'ye Hazır Yapı
+
+Frontend kodu ileride aşağıdaki gibi bir endpoint ile çalışabilecek şekilde hazırlanmalıdır:
+
+```text
+GET /api/applications
+```
+
+Detay:
+
+```text
+GET /api/applications/{id}
+```
+
+Frontend içerisinde API adresleri doğrudan sayfa içerisine hard-code edilmemeli, mevcut Fitness Pro endpoint/auth yapısına uyulmalıdır.
+
+JWT authentication mevcut sistemde nasıl uygulanıyorsa aynı yöntem kullanılmalıdır.
+
+---
+
+# 18. Yetkilendirme
+
+Başvurular sayfası kullanıcıya ait başvuruları göstermelidir.
+
+Kullanıcı başka bir kullanıcının başvurusunu görememelidir.
+
+Frontend tarafındaki filtreleme güvenlik mekanizması olarak kabul edilmemelidir.
+
+Asıl yetkilendirme backend tarafında yapılmalıdır.
+
+Frontend sadece kendisine dönen verileri görüntülemelidir.
+
+---
+
+# 19. Ayarlar Sayfası ile Bağlantı
+
+Ayarlar.html içerisindeki "Başvurularım" bölümü kaldırıldıktan sonra kullanıcı başvurulara hamburger menü üzerinden ulaşabilmelidir.
+
+Navigasyon:
+
+```text
+☰
+│
+├── Profil
+├── Antrenmanlar
+├── İlerleme
+├── Hedefler
+├── Başvurular
+├── Mesajlar
+├── Bildirimler
+└── Ayarlar
+```
+
+Mevcut navigasyon yapısı korunmalı, sadece gerekli Başvurular bağlantısı doğru sayfaya yönlendirilmelidir.
+
+---
+
+# 20. UX Kuralları
+
+Kullanıcı sayfaya girdiğinde:
+
+1. Başvurular yüklenir.
+2. Yüklenirken loading state gösterilir.
+3. Veri geldikten sonra kartlar oluşturulur.
+4. Veri yoksa empty state gösterilir.
+5. Filtre değiştirildiğinde sadece ilgili kartlar gösterilir.
+6. Detay butonuna basıldığında Global Modal açılır.
+7. Modal kapatıldığında kullanıcı aynı scroll konumunda kalır.
+8. API hatasında kullanıcıya anlaşılır hata mesajı gösterilir.
+
+Örnek hata:
+
+**Başvurular yüklenirken bir hata oluştu. Lütfen tekrar deneyin.**
+
+Teknik exception mesajları kullanıcıya gösterilmemelidir.
+
+---
+
+# 21. Loading State
+
+Sayfa açılırken direkt boş ekran gösterilmemelidir.
+
+Örneğin:
+
+```text
+Başvurular yükleniyor...
+```
+
+veya mevcut Fitness Pro skeleton/loading sistemi kullanılabilir.
+
+Loading bittikten sonra:
+
+* Başvurular
+* Empty state
+* Error state
+
+durumlarından yalnızca biri gösterilmelidir.
+
+---
+
+# 22. Sonuç
+
+İstenen değişikliklerin özeti:
+
+### Yeni
+
+```text
+Basvurular.html
+Css/UI/Basvurular.css
+JavaScripts/UI/Basvurular.js
+```
+
+### Kaldırılacak
+
+```text
+Ayarlar.html
+└── Başvurularım bölümü
+```
+
+### Referans
+
+```text
+Goals.html
+```
+
+### Kullanılacak sistemler
+
+```text
+DesignSystem.css
+GlobalModalManager.js
+auth.js
+mevcut hamburger menu sistemi
+mevcut endpoint yapısı
+mevcut responsive yapı
+```
+
+### Temel mantık
+
+```text
+Başvurular
+   ↓
+Filtrele
+   ↓
+Başvuru Kartları
+   ↓
+Detayları Gör
+   ↓
+Global Modal
+```
+
+Tasarım mevcut Fitness Pro arayüzünün bir parçası gibi görünmeli; ayrı bir uygulama veya farklı bir tema hissi oluşturmamalıdır.
