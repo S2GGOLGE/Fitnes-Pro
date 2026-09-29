@@ -1,7 +1,347 @@
-Kalan 5 Hata
-Arkadaşlık isteklerinin görünmemesi
-Bildirim boş durumunun center alignment'ı
-Gereksiz BTN'lerin silinmesi
-Log pagination
-Mail kod 2 kere gonderebilme
-Profil Resmi sil btn css yok
+# FITNESS PRO – UI/UX DÜZELTME LİSTESİ
+
+Aşağıdaki maddeler mevcut Fitness Pro frontend yapısı üzerinde uygulanacaktır.
+
+**ÖNEMLİ KAPSAM SINIRI**
+
+Bu görevde öncelik **UI/UX ve mevcut frontend davranışlarının düzeltilmesidir.**
+
+* Mevcut tasarım sistemi korunacak.
+* Gereksiz yeni sayfa oluşturulmayacak.
+* Mevcut çalışan özellikler bozulmayacak.
+* Hamburger menü ve ortak UI yapıları diğer sayfalarla uyumlu kalacak.
+* Backend mimarisi değiştirilmemeli.
+* API endpointleri değiştirilmemeli.
+* Veritabanı yapısına dokunulmamalı.
+* Yeni bir framework veya UI kütüphanesi eklenmemeli.
+* Mevcut `DesignSystem.css` ve `GlobalModalManager.js` yapısı kullanılmalı.
+* Emoji yerine mevcut projedeki SVG/Lucide ikon yaklaşımı kullanılmalı.
+* Responsive yapı korunmalı.
+
+---
+
+# 1. Profile.html – Profil Resmi Sil Butonu
+
+**Referans:** `1.png`
+
+### Mevcut sorun
+
+Profile.html içerisinde profil resmi silme işlemi mevcut ancak **"Profil Resmini Sil" butonunun CSS/stili eksik veya diğer butonlarla uyumsuz.**
+
+Buton işlevsel olsa bile görsel olarak sayfanın geri kalan tasarımından kopuk duruyor.
+
+### Yapılacaklar
+
+Profil resmi silme butonunun CSS'i oluşturulmalı veya mevcut CSS düzeltilmeli.
+
+Buton:
+
+* Profile sayfasının mevcut tasarımına uyumlu olmalı.
+* Dark green tema korunmalı.
+* `DesignSystem.css` renkleri kullanılmalı.
+* Normal durumda net şekilde görünmeli.
+* Hover durumunda görsel geri bildirim vermeli.
+* Active/click durumunda uygun feedback vermeli.
+* Disabled durumunda gerekiyorsa görsel olarak pasif görünmeli.
+* Mobil görünümde taşma yapmamalı.
+* Profil resmi alanındaki diğer kontrollerle hizalı olmalı.
+
+### Görsel yaklaşım
+
+Silme işlemi olduğu için butonun **destructive action** olduğu kullanıcı tarafından anlaşılmalı.
+
+Ancak tasarım sisteminin genel görünümünü bozacak aşırı kırmızı/uyarı tasarımı kullanılmamalı.
+
+Mevcut modal sistemi kullanılıyorsa silme işleminde mevcut `GlobalModalManager.js` kullanılmalı.
+
+**Yeni modal sistemi oluşturma.**
+
+---
+
+# 2. Progress.html – Vücut Değişim CSS Eksikliği
+
+**Referans:** `2.png`
+
+### Mevcut sorun
+
+Progress.html içerisinde **"Vücut Değişim"** bölümü bulunuyor ancak bu alanın CSS'i eksik veya yeterince tanımlanmamış.
+
+Bu nedenle bölüm diğer Progress bileşenlerine göre ham/uyumsuz görünüyor.
+
+### Yapılacaklar
+
+Vücut Değişim bölümüne eksik CSS hazırlanmalı.
+
+Aşağıdaki yapı görsel olarak tutarlı hale getirilmeli:
+
+* Bölüm başlığı
+* Açıklama/metin alanı
+* Önceki ölçüm
+* Güncel ölçüm
+* Değişim miktarı
+* Değişim yüzdesi varsa yüzdelik gösterim
+* İlerleme göstergeleri
+* Vücut değişim kartları
+* Responsive düzen
+
+### Tasarım
+
+Progress sayfasının mevcut tasarımıyla aynı görsel dil kullanılmalı.
+
+Renkler:
+
+```text
+Background: #0B0F0D
+Surface:    #121815
+Card:       #18201B
+Primary:    #22C55E
+Hover:      #16A34A
+Text:       #F5F7F6
+Muted:      #A7B0AA
+Border:     #29332D
+```
+
+Kartlar ve alanlar birbirinden yeterli spacing ile ayrılmalı.
+
+Mobil görünümde:
+
+```text
+Desktop:
+[ Ölçüm ] [ Değişim ] [ İlerleme ]
+
+Mobile:
+[ Ölçüm ]
+[ Değişim ]
+[ İlerleme ]
+```
+
+gibi düzen bozulmadan alt alta geçebilmeli.
+
+### Önemli
+
+Burada yeni veri hesaplama sistemi oluşturma.
+
+Mevcut HTML/JS verisi neyse onun üzerinden sadece **UI/CSS düzenlemesi** yap.
+
+---
+
+# 3. Ayarlar.html – "Mesaj İsteklerim" Bölümü Kaldırılacak
+
+**Referans:** `3.png`
+
+### Mevcut sorun
+
+Ayarlar.html içerisinde **"Mesaj İsteklerim"** adlı bölüm bulunuyor.
+
+Bu bölüm artık kullanılmayacağı için tamamen kaldırılmalı.
+
+### Yapılacaklar
+
+Aşağıdakilerin tamamı kaldırılmalı:
+
+* "Mesaj İsteklerim" başlığı
+* İlgili açıklama
+* İlgili buton
+* İlgili ikon
+* İlgili container/card
+* Bu bölüme özel event listener
+* Kullanılmayan JS fonksiyonları
+* Bu bölüme özel CSS
+
+Ancak dikkat:
+
+**Genel mesajlaşma sistemi silinmeyecek.**
+
+Sadece Ayarlar.html içerisindeki **"Mesaj İsteklerim" ayar bölümü** kaldırılacak.
+
+Mesajlar.html ve mesajlaşma sistemi etkilenmemeli.
+
+---
+
+# 4. Mail – Aynı Mailin 2 Kere Gönderilmesi
+
+### Mevcut sorun
+
+Aynı işlem sırasında sistemin aynı e-postayı **iki kez gönderebilmesi** ihtimali var.
+
+Özellikle butona hızlı şekilde iki kez basılması veya aynı event'in birden fazla kez bağlanması kontrol edilmeli.
+
+### Kontrol edilmesi gerekenler
+
+Öncelikle frontend tarafında:
+
+* Aynı event listener iki kez bağlanıyor mu?
+* Sayfa tekrar initialize olduğunda listener tekrar ekleniyor mu?
+* Butona hızlı şekilde çift tıklanabiliyor mu?
+* Gönderim sırasında buton disabled oluyor mu?
+* Aynı fonksiyon birden fazla kez çağrılıyor mu?
+
+### UI davranışı
+
+Mail gönderimi başladığında:
+
+```text
+Gönder
+↓
+Gönderiliyor...
+```
+
+Buton geçici olarak disabled olmalı.
+
+İşlem tamamlandığında tekrar aktif hale getirilmeli.
+
+Kullanıcıya loading durumu gösterilmeli.
+
+### Önemli
+
+Burada **backend mail servisinin mantığı değiştirilmemeli**.
+
+Önce frontend tarafında duplicate gönderim ihtimali kontrol edilmeli.
+
+Eğer mevcut kodda aynı event'in iki kez bağlandığı görülürse sebep düzeltilmeli.
+
+---
+
+# 5. Bildirim.html – Güneş İkonu ve Buton Kaldırılacak
+
+**Referans:** `4.png`
+
+### Mevcut sorun
+
+Bildirim.html içerisinde bildirim butonunun yanında bulunan **güneş (sun) ikonu ve buna ait buton** artık kullanılmayacak.
+
+### Yapılacaklar
+
+Aşağıdaki UI tamamen kaldırılmalı:
+
+* Güneş ikonu
+* Güneş ikonunu taşıyan button
+* İlgili tooltip
+* İlgili event listener
+* İlgili JavaScript fonksiyonu
+* Kullanılmayan CSS
+* Varsa HTML'deki ilgili container
+
+### Önemli
+
+Bu işlem sadece güneş ikonuna ait kontrolü kaldırmalı.
+
+Bildirim sistemi çalışmaya devam etmeli.
+
+Bildirim listesi:
+
+```text
+Bildirimler
+──────────────
+[ Bildirim ]
+[ Bildirim ]
+[ Bildirim ]
+```
+
+şeklinde temiz kalmalı.
+
+Header spacing'i, ikon kaldırıldıktan sonra bozulmamalı.
+
+Header'da boşluk kalıyorsa ilgili flex/grid yapısı düzeltilmeli.
+
+---
+
+# 6. Haritalar.html – "Konum İzni Tekrar İste" Butonu Çalışmıyor
+
+**Referans:** `5.png`
+
+### Mevcut sorun
+
+Haritalar.html içerisinde:
+
+**"Konum İzni Tekrar İste"**
+
+butonu bulunuyor ancak butona basıldığında konum izin süreci düzgün şekilde tekrar başlamıyor.
+
+### Yapılacaklar
+
+Buton gerçekten çalışır hale getirilmeli.
+
+Mevcut tarayıcı Geolocation API kullanılmalı:
+
+```javascript
+navigator.geolocation
+```
+
+### Beklenen davranış
+
+Kullanıcı butona bastığında:
+
+```text
+Konum İzni Tekrar İste
+        ↓
+Tarayıcı konum izni kontrolü
+        ↓
+Konum alınabiliyorsa
+        ↓
+Kullanıcının konumu haritada güncellenir
+```
+
+Başarılı durumda:
+
+* Kullanıcının konum marker'ı güncellenmeli.
+* Harita kullanıcının konumuna odaklanabilmeli.
+* Konum durumu UI'da güncellenmeli.
+* "Konum izni gerekli" mesajı kaldırılmalı.
+
+### İzin reddedilmişse
+
+Kullanıcı daha önce konum iznini reddettiyse tarayıcı bazı durumlarda tekrar native izin popup'ı göstermeyebilir.
+
+Bu durumda kullanıcıya açık bir mesaj gösterilmeli:
+
+```text
+Konum izni tarayıcı ayarlarından engellenmiş.
+Lütfen tarayıcı site ayarlarından konum iznini açın.
+```
+
+Ardından tekrar deneme yapılabilmeli.
+
+### Buton durumu
+
+İşlem sırasında:
+
+```text
+Konum alınıyor...
+```
+
+gibi loading durumu gösterilebilir.
+
+İşlem bittikten sonra:
+
+```text
+Konum İzni Tekrar İste
+```
+
+haline dönmeli.
+
+### Hata durumları
+
+Şu durumlar kullanıcıya anlaşılır şekilde gösterilmeli:
+
+* Permission denied
+* Position unavailable
+* Timeout
+* Geolocation desteklenmiyor
+
+Örneğin:
+
+```text
+Konum alınamadı.
+Lütfen konum izinlerinizi kontrol edip tekrar deneyin.
+```
+
+### Önemli
+
+Bu aşamada Haritalar sayfasının mevcut frontend yapısı korunmalı.
+
+Yeni backend endpointi oluşturma.
+
+Backend'e konum gönderme sistemi ekleme.
+
+Sadece mevcut **browser Geolocation API + mevcut harita UI** üzerinden problemi düzelt.
