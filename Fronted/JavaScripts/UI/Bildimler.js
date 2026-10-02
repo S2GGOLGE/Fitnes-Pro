@@ -32,7 +32,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const searchInput = document.getElementById("searchInput");
     const markAllBtn = document.getElementById("markAllBtn");
-    const themeBtn = document.getElementById("themeBtn");
 
     // Filtre butonları (.filter class'ı HTML ile eşleşir)
     const filterButtons = document.querySelectorAll(".filter");
@@ -179,17 +178,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             checkEmpty();
-        });
-    }
-
-
-    /* =========================================================
-       TEMA
-       ========================================================= */
-
-    if (themeBtn) {
-        themeBtn.addEventListener("click", () => {
-            document.body.classList.toggle("light-theme");
         });
     }
 

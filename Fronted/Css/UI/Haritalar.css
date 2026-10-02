@@ -1461,3 +1461,34 @@ a {
         font-size: 12px;
     }
 }
+
+
+/* ==========================================
+   KONUM BUTONU LOADING STATE
+   ========================================== */
+
+.btn-location-action:disabled,
+.btn-location-action.is-loading,
+.btn-banner-retry:disabled,
+.btn-banner-retry.is-loading {
+    opacity: 0.65;
+    cursor: not-allowed;
+    pointer-events: none;
+    transform: none;
+}
+
+.btn-location-action.is-loading::before,
+.btn-banner-retry.is-loading::before {
+    content: "";
+    width: 12px;
+    height: 12px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: locationSpinner 0.8s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes locationSpinner {
+    to { transform: rotate(360deg); }
+}

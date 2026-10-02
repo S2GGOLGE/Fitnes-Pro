@@ -748,7 +748,7 @@
 }
 
 /* ==========================================
-   BEFORE / AFTER
+   BEFORE / AFTER (VÜCUT DEĞİŞİM)
    ========================================== */
 
 .before-after-section {
@@ -764,12 +764,13 @@
     font-size: 20px;
     font-weight: 700;
     letter-spacing: -0.4px;
+    color: #F5F7F6;
 }
 
 .ba-header p {
     margin-top: 4px;
     font-size: 12.5px;
-    color: var(--text-muted);
+    color: #A7B0AA;
 }
 
 .ba-grid {
@@ -794,16 +795,21 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    background: var(--card);
-    border: 1.5px dashed var(--border);
+    background: #18201B;
+    border: 1.5px dashed #29332D;
     border-radius: var(--radius-lg);
-    color: var(--text-muted);
+    color: #A7B0AA;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
     transition: all var(--transition);
     position: relative;
     overflow: hidden;
+}
+
+.ba-photo-placeholder:has(.ba-photo-preview:not([hidden])) {
+    border-style: solid;
+    border-color: #29332D;
 }
 
 .ba-photo-input {
@@ -828,11 +834,14 @@
 }
 
 .ba-photo-preview {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
-    border-radius: var(--radius-lg);
+    z-index: 1;
 }
 
 .ba-photo-placeholder:has(.ba-photo-preview:not([hidden])) .ba-photo-empty {
@@ -840,24 +849,24 @@
 }
 
 .ba-photo-placeholder:hover {
-    border-color: var(--primary);
-    background: rgba(34,197,94,0.03);
-    color: var(--text-secondary);
+    border-color: #22C55E;
+    background: rgba(34,197,94,0.08);
+    color: #F5F7F6;
 }
 
 .ba-photo-placeholder.current-placeholder {
-    border-color: var(--primary-border);
-    background: rgba(34,197,94,0.04);
+    border-color: rgba(34,197,94,0.4);
+    background: rgba(34,197,94,0.1);
 }
 
 .ba-icon {
-    color: var(--text-muted);
+    color: #A7B0AA;
     opacity: 0.6;
 }
 
 .ba-photo-placeholder small {
     font-size: 10.5px;
-    color: var(--text-muted);
+    color: #A7B0AA;
     font-weight: 400;
 }
 
@@ -871,21 +880,21 @@
     padding: 4px 10px;
     border-radius: var(--radius-sm);
     background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border);
+    border: 1px solid #29332D;
     font-size: 11px;
     font-weight: 700;
-    color: var(--text-secondary);
+    color: #A7B0AA;
 }
 
 .ba-tag.current-tag {
-    background: var(--primary-subtle);
-    color: var(--primary);
-    border-color: var(--primary-border);
+    background: rgba(34,197,94,0.15);
+    color: #22C55E;
+    border-color: rgba(34,197,94,0.4);
 }
 
 .ba-date {
     font-size: 11.5px;
-    color: var(--text-muted);
+    color: #A7B0AA;
 }
 
 .ba-separator {
@@ -898,7 +907,7 @@
 
 .ba-arrow {
     font-size: 28px;
-    color: var(--primary);
+    color: #22C55E;
     font-weight: 800;
     opacity: 0.8;
 }

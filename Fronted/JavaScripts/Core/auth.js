@@ -183,6 +183,73 @@
             }
         },
 
+        confirmLogout() {
+            if (window.GlobalModal?.isOpen && window.GlobalModal.isOpen()) {
+                return;
+            }
+
+            const performLogout = () => {
+                this.logout(true);
+            };
+
+            if (window.GlobalModal && typeof window.GlobalModal.confirm === "function") {
+                window.GlobalModal.confirm({
+                    title: "Çıkış Yap",
+                    description: "Oturumunuz sonlandırılacak. Devam etmek istiyor musunuz?",
+                    buttons: [
+                        {
+                            text: "İptal",
+                            variant: "secondary"
+                        },
+                        {
+                            text: "Çıkış Yap",
+                            variant: "danger",
+                            callback: () => performLogout()
+                        }
+                    ]
+                });
+                return;
+            }
+
+            this._renderFallbackLogoutModal(performLogout);
+        },
+
+        _renderFallbackLogoutModal(onConfirm) {
+            const existing = document.getElementById("fallbackLogoutModal");
+            if (existing) existing.remove();
+
+            const backdrop = document.createElement("div");
+            backdrop.id = "fallbackLogoutModal";
+            backdrop.style.cssText =
+                "position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(4px);padding:16px;";
+
+            const box = document.createElement("div");
+            box.style.cssText =
+                "background:#1e293b;color:#f8fafc;border-radius:12px;max-width:400px;width:100%;padding:24px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.5);font-family:inherit;border:1px solid rgba(255,255,255,0.1);";
+
+            box.innerHTML = `
+                <h3 style="margin:0 0 8px 0;font-size:1.25rem;font-weight:600;">Çıkış Yap</h3>
+                <p style="margin:0 0 24px 0;font-size:0.95rem;color:#94a3b8;line-height:1.5;">Oturumunuz sonlandırılacak. Devam etmek istiyor musunuz?</p>
+                <div style="display:flex;justify-content:flex-end;gap:12px;">
+                    <button type="button" id="fallbackLogoutCancel" style="padding:10px 18px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:#f8fafc;cursor:pointer;font-weight:500;">İptal</button>
+                    <button type="button" id="fallbackLogoutConfirm" style="padding:10px 18px;border-radius:8px;border:none;background:#ef4444;color:#ffffff;cursor:pointer;font-weight:600;">Çıkış Yap</button>
+                </div>
+            `;
+
+            backdrop.appendChild(box);
+            document.body.appendChild(backdrop);
+
+            const close = () => backdrop.remove();
+            backdrop.querySelector("#fallbackLogoutCancel").addEventListener("click", close);
+            backdrop.querySelector("#fallbackLogoutConfirm").addEventListener("click", () => {
+                close();
+                onConfirm();
+            });
+            backdrop.addEventListener("click", (e) => {
+                if (e.target === backdrop) close();
+            });
+        },
+
         // =====================================================
         // AUTH ROUTE GUARD
         // =====================================================
@@ -421,15 +488,7 @@
                         "click",
                         event => {
                             event.preventDefault();
-
-                            const confirmed =
-                                confirm(
-                                    "Çıkış yapmak istediğinize emin misiniz?"
-                                );
-
-                            if (confirmed) {
-                                Auth.logout(true);
-                            }
+                            Auth.confirmLogout();
                         }
                     );
                 }
@@ -591,6 +650,8 @@
     // =========================================================
 
     const initializeAuthUI = async () => {
+        Auth.bindLogoutButtons();
+
         if (!Auth.isAuthenticated()) {
             Auth.clearAdmin();
             Auth.applyAdminVisibility();

@@ -633,23 +633,64 @@
     // =========================================================
     // 7. TARAYICI KONUMU İSTEĞİ (navigator.geolocation)
     // =========================================================
+    let locationRequestInProgress = false;
+    const LOCATION_MIN_LOADING_MS = 600;
+
+    function setLocationButtonsLoading(loading) {
+        [btnRequestLocationHeader, btnBannerRetry].forEach(btn => {
+            if (!btn) return;
+            btn.disabled = loading;
+            btn.classList.toggle('is-loading', loading);
+        });
+        if (btnLocationText) {
+            btnLocationText.textContent = loading ? "Konum alınıyor..." : "Konum İzni Tekrar İste";
+        }
+    }
+
     function requestUserLocation(showBannerOnSuccess = true) {
         if (!navigator.geolocation) {
             handleLocationError({ code: 0, message: "Tarayıcınız konum servisini desteklemiyor." });
             return;
         }
 
-        if (btnLocationText) btnLocationText.textContent = "Konum Alınıyor...";
+        // Çift tıklama koruması
+        if (locationRequestInProgress) {
+            console.log("[Haritalar] Konum isteği zaten devam ediyor, yoksayıldı.");
+            return;
+        }
+        locationRequestInProgress = true;
+
+        // Loading state göster
+        setLocationButtonsLoading(true);
+
+        // Banner'ı gizle
+        if (locationBanner) {
+            locationBanner.style.display = 'none';
+        }
+
+        console.log("[Haritalar] Konum izni isteniyor...");
+        const startedAt = Date.now();
+
+        const finishWith = (cb) => {
+            const elapsed = Date.now() - startedAt;
+            const wait = Math.max(0, LOCATION_MIN_LOADING_MS - elapsed);
+            setTimeout(() => {
+                cb();
+                locationRequestInProgress = false;
+                setLocationButtonsLoading(false);
+            }, wait);
+        };
 
         navigator.geolocation.getCurrentPosition(
-            (pos) => handleLocationSuccess(pos, showBannerOnSuccess),
-            (err) => handleLocationError(err),
-            { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+            (pos) => finishWith(() => handleLocationSuccess(pos, showBannerOnSuccess)),
+            (err) => finishWith(() => handleLocationError(err)),
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
     }
 
     function handleLocationSuccess(pos, showFeedback) {
-        if (btnLocationText) btnLocationText.textContent = "Konumumu Güncelle";
+        // Buton metnini geri al
+        if (btnLocationText) btnLocationText.textContent = "Konum İzni Tekrar İste";
 
         userLocation = {
             lat: Number(pos.coords.latitude.toFixed(6)),
@@ -657,6 +698,7 @@
             isCustom: true
         };
 
+        // Banner'ı gizle
         if (locationBanner) {
             locationBanner.classList.remove('location-banner--denied');
             locationBanner.style.display = 'none';
@@ -665,12 +707,14 @@
         // Mock kullanıcıları yeni koordinata göre tekrar hizala
         loadMockUsers();
 
+        // Haritayı güncelle
         if (isLeafletReady && mapInstance) {
             renderUserLocationMarker();
             renderUserMarkers();
             centerOnUser();
         }
 
+        // Başarı bildirimi
         if (showFeedback && window.GlobalModal && typeof window.GlobalModal.alert === 'function') {
             window.GlobalModal.alert({
                 type: 'success',
@@ -681,20 +725,31 @@
     }
 
     function handleLocationError(err) {
-        if (btnLocationText) btnLocationText.textContent = "Konumumu Bul";
+        // Buton metnini geri al
+        if (btnLocationText) btnLocationText.textContent = "Konum İzni Tekrar İste";
 
+        let message = "";
         const isDenied = err && err.code === 1;
+        const isUnavailable = err && err.code === 2;
+        const isTimeout = err && err.code === 3;
 
-        let message = "Konumun alınamadı. Konum iznini kontrol ederek tekrar deneyebilirsin.";
         if (isDenied) {
-            message = "Konum izni reddedildi. Yakınınızdaki kişileri görmek için tarayıcı konum iznini açabilir ve aşağıdaki \"Tekrar Dene\" butonunu kullanabilirsiniz.";
+            message = "Konum izni tarayıcı ayarlarından engellenmiş. Lütfen tarayıcı site ayarlarından konum iznini açın.";
+        } else if (isUnavailable) {
+            message = "Konum bilgisi alınamadı. Lütfen konum izinlerinizi kontrol edip tekrar deneyin.";
+        } else if (isTimeout) {
+            message = "Konum alımı zaman aşımına uğradı. Lütfen tekrar deneyin.";
+        } else if (err && err.code === 0) {
+            message = "Tarayıcınız konum servisini desteklemiyor.";
+        } else {
+            message = "Konum alınamadı. Lütfen konum izinlerinizi kontrol edip tekrar deneyin.";
         }
 
+        // Banner'ı göster
         if (locationBanner && locationBannerText) {
             locationBannerText.textContent = message;
             locationBanner.style.display = 'flex';
             if (isDenied) {
-                // Banner'ı zorla yeniden animate et
                 locationBanner.classList.remove('location-banner--denied');
                 void locationBanner.offsetWidth;
                 locationBanner.classList.add('location-banner--denied');

@@ -16,7 +16,46 @@
     const password = () => `${header('GÜVENLİK', 'Şifre güncelle', 'Güçlü ve yalnızca senin kullandığın bir şifre seç.')}<article class="card form-card"><div class="card-heading"><div><span class="card-kicker">ŞİFRE</span><h2>Yeni şifre oluştur</h2><p>Değişiklik sonrası uygulama tercihlerin korunur.</p></div></div><form id="passwordForm"><label class="form-group"><span>Mevcut şifre</span><input class="form-input" type="password" autocomplete="current-password" placeholder="Mevcut şifrenizi giriniz" required></label><label class="form-group"><span>Yeni şifre</span><input class="form-input" type="password" autocomplete="new-password" placeholder="Yeni şifrenizi giriniz" required></label><label class="form-group"><span>Yeni şifre tekrarı</span><input class="form-input" type="password" autocomplete="new-password" placeholder="Yeni şifrenizi tekrar giriniz" required></label><div class="form-actions"><button class="button button-primary" type="submit">Şifreyi Güncelle</button></div></form></article>`;
     const subscriptions = () => `${header('ABONELİK', 'Aboneliklerim', 'Planının ve üyeliğinin ayrıntılarını görüntüle.')}<article class="card"><div class="list-container">${listItem('◆', 'Fitness Pro Premium', 'Aylık Premium üyelik', status('Aktif'), { detailType: 'subscription', detailId: 'SUB-PREMIUM', detailTitle: 'Fitness Pro Premium', detailDate: '01.09.2026', detailStatus: 'Aktif', detailStatusType: 'success' })}${listItem('◷', 'Üyelik başlangıcı', '01.09.2026', status('Aktif'), { detailType: 'subscription', detailId: 'SUB-START', detailTitle: 'Üyelik başlangıcı', detailDate: '01.09.2026', detailStatus: 'Aktif', detailStatusType: 'success' })}</div></article>`;
     const coaches = () => `${header('EKİBİM', 'Hocalarım', 'Bağlı olduğun antrenörlere hızlıca ulaş.')}<article class="card"><div class="list-container">${listItem('CN', 'Coach Name', 'Fitness antrenörü', '<button class="button button-secondary" type="button">Profili Gör</button>')}${listItem('CS', 'Coach Surname', 'Personal trainer', '<button class="button button-secondary" type="button">Profili Gör</button>')}</div></article>`;
-    const messages = () => `${header('MESAJLAR', 'Mesaj isteklerim', 'Sana ulaşmak isteyen üyelerin isteklerini yönet.')}<article class="card"><div class="request-list"><div class="request-item"><div class="request-meta">${avatar('NS')}<div><h3>Name Surname</h3><time datetime="2026-09-02">02.09.2026</time></div></div><p>Size mesaj göndermek istiyor.</p><button class="button button-primary" type="button">Kabul Et</button></div><div class="request-item"><div class="request-meta">${avatar('UE')}<div><h3>User Example</h3><time datetime="2026-09-01">01.09.2026</time></div></div><p>Yeni bir mesaj isteği gönderdi.</p><button class="button button-primary" type="button">Kabul Et</button></div></div></article>`;
+    // Message Request Preference Storage
+    const MESSAGE_REQUEST_STORAGE_KEY = "fitness_pro_message_request_pref";
+    const MESSAGE_REQUEST_DEFAULT = "everyone";
+    const MESSAGE_REQUEST_OPTIONS = [
+        { value: "everyone", title: "Herkes", description: "Sistemdeki tüm kullanıcılar sana mesaj isteği gönderebilir." },
+        { value: "friends",  title: "Sadece Arkadaşlarım", description: "Yalnızca arkadaş listenizdekiler sana mesaj isteği gönderebilir." },
+        { value: "nobody",   title: "Hiç Kimse", description: "Yeni mesaj isteği almak istemiyorsun." }
+    ];
+
+    function getMessageRequestPref() {
+        try {
+            const value = localStorage.getItem(MESSAGE_REQUEST_STORAGE_KEY);
+            if (MESSAGE_REQUEST_OPTIONS.some(o => o.value === value)) return value;
+        } catch (e) {}
+        return MESSAGE_REQUEST_DEFAULT;
+    }
+
+    function setMessageRequestPref(value) {
+        try {
+            localStorage.setItem(MESSAGE_REQUEST_STORAGE_KEY, value);
+            return true;
+        } catch (e) {
+            console.warn("Mesaj isteği tercihi kaydedilemedi:", e);
+            return false;
+        }
+    }
+
+    const messages = () => {
+        const current = getMessageRequestPref();
+        const radios = MESSAGE_REQUEST_OPTIONS.map(opt => `
+            <label class="radio-option${current === opt.value ? " is-selected" : ""}" data-radio-option="${opt.value}">
+                <input type="radio" name="messageRequestPref" value="${opt.value}"${current === opt.value ? " checked" : ""}>
+                <span class="radio-option-body">
+                    <strong class="radio-option-title">${opt.title}</strong>
+                    <span class="radio-option-desc">${opt.description}</span>
+                </span>
+            </label>
+        `).join("");
+        return `${header('MESAJLAR', 'Mesaj İstekleri', 'Kimlerin sana mesaj isteği gönderebileceğini seç.')}<article class="card"><form class="radio-option-group" id="messageRequestForm" autocomplete="off">${radios}</form></article>`;
+    };
     const views = { account, password, subscriptions, coaches, messages };
     const closeSidebar = () => { sidebar.classList.remove('is-open'); document.body.classList.remove('sidebar-is-open'); toggle?.setAttribute('aria-expanded', 'false'); };
     function showToast(message, type) {
@@ -160,6 +199,27 @@
             submitButton.textContent = 'Kaydedildi';
             submitButton.disabled = true;
         });
+
+        // Mesaj isteği tercihi (Herkes / Sadece Arkadaşlarım / Hiç Kimse)
+        const messageRequestForm = document.getElementById('messageRequestForm');
+        if (messageRequestForm) {
+            messageRequestForm.addEventListener('change', (event) => {
+                const target = event.target;
+                if (!target || target.name !== 'messageRequestPref') return;
+                const value = target.value;
+                const saved = setMessageRequestPref(value);
+                document.querySelectorAll('[data-radio-option]').forEach(opt => {
+                    opt.classList.toggle('is-selected', opt.dataset.radioOption === value);
+                });
+                const selectedOption = MESSAGE_REQUEST_OPTIONS.find(o => o.value === value);
+                const optionTitle = selectedOption ? selectedOption.title : value;
+                if (saved) {
+                    showToast('Mesaj isteği tercihi "' + optionTitle + '" olarak güncellendi.', 'success');
+                } else {
+                    showToast('Tercih kaydedilemedi.', 'error');
+                }
+            });
+        }
 
         // Başvuru / Abonelik list item tıklamaları için detay modalı.
         document.querySelectorAll('.list-item[data-detail-type]').forEach(item => {

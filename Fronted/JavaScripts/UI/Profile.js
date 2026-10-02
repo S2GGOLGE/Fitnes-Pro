@@ -341,18 +341,37 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
-            const confirmed = confirm("Çıkış yapmak istediğinize emin misiniz?");
-            if (!confirmed) return;
-            showToast("Çıkış yapılıyor...");
-            setTimeout(() => {
+    if (logoutBtn && !logoutBtn.dataset.authBound) {
+        logoutBtn.dataset.authBound = "true";
+        logoutBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            if (window.Auth && typeof window.Auth.confirmLogout === "function") {
+                window.Auth.confirmLogout();
+                return;
+            }
+
+            const performLogout = () => {
                 if (window.Auth) {
                     window.Auth.logout(true);
                 } else {
                     window.location.href = "Login.html";
                 }
-            }, 500);
+            };
+
+            if (window.GlobalModal && typeof window.GlobalModal.confirm === "function") {
+                window.GlobalModal.confirm({
+                    title: "Çıkış Yap",
+                    description: "Oturumunuz sonlandırılacak. Devam etmek istiyor musunuz?",
+                    buttons: [
+                        { text: "İptal", variant: "secondary" },
+                        {
+                            text: "Çıkış Yap",
+                            variant: "danger",
+                            callback: () => performLogout()
+                        }
+                    ]
+                });
+            }
         });
     }
 
@@ -632,14 +651,41 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (btnRemovePhoto) {
-        btnRemovePhoto.addEventListener("click", async () => {
-            const confirmed = confirm("Profil fotoğrafını kaldırmak istediğinize emin misiniz?");
-            if (!confirmed) return;
+        btnRemovePhoto.addEventListener("click", () => {
+            const performDelete = async () => {
+                await ProfileAPI.deletePhoto();
+                if (avatarInput) avatarInput.value = "";
+                renderProfileHeader();
+                showToast("Profil fotoğrafı kaldırıldı.");
+            };
 
-            await ProfileAPI.deletePhoto();
-            if (avatarInput) avatarInput.value = "";
-            renderProfileHeader();
-            showToast("Profil fotoğrafı kaldırıldı.");
+            if (!window.GlobalModal || typeof window.GlobalModal.confirm !== "function") {
+                performDelete();
+                return;
+            }
+
+            window.GlobalModal.confirm({
+                title: "Profil Fotoğrafını Kaldır",
+                description: "Profil fotoğrafın kaldırılacak. Bu işlem geri alınamaz. Devam etmek istiyor musun?",
+                buttons: [
+                    { text: "İptal", variant: "secondary" },
+                    {
+                        text: "Kaldır",
+                        variant: "danger",
+                        callback: async ({ setLoading }) => {
+                            setLoading(true);
+                            try {
+                                await performDelete();
+                            } catch (err) {
+                                showToast("Fotoğraf kaldırılamadı.", "error");
+                                throw err;
+                            } finally {
+                                setLoading(false);
+                            }
+                        }
+                    }
+                ]
+            });
         });
     }
 

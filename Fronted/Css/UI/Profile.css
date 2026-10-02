@@ -202,15 +202,55 @@
 .btn-avatar-action {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    transition: color var(--transition);
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    background: var(--card);
+    border: 1px solid var(--border);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    transition: background var(--transition),
+                border-color var(--transition),
+                color var(--transition),
+                transform var(--transition);
     cursor: pointer;
+    user-select: none;
 }
 
 .btn-avatar-action:hover {
+    background: var(--accent-red-subtle);
+    border-color: var(--accent-red);
     color: var(--accent-red);
+    transform: translateY(-1px);
+}
+
+.btn-avatar-action:active {
+    transform: translateY(0);
+}
+
+.btn-avatar-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-avatar-action svg {
+    width: 13px;
+    height: 13px;
+    stroke-width: 2;
+    flex-shrink: 0;
+}
+
+.avatar-quick-actions {
+    display: none;
+    margin-top: 10px;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.avatar-quick-actions.show {
+    display: flex;
 }
 
 /* User Details */

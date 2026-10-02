@@ -315,14 +315,38 @@ document.addEventListener("DOMContentLoaded", () => {
         if (window.innerWidth > 800) closeMobileSidebar();
     });
 
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
-            if (confirm("Çıkış yapmak istediğinize emin misiniz?")) {
+    if (logoutBtn && !logoutBtn.dataset.authBound) {
+        logoutBtn.dataset.authBound = "true";
+        logoutBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            if (window.Auth && typeof window.Auth.confirmLogout === "function") {
+                window.Auth.confirmLogout();
+                return;
+            }
+
+            const performLogout = () => {
                 if (window.Auth) {
                     window.Auth.logout(true);
                 } else {
+                    localStorage.removeItem("fitness_pro_token");
+                    localStorage.removeItem("fitness_pro_user");
                     window.location.href = "Login.html";
                 }
+            };
+
+            if (window.GlobalModal && typeof window.GlobalModal.confirm === "function") {
+                window.GlobalModal.confirm({
+                    title: "Çıkış Yap",
+                    description: "Oturumunuz sonlandırılacak. Devam etmek istiyor musunuz?",
+                    buttons: [
+                        { text: "İptal", variant: "secondary" },
+                        {
+                            text: "Çıkış Yap",
+                            variant: "danger",
+                            callback: () => performLogout()
+                        }
+                    ]
+                });
             }
         });
     }
