@@ -74,6 +74,8 @@ namespace Apı.Helpers
 
                 // ADIM 17: MessageRequests tablosu
                 await EnsureMessageRequestsTableAsync(connection);
+                // ADIM 18: Messages tablosu
+                await EnsureMessagesTableAsync(connection);
             }
         }
 
@@ -1438,7 +1440,307 @@ namespace Apı.Helpers
 
             await command.ExecuteNonQueryAsync();
         }
+        private static async Task EnsureMessagesTableAsync(SqlConnection connection)
+        {
+            // -------------------------------------------------------------
+            // 1) TABLO YOKSA TAM ŞEMA İLE OLUŞTUR
+            // -------------------------------------------------------------
+            if (!await TableExistsAsync(connection, "Messages"))
+            {
+                const string createSql = """
+                CREATE TABLE [dbo].[Messages]
+                (
+                    [Id]
+                        INT IDENTITY(1,1) NOT NULL,
 
+                    [SenderId]
+                        INT NOT NULL,
+
+                    [ReceiverId]
+                        INT NOT NULL,
+
+                    [Content]
+                        NVARCHAR(MAX) NOT NULL,
+
+                    [MessageType]
+                        NVARCHAR(20) NOT NULL
+                        CONSTRAINT [DF_Messages_MessageType]
+                        DEFAULT N'Text',
+
+                    [IsRead]
+                        BIT NOT NULL
+                        CONSTRAINT [DF_Messages_IsRead]
+                        DEFAULT 0,
+
+                    [ReadAt]
+                        DATETIME2 NULL,
+
+                    [IsDeleted]
+                        BIT NOT NULL
+                        CONSTRAINT [DF_Messages_IsDeleted]
+                        DEFAULT 0,
+
+                    [DeletedAt]
+                        DATETIME2 NULL,
+
+                    [CreatedAt]
+                        DATETIME2 NOT NULL
+                        CONSTRAINT [DF_Messages_CreatedAt]
+                        DEFAULT GETUTCDATE(),
+
+                    CONSTRAINT [PK_Messages]
+                        PRIMARY KEY CLUSTERED ([Id] ASC),
+
+                    CONSTRAINT [FK_Messages_Sender_Users]
+                        FOREIGN KEY ([SenderId])
+                        REFERENCES [dbo].[Users]([Id])
+                        ON DELETE NO ACTION,
+
+                    CONSTRAINT [FK_Messages_Receiver_Users]
+                        FOREIGN KEY ([ReceiverId])
+                        REFERENCES [dbo].[Users]([Id])
+                        ON DELETE NO ACTION,
+
+                    CONSTRAINT [CK_Messages_NoSelfMessage]
+                        CHECK ([SenderId] <> [ReceiverId]),
+
+                    CONSTRAINT [CK_Messages_MessageType]
+                        CHECK
+                        (
+                            [MessageType] IN
+                            (
+                                N'Text',
+                                N'Image',
+                                N'File',
+                                N'System'
+                            )
+                        )
+                );
+
+                CREATE INDEX [IX_Messages_SenderId]
+                    ON [dbo].[Messages] ([SenderId]);
+
+                CREATE INDEX [IX_Messages_ReceiverId]
+                    ON [dbo].[Messages] ([ReceiverId]);
+
+                CREATE INDEX [IX_Messages_ReceiverId_IsRead]
+                    ON [dbo].[Messages]
+                    ([ReceiverId], [IsRead]);
+
+                CREATE INDEX [IX_Messages_CreatedAt]
+                    ON [dbo].[Messages] ([CreatedAt]);
+                """;
+                using var command = new SqlCommand(createSql, connection);
+                await command.ExecuteNonQueryAsync();
+                return;
+            }
+
+            // -------------------------------------------------------------
+            // 2) TABLO VARSA EKSİK KOLONLARI EKLE (idempotent migration)
+            // -------------------------------------------------------------
+
+            // MessageType
+            if (!await ColumnExistsAsync(
+                connection, "Messages", "MessageType"))
+            {
+                const string addSql = """
+                    ALTER TABLE [dbo].[Messages]
+                    ADD [MessageType]
+                        NVARCHAR(20) NOT NULL
+                        CONSTRAINT [DF_Messages_MessageType]
+                        DEFAULT N'Text';
+                    """;
+                using var cmd = new SqlCommand(addSql, connection);
+                await cmd.ExecuteNonQueryAsync();
+
+                if (!await CheckConstraintExistsAsync(
+                    connection, "Messages", "CK_Messages_MessageType"))
+                {
+                    const string addCkSql = """
+                        ALTER TABLE [dbo].[Messages]
+                        ADD CONSTRAINT [CK_Messages_MessageType]
+                        CHECK
+                        (
+                            [MessageType] IN
+                            (
+                                N'Text',
+                                N'Image',
+                                N'File',
+                                N'System'
+                            )
+                        );
+                        """;
+                    using var ckCmd = new SqlCommand(addCkSql, connection);
+                    await ckCmd.ExecuteNonQueryAsync();
+                }
+            }
+
+            // ReadAt
+            if (!await ColumnExistsAsync(
+                connection, "Messages", "ReadAt"))
+            {
+                const string addSql = """
+                    ALTER TABLE [dbo].[Messages]
+                    ADD [ReadAt] DATETIME2 NULL;
+                    """;
+                using var cmd = new SqlCommand(addSql, connection);
+                await cmd.ExecuteNonQueryAsync();
+            }
+
+            // IsDeleted
+            if (!await ColumnExistsAsync(
+                connection, "Messages", "IsDeleted"))
+            {
+                const string addSql = """
+                    ALTER TABLE [dbo].[Messages]
+                    ADD [IsDeleted]
+                        BIT NOT NULL
+                        CONSTRAINT [DF_Messages_IsDeleted]
+                        DEFAULT 0;
+                    """;
+                using var cmd = new SqlCommand(addSql, connection);
+                await cmd.ExecuteNonQueryAsync();
+            }
+
+            // DeletedAt
+            if (!await ColumnExistsAsync(
+                connection, "Messages", "DeletedAt"))
+            {
+                const string addSql = """
+                    ALTER TABLE [dbo].[Messages]
+                    ADD [DeletedAt] DATETIME2 NULL;
+                    """;
+                using var cmd = new SqlCommand(addSql, connection);
+                await cmd.ExecuteNonQueryAsync();
+            }
+
+            // -------------------------------------------------------------
+            // 3) CHECK CONSTRAINT: NoSelfMessage
+            // -------------------------------------------------------------
+            if (!await CheckConstraintExistsAsync(
+                connection, "Messages", "CK_Messages_NoSelfMessage"))
+            {
+                const string addCkSql = """
+                    ALTER TABLE [dbo].[Messages]
+                    ADD CONSTRAINT [CK_Messages_NoSelfMessage]
+                    CHECK ([SenderId] <> [ReceiverId]);
+                    """;
+                using var cmd = new SqlCommand(addCkSql, connection);
+                await cmd.ExecuteNonQueryAsync();
+            }
+
+            // -------------------------------------------------------------
+            // 4) FK İSİMLERİNİ STANDARDİZE ET
+            //    Eski isimler: FK_Messages_Sender / FK_Messages_Receiver
+            //    Yeni isimler: FK_Messages_Sender_Users / FK_Messages_Receiver_Users
+            // -------------------------------------------------------------
+            if (await ForeignKeyExistsAsync(
+                connection, "Messages", "FK_Messages_Sender"))
+            {
+                // Önce eski constraint'in var olup olmadığını doğrula
+                const string dropAndRecreateSql = """
+                    ALTER TABLE [dbo].[Messages]
+                    DROP CONSTRAINT [FK_Messages_Sender];
+
+                    ALTER TABLE [dbo].[Messages]
+                    ADD CONSTRAINT [FK_Messages_Sender_Users]
+                        FOREIGN KEY ([SenderId])
+                        REFERENCES [dbo].[Users]([Id])
+                        ON DELETE NO ACTION;
+                    """;
+                using var cmd = new SqlCommand(dropAndRecreateSql, connection);
+                await cmd.ExecuteNonQueryAsync();
+            }
+
+            if (await ForeignKeyExistsAsync(
+                connection, "Messages", "FK_Messages_Receiver"))
+            {
+                const string dropAndRecreateSql = """
+                    ALTER TABLE [dbo].[Messages]
+                    DROP CONSTRAINT [FK_Messages_Receiver];
+
+                    ALTER TABLE [dbo].[Messages]
+                    ADD CONSTRAINT [FK_Messages_Receiver_Users]
+                        FOREIGN KEY ([ReceiverId])
+                        REFERENCES [dbo].[Users]([Id])
+                        ON DELETE NO ACTION;
+                    """;
+                using var cmd = new SqlCommand(dropAndRecreateSql, connection);
+                await cmd.ExecuteNonQueryAsync();
+            }
+
+            // -------------------------------------------------------------
+            // 5) PERFORMANS INDEXLERİ
+            // -------------------------------------------------------------
+            if (!await UniqueConstraintOrIndexExistsAsync(
+                connection, "Messages", "IX_Messages_SenderId"))
+            {
+                const string createIndexSql = """
+                    CREATE INDEX [IX_Messages_SenderId]
+                        ON [dbo].[Messages] ([SenderId]);
+                    """;
+                using var cmd = new SqlCommand(createIndexSql, connection);
+                await cmd.ExecuteNonQueryAsync();
+            }
+
+            if (!await UniqueConstraintOrIndexExistsAsync(
+                connection, "Messages", "IX_Messages_ReceiverId"))
+            {
+                const string createIndexSql = """
+                    CREATE INDEX [IX_Messages_ReceiverId]
+                        ON [dbo].[Messages] ([ReceiverId]);
+                    """;
+                using var cmd = new SqlCommand(createIndexSql, connection);
+                await cmd.ExecuteNonQueryAsync();
+            }
+
+            if (!await UniqueConstraintOrIndexExistsAsync(
+                connection, "Messages", "IX_Messages_ReceiverId_IsRead"))
+            {
+                const string createIndexSql = """
+                    CREATE INDEX [IX_Messages_ReceiverId_IsRead]
+                        ON [dbo].[Messages]
+                        ([ReceiverId], [IsRead]);
+                    """;
+                using var cmd = new SqlCommand(createIndexSql, connection);
+                await cmd.ExecuteNonQueryAsync();
+            }
+
+            if (!await UniqueConstraintOrIndexExistsAsync(
+                connection, "Messages", "IX_Messages_CreatedAt"))
+            {
+                const string createIndexSql = """
+                    CREATE INDEX [IX_Messages_CreatedAt]
+                        ON [dbo].[Messages] ([CreatedAt]);
+                    """;
+                using var cmd = new SqlCommand(createIndexSql, connection);
+                await cmd.ExecuteNonQueryAsync();
+            }
+        }
+
+        // -------------------------------------------------------------------
+        // CHECK CONSTRAINT VARLIK KONTROLÜ (yardımcı)
+        // -------------------------------------------------------------------
+        private static async Task<bool> CheckConstraintExistsAsync(
+            SqlConnection connection,
+            string tableName,
+            string constraintName)
+        {
+            const string sql = """
+                SELECT COUNT(*)
+                FROM sys.check_constraints cc
+                JOIN sys.tables t
+                    ON cc.parent_object_id = t.object_id
+                WHERE t.name = @tableName
+                  AND t.schema_id = SCHEMA_ID('dbo')
+                  AND cc.name = @name;
+                """;
+            using var command = new SqlCommand(sql, connection);
+            command.Parameters.AddWithValue("@tableName", tableName);
+            command.Parameters.AddWithValue("@name", constraintName);
+            var result = await command.ExecuteScalarAsync();
+            return result is int count && count > 0;
+        }
         // -------------------------------------------------------------------
         // YARDIMCI METOTLAR
         // -------------------------------------------------------------------
@@ -1576,27 +1878,40 @@ namespace Apı.Helpers
 
         private static async Task<bool> ForeignKeyExistsAsync(
             SqlConnection connection,
+            string tableName,
             string foreignKeyName)
         {
             const string sql = """
                 SELECT COUNT(*)
-                FROM sys.foreign_keys
-                WHERE name = @fkName
-                  AND parent_object_id =
-                      OBJECT_ID(N'dbo.Roles');
+                FROM sys.foreign_keys fk
+                JOIN sys.tables t
+                    ON fk.parent_object_id = t.object_id
+                WHERE fk.name = @fkName
+                  AND t.schema_id = SCHEMA_ID('dbo')
+                  AND t.name = @tableName;
                 """;
 
             using var command =
                 new SqlCommand(sql, connection);
 
-            command.Parameters.AddWithValue(
-                "@fkName",
-                foreignKeyName);
+            command.Parameters.AddWithValue("@tableName", tableName);
+            command.Parameters.AddWithValue("@fkName", foreignKeyName);
 
             var result =
                 await command.ExecuteScalarAsync();
 
             return result is int count && count > 0;
+        }
+
+        // Eski çağrılar için geriye dönük uyumluluk (Roles tablosu)
+        private static async Task<bool> ForeignKeyExistsAsync(
+            SqlConnection connection,
+            string foreignKeyName)
+        {
+            return await ForeignKeyExistsAsync(
+                connection,
+                "Roles",
+                foreignKeyName);
         }
 
         // -------------------------------------------------------------------

@@ -1,8 +1,7 @@
 namespace Apı.Service;
 
-using Apı.Dtos;
 using Microsoft.Data.SqlClient;
-public partial class MessageRequestService:IMessageRequestService
+public partial class MessageRequestService : IMessageRequestService
 {
     public async Task<bool> UpdatePrivacySettingsAsync(int UserId, string permison)
     {
