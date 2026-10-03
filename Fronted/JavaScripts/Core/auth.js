@@ -475,6 +475,14 @@
                 }
             });
 
+            this.bindLogoutButtons();
+        },
+
+        // =====================================================
+        // LOGOUT BUTTON BINDING
+        // =====================================================
+
+        bindLogoutButtons() {
             const logoutButtons =
                 document.querySelectorAll(
                     "#logoutBtn, .logout-btn"

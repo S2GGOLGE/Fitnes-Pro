@@ -17,15 +17,21 @@
     const subscriptions = () => `${header('ABONELİK', 'Aboneliklerim', 'Planının ve üyeliğinin ayrıntılarını görüntüle.')}<article class="card"><div class="list-container">${listItem('◆', 'Fitness Pro Premium', 'Aylık Premium üyelik', status('Aktif'), { detailType: 'subscription', detailId: 'SUB-PREMIUM', detailTitle: 'Fitness Pro Premium', detailDate: '01.09.2026', detailStatus: 'Aktif', detailStatusType: 'success' })}${listItem('◷', 'Üyelik başlangıcı', '01.09.2026', status('Aktif'), { detailType: 'subscription', detailId: 'SUB-START', detailTitle: 'Üyelik başlangıcı', detailDate: '01.09.2026', detailStatus: 'Aktif', detailStatusType: 'success' })}</div></article>`;
     const coaches = () => `${header('EKİBİM', 'Hocalarım', 'Bağlı olduğun antrenörlere hızlıca ulaş.')}<article class="card"><div class="list-container">${listItem('CN', 'Coach Name', 'Fitness antrenörü', '<button class="button button-secondary" type="button">Profili Gör</button>')}${listItem('CS', 'Coach Surname', 'Personal trainer', '<button class="button button-secondary" type="button">Profili Gör</button>')}</div></article>`;
     // Message Request Preference Storage
+    // Backend değerleri: "Everyone", "FriendsOnly", "Nobody"
+    // UI  etiketleri:  "everyone", "friends",     "nobody"
     const MESSAGE_REQUEST_STORAGE_KEY = "fitness_pro_message_request_pref";
     const MESSAGE_REQUEST_DEFAULT = "everyone";
     const MESSAGE_REQUEST_OPTIONS = [
-        { value: "everyone", title: "Herkes", description: "Sistemdeki tüm kullanıcılar sana mesaj isteği gönderebilir." },
-        { value: "friends",  title: "Sadece Arkadaşlarım", description: "Yalnızca arkadaş listenizdekiler sana mesaj isteği gönderebilir." },
-        { value: "nobody",   title: "Hiç Kimse", description: "Yeni mesaj isteği almak istemiyorsun." }
+        { value: "everyone", apiValue: "Everyone",   title: "Herkes",            description: "Sistemdeki tüm kullanıcılar sana mesaj isteği gönderebilir." },
+        { value: "friends",  apiValue: "FriendsOnly", title: "Sadece Arkadaşlarım", description: "Yalnızca arkadaş listenizdekiler sana mesaj isteği gönderebilir." },
+        { value: "nobody",   apiValue: "Nobody",      title: "Hiç Kimse",         description: "Yeni mesaj isteği almak istemiyorsun." }
     ];
 
-    function getMessageRequestPref() {
+    // UI'da aktif olarak görünen değer (state). API'den veya localStorage fallback'ten dolar.
+    let messageRequestPref = MESSAGE_REQUEST_DEFAULT;
+    let messageRequestPrefLoaded = false;
+
+    function readCachedMessageRequestPref() {
         try {
             const value = localStorage.getItem(MESSAGE_REQUEST_STORAGE_KEY);
             if (MESSAGE_REQUEST_OPTIONS.some(o => o.value === value)) return value;
@@ -33,18 +39,75 @@
         return MESSAGE_REQUEST_DEFAULT;
     }
 
-    function setMessageRequestPref(value) {
+    function writeCachedMessageRequestPref(value) {
         try {
             localStorage.setItem(MESSAGE_REQUEST_STORAGE_KEY, value);
             return true;
         } catch (e) {
-            console.warn("Mesaj isteği tercihi kaydedilemedi:", e);
+            return false;
+        }
+    }
+
+    function apiValueForUi(uiValue) {
+        const opt = MESSAGE_REQUEST_OPTIONS.find(o => o.value === uiValue);
+        return opt ? opt.apiValue : uiValue;
+    }
+
+    function uiValueForApi(apiValue) {
+        const opt = MESSAGE_REQUEST_OPTIONS.find(o => o.apiValue === apiValue);
+        return opt ? opt.value : MESSAGE_REQUEST_DEFAULT;
+    }
+
+    async function loadMessageRequestPref() {
+        // İlk render için cached değeri kullan (kullanıcı daha önce kaydetmiş olabilir)
+        messageRequestPref = readCachedMessageRequestPref();
+
+        if (!window.PrivacyAPI) return;
+
+        try {
+            const response = await window.PrivacyAPI.getMySettings();
+            if (response && response.success && response.data && typeof response.data.messageRequestPermission === "string") {
+                const ui = uiValueForApi(response.data.messageRequestPermission);
+                if (MESSAGE_REQUEST_OPTIONS.some(o => o.value === ui)) {
+                    messageRequestPref = ui;
+                    writeCachedMessageRequestPref(ui);
+                }
+            }
+        } catch (e) {
+            console.warn("[Setting] Privacy ayarı alınamadı:", e);
+        } finally {
+            messageRequestPrefLoaded = true;
+            if (currentView === "messages") {
+                loadView("messages");
+            }
+        }
+    }
+
+    async function saveMessageRequestPref(value) {
+        if (!MESSAGE_REQUEST_OPTIONS.some(o => o.value === value)) return false;
+
+        if (!window.PrivacyAPI) {
+            // API yoksa yalnızca cache'e yaz
+            return writeCachedMessageRequestPref(value);
+        }
+
+        try {
+            const response = await window.PrivacyAPI.updateMySettings(apiValueForUi(value));
+            if (response && response.success) {
+                writeCachedMessageRequestPref(value);
+                return true;
+            }
+            showToast((response && response.message) || "Gizlilik ayarı kaydedilemedi.", "error");
+            return false;
+        } catch (e) {
+            console.warn("[Setting] Privacy ayarı kaydedilemedi:", e);
+            showToast("Gizlilik ayarı kaydedilemedi. Lütfen tekrar deneyin.", "error");
             return false;
         }
     }
 
     const messages = () => {
-        const current = getMessageRequestPref();
+        const current = messageRequestPref;
         const radios = MESSAGE_REQUEST_OPTIONS.map(opt => `
             <label class="radio-option${current === opt.value ? " is-selected" : ""}" data-radio-option="${opt.value}">
                 <input type="radio" name="messageRequestPref" value="${opt.value}"${current === opt.value ? " checked" : ""}>
@@ -207,17 +270,30 @@
                 const target = event.target;
                 if (!target || target.name !== 'messageRequestPref') return;
                 const value = target.value;
-                const saved = setMessageRequestPref(value);
+                if (!MESSAGE_REQUEST_OPTIONS.some(o => o.value === value)) return;
+
+                const previousValue = messageRequestPref;
+                // Optimistik UI güncellemesi
+                messageRequestPref = value;
                 document.querySelectorAll('[data-radio-option]').forEach(opt => {
                     opt.classList.toggle('is-selected', opt.dataset.radioOption === value);
                 });
                 const selectedOption = MESSAGE_REQUEST_OPTIONS.find(o => o.value === value);
                 const optionTitle = selectedOption ? selectedOption.title : value;
-                if (saved) {
-                    showToast('Mesaj isteği tercihi "' + optionTitle + '" olarak güncellendi.', 'success');
-                } else {
-                    showToast('Tercih kaydedilemedi.', 'error');
-                }
+
+                saveMessageRequestPref(value).then(saved => {
+                    if (saved) {
+                        showToast('Mesaj isteği tercihi "' + optionTitle + '" olarak güncellendi.', 'success');
+                    } else {
+                        // Geri al
+                        messageRequestPref = previousValue;
+                        document.querySelectorAll('[data-radio-option]').forEach(opt => {
+                            opt.classList.toggle('is-selected', opt.dataset.radioOption === previousValue);
+                        });
+                        const radio = document.querySelector(`input[name="messageRequestPref"][value="${CSS.escape(previousValue)}"]`);
+                        if (radio) radio.checked = true;
+                    }
+                });
             });
         }
 
@@ -351,4 +427,5 @@
     document.addEventListener('keydown', event => { if (event.key === 'Escape') closeSidebar(); });
     loadView('account');
     fetchInitialTwoFactorStatus();
+    loadMessageRequestPref();
 })();

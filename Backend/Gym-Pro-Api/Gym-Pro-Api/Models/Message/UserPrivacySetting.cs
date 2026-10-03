@@ -7,8 +7,10 @@ namespace Apı.Model
     {
         [Key]
         public int UserId { get; set; }
+
         [MaxLength(20)]
-        public string MessageRequestPermission { get; set; } = "MessageRequestPermission";
-        public DateTime UpdateAt { get; set; }
+        public string MessageRequestPermission { get; set; } = "Everyone";
+
+        public DateTime UpdatedAt { get; set; }
     }
 }

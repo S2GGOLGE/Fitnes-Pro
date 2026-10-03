@@ -103,6 +103,14 @@ builder.Services.AddScoped<ITwoFactorSettingsService, TwoFactorSettingsService>(
 
 builder.Services.AddScoped<FriendService>(sp =>
     new FriendService(defaultConnection));
+
+// =========================================================
+// MESSAGE REQUEST SERVICE
+// =========================================================
+
+builder.Services.AddScoped<IMessageRequestService>(sp =>
+    new MessageRequestService(
+        sp.GetRequiredService<IConfiguration>()));
 #endregion
 
 #region JWT Authentication

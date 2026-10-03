@@ -1,6 +1,6 @@
 namespace Apı.Dtos;
 
-public class SendRequestDto
+public class SendMessageRequestDto
 {
-    public int ReceiverdId { get; set; }
+    public int ReceiverId { get; set; }
 }
