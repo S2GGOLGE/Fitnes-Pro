@@ -111,6 +111,10 @@ builder.Services.AddScoped<FriendService>(sp =>
 builder.Services.AddScoped<IMessageRequestService>(sp =>
     new MessageRequestService(
         sp.GetRequiredService<IConfiguration>()));
+// =========================================================
+// MESSAGE SERVICE
+// =========================================================
+builder.Services.AddScoped<IMessageService, MessageService>();
 #endregion
 
 #region JWT Authentication

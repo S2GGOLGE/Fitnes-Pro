@@ -8,9 +8,15 @@
  *   - Kabul / Reddet / iptal  : window.MessageRequestsAPI.accept|reject|cancel
  *   - Yeni istek gönder       : window.MessageRequestsAPI.sendRequest
  *
- * Sohbet (chat) ekranı placeholder: backend'de chat/messaging endpoint'i
- * henüz implemente edilmedi. "Sohbet" sekmesi placeholder gösterir;
- * kabul edilen istekler için sonraki sürümde sohbet açılacak.
+ * Sohbet (chat) ekranı:
+ *   - Kabul edilen kişiler    : window.MessageRequestsAPI.getAcceptedContacts
+ *   - Konuşma geçmişi         : window.MessagesAPI.getConversation
+ *     (GET /api/messages/{otherUserId})
+ *   - Mesaj gönderme / okundu işaretleme / silme endpoint'leri
+ *     backend'de henüz hazır/çalışır durumda olmadığı için sadece
+ *     sohbet okuma (konuşma geçmişi) gerçek API ile çalışır.
+ *     Gönderme butonu placeholder mesajı gösterir; silme işlemi
+ *     sadece lokal state'ten kaldırır.
  *
  * Yeni mesaj isteği gönderirken alıcı seçimi:
  *   - window.FriendsAPI.getFriends() ile arkadaş listesi çekilir
@@ -42,7 +48,14 @@
         activeChatFilter: "incoming", // "incoming" | "outgoing"
 
         // Sohbetler listesi
-        chats: []
+        chats: [],
+
+        // Sohbet (konuşma) yükleme durumu
+        // partnerId -> { status: "idle"|"loading"|"ready"|"error", error?: string }
+        chatConversations: {},
+
+        // Mesaj gönderme kilidi (çift tıklama / hızlı submit koruması)
+        sendingMessage: false
     };
 
     // -----------------------------------------------------------
@@ -1029,6 +1042,8 @@
             dom.activeChatStatusText.textContent = activeChat.online ? "Çevrimiçi" : "Çevrimdışı";
         }
 
+        // Aktif sohbet için konuşma geçmişini arka planda yükle
+        loadConversation(activeChat);
         renderMessages(activeChat);
         renderSidebarNav();
     }
@@ -1036,6 +1051,47 @@
     function renderMessages(chat) {
         if (!dom.chatMessagesArea) return;
         dom.chatMessagesArea.innerHTML = "";
+
+        const conv = chat && chat.partnerId
+            ? state.chatConversations[chat.partnerId]
+            : null;
+
+        // Yükleme durumu
+        if (conv && conv.status === "loading") {
+            dom.chatMessagesArea.innerHTML = `
+                <div class="msg-empty-state" style="padding: 40px 16px;">
+                    <div class="msg-empty-icon"><i data-lucide="loader"></i></div>
+                    <h3>Konuşma Yükleniyor</h3>
+                    <p>Mesaj geçmişi getiriliyor, lütfen bekleyin.</p>
+                </div>
+            `;
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
+        // Hata durumu — boş-sohbet gibi gösterilmez
+        if (conv && conv.status === "error") {
+            dom.chatMessagesArea.innerHTML = `
+                <div class="msg-empty-state" style="padding: 40px 16px;">
+                    <div class="msg-empty-icon"><i data-lucide="alert-triangle"></i></div>
+                    <h3>Konuşma Yüklenemedi</h3>
+                    <p>${escapeHtml(conv.error || "Mesaj geçmişi alınırken bir hata oluştu.")}</p>
+                    <button type="button" class="msg-send-btn msg-compose-btn" style="margin-top:16px;" id="chatRetryBtn">
+                        <i data-lucide="refresh-ccw"></i>
+                        <span>Tekrar Dene</span>
+                    </button>
+                </div>
+            `;
+            const retryBtn = document.getElementById("chatRetryBtn");
+            if (retryBtn) {
+                retryBtn.addEventListener("click", () => {
+                    delete state.chatConversations[chat.partnerId];
+                    loadConversation(chat);
+                });
+            }
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
 
         if (!chat.messages || chat.messages.length === 0) {
             dom.chatMessagesArea.innerHTML = `
@@ -1056,7 +1112,7 @@
             group.innerHTML = `
                 <div class="msg-bubble-wrapper">
                     <div class="msg-bubble">${escapeHtml(msg.text)}</div>
-                    <button type="button" class="msg-bubble-delete-btn" data-msg-id="${msg.id}" title="Bu Mesajı Sil">
+                    <button type="button" class="msg-bubble-delete-btn" data-msg-id="${escapeHtml(String(msg.id))}" title="Bu Mesajı Sil">
                         <i data-lucide="trash-2"></i>
                     </button>
                 </div>
@@ -1075,6 +1131,143 @@
 
         if (window.lucide) lucide.createIcons();
         scrollToBottom();
+    }
+
+    /**
+     * Backend'den iki kullanıcı arasındaki konuşma geçmişini çeker.
+     * Yalnızca GET /api/messages/{otherUserId} entegrasyonu:
+     *   - Sonuç başarılıysa sohbetin messages dizisi API'den dönen
+     *     mesajlarla doldurulur (tarihe göre zaten sıralı gelir).
+     *   - Hata durumunda kullanıcıya hata mesajı gösterilir; UI
+     *     boş-sohbet mesajı gibi gösterilmez.
+     *   - Yükleme sırasında loading durumu gösterilir.
+     */
+    async function loadConversation(chat) {
+        if (!chat || !chat.partnerId) {
+            return;
+        }
+
+        const partnerId = chat.partnerId;
+
+        // Eğer bu sohbet zaten yükleniyorsa yeniden çağırma
+        const existing = state.chatConversations[partnerId];
+        if (existing && existing.status === "loading") {
+            return;
+        }
+
+        state.chatConversations[partnerId] = {
+            status: "loading",
+            error: null
+        };
+
+        // Eğer aktif sohbet buysa, yükleme durumunu göster
+        const isActive = state.activeChatPartnerId === chat.id;
+        if (isActive) {
+            renderMessages(chat);
+        }
+
+        if (!window.MessagesAPI) {
+            state.chatConversations[partnerId] = {
+                status: "error",
+                error: "Mesaj servisi şu anda kullanılamıyor."
+            };
+            if (isActive) renderMessages(chat);
+            return;
+        }
+
+        try {
+            const result = await window.MessagesAPI.getConversation(partnerId);
+            if (result && result.success && Array.isArray(result.data)) {
+                const messages = result.data
+                    .map(normalizeConversationMessage.bind(null, chat))
+                    .filter(Boolean);
+                chat.messages = messages;
+                chat.lastTime = computeLastTime(messages);
+                state.chatConversations[partnerId] = {
+                    status: "ready",
+                    error: null
+                };
+            } else if (result && result.data === null && result.success) {
+                // Başarılı ancak mesaj yok
+                chat.messages = [];
+                chat.lastTime = "";
+                state.chatConversations[partnerId] = {
+                    status: "ready",
+                    error: null
+                };
+            } else {
+                state.chatConversations[partnerId] = {
+                    status: "error",
+                    error: (result && result.message) || "Konuşma geçmişi yüklenemedi."
+                };
+            }
+        } catch (error) {
+            console.error("[Mesajlar] getConversation error:", error);
+            state.chatConversations[partnerId] = {
+                status: "error",
+                error: "Beklenmeyen bir hata oluştu."
+            };
+        }
+
+        // Hâlâ aktif sohbet buysa UI'ı yenile
+        if (state.activeChatPartnerId === chat.id) {
+            renderMessages(chat);
+            renderSidebarNav();
+        }
+    }
+
+    /**
+     * Backend mesaj nesnesini frontend'in mesaj modeline dönüştürür.
+     * Backend alanları: Id, SenderId, ReceiverId, Content, MessageType,
+     * IsRead, ReadAt, CreatedAt.
+     */
+    function normalizeConversationMessage(chat, item) {
+        if (!item) return null;
+        const senderId = item.SenderId ?? item.senderId;
+        const currentUserId = state.currentUser?.userId;
+
+        // Mevcut kullanıcının kimliği JWT'den gelir; kullanıcı
+        // girişiyle veya sahte ID ile frontend tarafından üretilmez.
+        let isOutgoing;
+        if (currentUserId !== undefined && currentUserId !== null) {
+            const parsed = Number(currentUserId);
+            isOutgoing = Number.isFinite(parsed) && Number(senderId) === parsed;
+        } else {
+            // Auth bilgisi yoksa varsayılan: alıcı taraf mesajları incoming
+            isOutgoing = false;
+        }
+
+        const createdAt = item.CreatedAt ?? item.createdAt;
+        return {
+            id: item.Id ?? item.id,
+            text: item.Content ?? item.content ?? "",
+            sender: isOutgoing ? "outgoing" : "incoming",
+            time: formatTimeShort(createdAt),
+            createdAt,
+            read: !!(item.IsRead ?? item.isRead)
+        };
+    }
+
+    function computeLastTime(messages) {
+        if (!Array.isArray(messages) || messages.length === 0) return "";
+        const last = messages[messages.length - 1];
+        return last && last.time ? last.time : "";
+    }
+
+    function formatTimeShort(value) {
+        if (!value) return "";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return "";
+        try {
+            return date.toLocaleString("tr-TR", {
+                day: "2-digit",
+                month: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+        } catch {
+            return date.toLocaleString();
+        }
     }
 
     function deleteSingleMessage(chat, msgId) {
@@ -1101,10 +1294,82 @@
             return;
         }
 
-        // Backend gerçek mesajlaşma servisi hazırlandığında doğrudan API çağrısı yapılacaktır.
-        // Frontend tek taraflı sahte mesaj veya yapay yanıt üretmez.
-        showToast("Mesaj servisi henüz aktif bir sohbet bağlantısı içermemektedir.", "info");
+        if (!activeChat.partnerId) {
+            showToast("Bu sohbete mesaj gönderilemiyor (alıcı kimliği eksik).", "error");
+            return;
+        }
+
+        if (!window.MessagesAPI || typeof window.MessagesAPI.sendMessage !== "function") {
+            showToast("Mesaj servisi şu anda kullanılamıyor.", "error");
+            return;
+        }
+
+        // Çift tıklama / hızlı gönderim koruması
+        if (state.sendingMessage) {
+            return;
+        }
+        state.sendingMessage = true;
+
+        const submitBtn = dom.chatForm?.querySelector("button[type='submit']");
+        if (submitBtn) submitBtn.disabled = true;
+
+        const tempText = text;
         if (dom.chatInputText) dom.chatInputText.value = "";
+
+        showToast("Mesaj gönderiliyor...", "info");
+
+        window.MessagesAPI.sendMessage({
+            receiverId: activeChat.partnerId,
+            messageType: "Text",
+            content: tempText
+        })
+            .then(result => {
+                if (result && result.success && result.data) {
+                    // Backend'in döndürdüğü mesajı konuşmaya ekle.
+                    // (Başarılı yanıt gelmeden UI'a ekleme YAPILMAZ.)
+                    const newMessage = normalizeConversationMessage(
+                        activeChat,
+                        {
+                            Id: result.data.messageId,
+                            SenderId: result.data.senderId,
+                            ReceiverId: result.data.receiverId,
+                            Content: result.data.content,
+                            MessageType: result.data.messageType,
+                            IsRead: false,
+                            CreatedAt: result.data.createdAt
+                        }
+                    );
+
+                    if (newMessage) {
+                        if (!Array.isArray(activeChat.messages)) {
+                            activeChat.messages = [];
+                        }
+                        activeChat.messages.push(newMessage);
+                        activeChat.lastTime = newMessage.time || "";
+                        renderMessages(activeChat);
+                        renderSidebarNav();
+                        scrollToBottom();
+                    }
+                    showToast("Mesaj gönderildi.", "success");
+                } else {
+                    // Hata durumunda input içeriğini geri yükle
+                    if (dom.chatInputText) dom.chatInputText.value = tempText;
+                    const msg = (result && result.message) || "Mesaj gönderilemedi.";
+                    showToast(msg, "error");
+                }
+            })
+            .catch(err => {
+                console.error("[Mesajlar] sendMessage error:", err);
+                if (dom.chatInputText) dom.chatInputText.value = tempText;
+                showToast(
+                    "Mesaj gönderilirken beklenmeyen bir hata oluştu.",
+                    "error"
+                );
+            })
+            .finally(() => {
+                state.sendingMessage = false;
+                if (submitBtn) submitBtn.disabled = false;
+            });
     }
 
     function toggleChatDropdown(e) {
