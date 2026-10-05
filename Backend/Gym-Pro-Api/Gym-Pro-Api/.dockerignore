@@ -1,0 +1,12 @@
+@"
+bin/
+obj/
+.vs/
+.git/
+.gitignore
+*.user
+*.suo
+*.log
+Dockerfile
+docker-compose.yml
+"@ | Set-Content .dockerignore

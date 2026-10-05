@@ -1,0 +1,31 @@
+services:
+  fitnesspro-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: fitnesspro-db
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+    ports:
+      - "1433:1433"
+    volumes:
+      - fitnesspro-sql-data:/var/opt/mssql
+    restart: unless-stopped
+
+  fitness-pro-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fitness-pro-api
+    depends_on:
+      - fitnesspro-db
+    ports:
+      - "8081:8080"
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: ${DEFAULT_CONNECTION}
+      Jwt__Key: ${JWT_KEY}
+      Smtp__Password: ${SMTP_PASSWORD}
+    restart: unless-stopped
+
+volumes:
+  fitnesspro-sql-data:
