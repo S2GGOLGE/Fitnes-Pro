@@ -24,6 +24,7 @@ services:
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__DefaultConnection: ${DEFAULT_CONNECTION}
       Jwt__Key: ${JWT_KEY}
+      Smtp__Username: ${SMTP_USERNAME}
       Smtp__Password: ${SMTP_PASSWORD}
     restart: unless-stopped
 
