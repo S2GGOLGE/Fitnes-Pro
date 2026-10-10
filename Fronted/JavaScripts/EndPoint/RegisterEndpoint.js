@@ -108,14 +108,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (response.ok && result && result.success) {
                 // Success Handling
-                const successMsg = result.message || "Kayıt başarılı! Giriş sayfasına yönlendiriliyorsunuz...";
+                const successMsg = result.message || "Kayıt başarılı! Konum belirleme adımına yönlendiriliyorsunuz...";
                 showAlert(successMsg, "success");
+
+                // Kayıt olan kullanıcı bilgilerini kayıt sonrası adımlar (Harita & E-posta Doğrulama) için sakla
+                try {
+                    sessionStorage.setItem("fitnesspro_register_user", JSON.stringify({
+                        email: email,
+                        username: username,
+                        level: level,
+                        name: name,
+                        surname: surname
+                    }));
+                } catch (e) {
+                    console.warn("Session saklama hatası:", e);
+                }
+
                 registerForm.reset();
 
-                // Redirect to Login Page
+                // Kayıt Sonrası Harita ve Konum Belirleme Sayfasına Yönlendir
                 setTimeout(() => {
-                    window.location.href = "Login.html";
-                }, 1500);
+                    window.location.href = "KonumBelirleme.html";
+                }, 1200);
             } else {
                 // Error Handling (Backend ApiResponseModel or HTTP Status errors)
                 let errorMsg = "Kayıt işlemi sırasında bir hata oluştu.";

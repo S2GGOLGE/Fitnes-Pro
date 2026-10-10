@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Fitness Pro - Kayıt Sonrası Konum Belirleme">
+    <meta name="theme-color" content="#0B0F0D">
+
+    <title>Fitness Pro | Konum Belirleme</title>
+
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+    <!-- Fitness Pro Design System & Page Styles -->
+    <link rel="stylesheet" href="../Css/Core/DesignSystem.css">
+    <link rel="stylesheet" href="../Css/UI/KonumBelirleme.css">
+    <script src="../JavaScripts/config.js"></script>
+</head>
+
+<body>
+
+    <!-- ==================== TOP BAR (Matches 1.png - Top-Right Manuel Giriş) ==================== -->
+    <header class="location-page-header">
+        <div class="brand-section">
+            <div class="brand-badge">FP</div>
+            <div class="brand-title">FITNESS<span>PRO</span></div>
+        </div>
+
+        <div class="header-actions">
+            <!-- Otomatik Konum Belirleme -->
+            <button type="button" class="btn-auto-location" id="btnAutoLocation" title="GPS ile anlık konumunuzu tespit edin">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                </svg>
+                <span>Otomatik Konum Belirle</span>
+            </button>
+
+            <!-- 1.png Tasarımındaki Yeşil Manuel Giriş Butonu -->
+            <button type="button" class="btn-manual-entry" id="btnManualEntry">
+                Manuel Giriş
+            </button>
+        </div>
+    </header>
+
+    <!-- ==================== MAIN CONTENT & MAP CONTAINER ==================== -->
+    <main class="location-main-content">
+        
+        <!-- Harita Kartı (1.png Harita Alanı) -->
+        <section class="map-card-wrapper" aria-label="Harita Konum Seçimi">
+            
+            <!-- Durum Bilgi Etiketleri (Overlay) -->
+            <div class="map-status-overlay">
+                <div class="map-status-chip role-badge" id="roleBadge">
+                    Seviye: Standart
+                </div>
+                <div class="map-status-chip" id="locationAddressChip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span id="selectedAddressText">Konum Henüz Belirlenmedi</span>
+                </div>
+            </div>
+
+            <!-- İnteraktif Harita (Tasarımdaki 'Harita Apı Key' yerine canlı harita) -->
+            <div id="mapContainer"></div>
+
+            <!-- Alt Bilgi İpucu -->
+            <div class="map-click-hint">
+                Haritada istediğiniz noktaya tıklayarak veya pini sürükleyerek konumunuzu işaretleyebilirsiniz.
+            </div>
+        </section>
+
+        <!-- ==================== BOTTOM BAR (Matches 1.png - Devam Et) ==================== -->
+        <footer class="location-bottom-bar">
+            
+            <!-- Uyarı / Hata / Bilgilendirme Kutusu -->
+            <div class="location-alert-box" id="locationAlertBox" role="alert"></div>
+
+            <div class="location-actions-row">
+                <!-- 1.png Tasarımındaki Devam Et Butonu -->
+                <button type="button" class="btn-continue" id="btnContinue">
+                    Devam Et
+                </button>
+            </div>
+
+            <!-- Standart Kullanıcılar İçin Atla Seçeneği (Uzman seviyesinde gizlenir) -->
+            <button type="button" class="btn-skip-location" id="btnSkipLocation">
+                Şimdilik Konumu Atla
+            </button>
+
+        </footer>
+
+    </main>
+
+    <!-- ==================== MANUEL GİRİŞ MODAL ==================== -->
+    <div class="modal-backdrop" id="manualModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-card">
+            
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Manuel Konum Girişi</h2>
+                <button type="button" class="modal-close-btn" id="modalCloseBtn" aria-label="Kapat">&times;</button>
+            </div>
+
+            <form class="modal-form" id="manualLocationForm" onsubmit="return false;">
+                <!-- Ülke -->
+                <div class="form-group">
+                    <label for="inputCountry">Ülke</label>
+                    <input type="text" id="inputCountry" name="country" value="Türkiye" placeholder="Örn: Türkiye" required>
+                </div>
+
+                <!-- İl -->
+                <div class="form-group">
+                    <label for="inputCity">İl *</label>
+                    <input type="text" id="inputCity" name="city" placeholder="Örn: İstanbul" required>
+                </div>
+
+                <!-- İlçe -->
+                <div class="form-group">
+                    <label for="inputDistrict">İlçe</label>
+                    <input type="text" id="inputDistrict" name="district" placeholder="Örn: Kadıköy">
+                </div>
+
+                <!-- Mahalle -->
+                <div class="form-group">
+                    <label for="inputNeighborhood">Mahalle</label>
+                    <input type="text" id="inputNeighborhood" name="neighborhood" placeholder="Örn: Moda Mahallesi">
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal-cancel" id="modalCancelBtn">İptal</button>
+                    <button type="button" class="btn-modal-save" id="modalSaveBtn">Kaydet</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- Leaflet Map JS CDN -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Page Logic -->
+    <script src="../JavaScripts/UI/KonumBelirleme.js"></script>
+
+</body>
+
+</html>

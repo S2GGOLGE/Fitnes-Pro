@@ -1,0 +1,47 @@
+# Fitness Pro – Kayıt Sonrası Harita ve E-posta Doğrulama Sayfaları (Frontend)
+
+## Genel Kapsam
+
+Yalnızca mevcut `Fronted` klasörü içerisinde geliştirme yapılacaktır. Kayıt sonrası kullanılacak iki ayrı sayfa oluşturulacaktır:
+
+1. Harita ve konum belirleme sayfası.
+2. E-posta doğrulama sayfası.
+
+Mevcut tasarım dili, koyu tema, renk paleti ve frontend mimarisi korunacaktır. Mevcut Login ve Register sayfalarının tasarımları değiştirilmeyecektir. Backend, API endpoint'leri, veritabanı ve sunucu yapılandırması üzerinde herhangi bir değişiklik yapılmayacaktır.
+
+## 1. Harita ve Konum Belirleme Sayfası
+
+- Kayıt işlemi sonrasında açılacak yeni bir frontend sayfası oluşturulacaktır.
+- Tasarımdaki `Harita API Key` yazısı kaldırılacak ve ilgili alan Google Haritalar entegrasyonuna uygun hâle getirilecektir.
+- Otomatik konum belirleme seçeneği sunulacaktır.
+- Manuel giriş butonuna basıldığında bir modal açılacaktır.
+- Modal içerisinde Ülke, İl, İlçe ve Mahalle inputları bulunacaktır.
+- Modalın alt kısmında `Kaydet` butonu yer alacaktır.
+- Standart kullanıcılar konum belirleme adımını atlayabilecektir.
+- Uzman seviyesindeki kullanıcılar konum belirleme adımını atlayamayacaktır.
+- Kullanıcı arayüzü, mobil ve masaüstü ekranlara uyumlu olacaktır.
+
+## 2. E-posta Doğrulama Sayfası
+
+- Harita sayfasından sonra açılacak ayrı bir frontend sayfası oluşturulacaktır.
+- Tasarımdaki `Icon` alanına kilit ikonu yerleştirilecektir.
+- `Doğrulama Kodunuz` alanına kod giriş inputu eklenecektir.
+- E-posta gönderimi başarılı olduğunda 5 dakikalık geri sayım arayüzü gösterilecektir.
+- Sayaç `05:00` değerinden `00:00` değerine inecektir.
+- `Tekrar Gönder` butonu başlangıçta gizli olacaktır.
+- Beş dakikalık süre dolduğunda buton görünür hâle gelecektir.
+- Butona basıldığında frontend, mevcut sistemdeki e-posta gönderme işleviyle uyumlu şekilde yeni gönderim talebi oluşturacaktır.
+- Yeniden gönderim başarılı olduğunda sayaç tekrar 5 dakikadan başlayacaktır.
+- Doğrulama başarılı olduğunda kullanıcı Login ekranına yönlendirilecektir.
+
+## 3. Frontend Teknik Kuralları
+
+- Mevcut HTML, CSS ve JavaScript yapısı korunacaktır.
+- Yeni bir frontend framework'ü veya UI kütüphanesi eklenmeyecektir.
+- Mevcut koyu tema ve Fitness Pro renk paleti kullanılacaktır.
+- Modal, sayaç, buton görünürlüğü, input kontrolleri ve sayfa yönlendirmeleri frontend tarafında geliştirilecektir.
+- Kullanıcı seviyesi ve doğrulama durumuna ilişkin mevcut bilgiler, frontend'de mevcut sistemin sağladığı veriler üzerinden kullanılacaktır.
+- Backend entegrasyonu gerektiren işlemler için yeni backend kodu yazılmayacak; mevcut entegrasyon noktaları kullanılacaktır. Mevcut bir endpoint veya işlev bulunmuyorsa bu eksiklik yalnızca belirtilecek, backend tarafına müdahale edilmeyecektir.
+- Mevcut sayfalar ve çalışan işlevler korunacak; değişiklikler yalnızca gerekli frontend dosyalarıyla sınırlı tutulacaktır.
+
+**Beklenen sonuç:** Fitness Pro'nun mevcut frontend yapısına uyumlu, kayıt sonrası akışı yöneten iki ayrı sayfanın oluşturulmasıdır.
