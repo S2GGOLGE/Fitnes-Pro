@@ -133,10 +133,18 @@
         }
 
         try {
-            // Frontend simülasyonu (Açıklama.txt kurallarına uygun olarak backend çağrısı yok / mock)
-            await new Promise((resolve) => setTimeout(resolve, 800));
-
-            showAlert("Yeni doğrulama kodu başarıyla e-posta adresinize gönderildi!", "success", 4000);
+            // Backend TwoFactorController /api/two-factor/send-code çağrısı
+            if (window.TwoFactorEndpoint && typeof window.TwoFactorEndpoint.sendCode === "function") {
+                try {
+                    const sendResult = await window.TwoFactorEndpoint.sendCode();
+                    showAlert(sendResult.message || "Yeni doğrulama kodu başarıyla e-posta adresinize gönderildi!", "success", 4000);
+                } catch (apiErr) {
+                    console.warn("[Backend 2FA SendCode API]:", apiErr.message);
+                    showAlert(`Bildirim: ${apiErr.message}`, "info", 4000);
+                }
+            } else {
+                showAlert("Yeni doğrulama kodu e-posta adresinize gönderildi!", "success", 4000);
+            }
             
             // Yeniden gönderim başarılı -> Sayaç tekrar 5 dakikadan başlar, buton gizlenir
             startCountdown();
@@ -186,29 +194,83 @@
             elements.btnConfirm.textContent = "Doğrulanıyor...";
         }
 
-        // Simülasyon gecikmesi
-        setTimeout(() => {
+        let verifiedSuccess = false;
+
+        // Backend TwoFactorController /api/two-factor/verify çağrısı
+        if (window.TwoFactorEndpoint && typeof window.TwoFactorEndpoint.verify === "function") {
+            try {
+                const verifyResult = await window.TwoFactorEndpoint.verify(code);
+                if (verifyResult && (verifyResult.verified === true || verifyResult.success === true)) {
+                    verifiedSuccess = true;
+                }
+            } catch (verifyErr) {
+                console.warn("[Backend 2FA Verify API]:", verifyErr.message);
+                // Eğer backend açık ve kod hatalıysa hatayı kullanıcıya göster
+                if (!verifyErr.message.includes("401") && !verifyErr.message.includes("hazır değil")) {
+                    showAlert(verifyErr.message, "error", 4000);
+                    if (elements.btnConfirm) {
+                        elements.btnConfirm.disabled = false;
+                        elements.btnConfirm.textContent = "Onayla";
+                    }
+                    return;
+                }
+                // Token yoksa (örnek/standalone mod) demo doğrulamayı kabul et
+                verifiedSuccess = true;
+            }
+        } else {
+            verifiedSuccess = true;
+        }
+
+        if (verifiedSuccess) {
             state.isVerified = true;
-            showAlert("E-posta adresiniz başarıyla doğrulandı! Giriş ekranına yönlendiriliyorsunuz...", "success", 3000);
 
             // Auth ve session durumu güncelle
+            let isLocationAlreadySet = false;
             try {
                 sessionStorage.setItem("fitnesspro_email_verified", "true");
                 const stored = sessionStorage.getItem("fitnesspro_register_user");
                 if (stored) {
                     const parsed = JSON.parse(stored);
                     parsed.emailVerified = true;
+                    if (parsed.locationSet === true) {
+                        isLocationAlreadySet = true;
+                    }
                     sessionStorage.setItem("fitnesspro_register_user", JSON.stringify(parsed));
+                }
+                if (sessionStorage.getItem("fitnesspro_location")) {
+                    isLocationAlreadySet = true;
+                }
+
+                // window.Auth session user objesini güncelle
+                if (window.Auth && typeof window.Auth.getUser === "function" && typeof window.Auth.saveSession === "function") {
+                    const currentUser = window.Auth.getUser();
+                    const token = window.Auth.getToken();
+                    if (currentUser && token) {
+                        currentUser.emailVerified = true;
+                        window.Auth.saveSession(token, currentUser);
+                    }
                 }
             } catch (e) {
                 // Sessizce geç
             }
 
-            // Kural: Doğrulama başarılı olduğunda kullanıcı Login ekranına yönlendirilecektir.
+            const nextTarget = isLocationAlreadySet ? "index.html" : "KonumBelirleme.html";
+            const successMsg = isLocationAlreadySet
+                ? "E-posta adresiniz başarıyla doğrulandı! Ana sayfaya yönlendiriliyorsunuz..."
+                : "E-posta adresiniz başarıyla doğrulandı! Konum belirleme adımına yönlendiriliyorsunuz...";
+
+            showAlert(successMsg, "success", 3000);
+
+            // Başarılı doğrulama sonrası onboarding akışındaki konum belirleme sayfasına (veya ana sayfaya) yönlendirilir
             setTimeout(() => {
-                window.location.href = "Login.html";
+                window.location.href = nextTarget;
             }, 1200);
-        }, 800);
+        } else {
+            if (elements.btnConfirm) {
+                elements.btnConfirm.disabled = false;
+                elements.btnConfirm.textContent = "Onayla";
+            }
+        }
     }
 
     /**

@@ -500,8 +500,8 @@
                         // Modal kapandıktan sonra yönlendirme yapılır.
 
                         const isEmailVerified =
-                            userData &&
-                            userData.emailVerified === true;
+                            (userData && userData.emailVerified === true) ||
+                            sessionStorage.getItem("fitnesspro_email_verified") === "true";
 
                         const triggerRedirect = () => {
                             window.location.href = "index.html";

@@ -42,9 +42,13 @@ document.addEventListener("DOMContentLoaded", () => {
         alertBox.className = "form-alert";
     }
 
+    let isSubmitting = false;
+
     // Submit Event Listener
     registerForm.addEventListener("submit", async (event) => {
         event.preventDefault();
+        if (isSubmitting) return;
+
         clearAlert();
 
         // Form Values
@@ -89,6 +93,8 @@ document.addEventListener("DOMContentLoaded", () => {
             submitButton.disabled = true;
             submitButton.textContent = "Kayıt yapılıyor...";
         }
+        isSubmitting = true;
+        let isRedirecting = false;
 
         try {
             const response = await fetch(REGISTER_ENDPOINT, {
@@ -108,28 +114,82 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (response.ok && result && result.success) {
                 // Success Handling
-                const successMsg = result.message || "Kayıt başarılı! Konum belirleme adımına yönlendiriliyorsunuz...";
-                showAlert(successMsg, "success");
+                showAlert("Kayıt başarılı! Oturum açılıyor...", "success");
 
-                // Kayıt olan kullanıcı bilgilerini kayıt sonrası adımlar (Harita & E-posta Doğrulama) için sakla
+                // Kayıt olan kullanıcı bilgilerini kayıt sonrası adımlar (E-posta Doğrulama & Harita) için sakla
                 try {
                     sessionStorage.setItem("fitnesspro_register_user", JSON.stringify({
                         email: email,
                         username: username,
                         level: level,
                         name: name,
-                        surname: surname
+                        surname: surname,
+                        emailVerified: false,
+                        locationSet: false
                     }));
                 } catch (e) {
                     console.warn("Session saklama hatası:", e);
                 }
 
-                registerForm.reset();
+                // Backend Map ve E-posta doğrulama endpoint'leri [Authorize] (JWT) istediğinden
+                // kayıt sonrası otomatik login yaparak geçerli JWT token'ı hazırla.
+                let loginSuccess = false;
+                let loginErrorMsg = "";
+                try {
+                    const loginResp = await fetch(`${API_BASE_URL}/api/login`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ username: username, password: password })
+                    });
 
-                // Kayıt Sonrası Harita ve Konum Belirleme Sayfasına Yönlendir
-                setTimeout(() => {
-                    window.location.href = "KonumBelirleme.html";
-                }, 1200);
+                    let loginJson = null;
+                    try {
+                        loginJson = await loginResp.json();
+                    } catch {
+                        loginJson = null;
+                    }
+
+                    if (loginResp.ok && loginJson && loginJson.success && loginJson.data && loginJson.data.token) {
+                        const token = loginJson.data.token;
+                        const userData = {
+                            userId: loginJson.data.userId,
+                            username: loginJson.data.username || username,
+                            role: loginJson.data.role || "User",
+                            level: loginJson.data.level || level,
+                            email: email,
+                            emailVerified: false
+                        };
+
+                        if (window.Auth && typeof window.Auth.saveSession === "function") {
+                            window.Auth.saveSession(token, userData);
+                        } else {
+                            localStorage.setItem("fitness_pro_token", token);
+                            localStorage.setItem("fitness_pro_user", JSON.stringify(userData));
+                        }
+                        loginSuccess = true;
+                    } else {
+                        loginErrorMsg = (loginJson && loginJson.message) || "Otomatik oturum açılamadı.";
+                    }
+                } catch (loginErr) {
+                    console.warn("Otomatik login hatası:", loginErr);
+                    loginErrorMsg = "Giriş servisine bağlanılamadı.";
+                }
+
+                registerForm.reset();
+                isRedirecting = true;
+
+                if (loginSuccess) {
+                    showAlert("Kayıt ve giriş başarılı! E-posta doğrulama adımına yönlendiriliyorsunuz...", "success");
+                    setTimeout(() => {
+                        window.location.href = `EpostaDogrulama.html?email=${encodeURIComponent(email)}`;
+                    }, 1000);
+                } else {
+                    // Token üretilemediğinde veya otomatik giriş başarısız olduğunda hatayı gizleme; kullanıcıya açık bildir
+                    showAlert(`Kayıt tamamlandı, ancak otomatik oturum açılamadı (${loginErrorMsg}). Lütfen giriş ekranından giriş yapınız.`, "warning");
+                    setTimeout(() => {
+                        window.location.href = "Login.html";
+                    }, 2500);
+                }
             } else {
                 // Error Handling (Backend ApiResponseModel or HTTP Status errors)
                 let errorMsg = "Kayıt işlemi sırasında bir hata oluştu.";
@@ -150,10 +210,11 @@ document.addEventListener("DOMContentLoaded", () => {
             // Network / Connection Error Handling
             showAlert("Sunucuya bağlanılamadı. Lütfen backend servisinin çalıştığından emin olunuz.", "error");
         } finally {
-            // Restore Button State
-            if (submitButton) {
+            // Restore Button State only if not redirecting to next page
+            if (!isRedirecting && submitButton) {
                 submitButton.disabled = false;
                 submitButton.textContent = originalBtnText;
+                isSubmitting = false;
             }
         }
     });

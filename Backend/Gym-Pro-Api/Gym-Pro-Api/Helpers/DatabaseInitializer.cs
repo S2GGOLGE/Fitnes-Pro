@@ -76,6 +76,8 @@ namespace Apı.Helpers
                 await EnsureMessageRequestsTableAsync(connection);
                 // ADIM 18: Messages tablosu
                 await EnsureMessagesTableAsync(connection);
+                // ADIM 19: UserLocations tablosu
+                await EnsureUserLocationsTableAsync(connection);
             }
         }
 
@@ -1406,6 +1408,9 @@ namespace Apı.Helpers
 
             await command.ExecuteNonQueryAsync();
         }
+        // -------------------------------------------------------------------
+        // 18) Messages 
+        // -------------------------------------------------------------------
         private static async Task EnsureMessagesTableAsync(SqlConnection connection)
         {
             // -------------------------------------------------------------
@@ -1682,6 +1687,150 @@ namespace Apı.Helpers
                 using var cmd = new SqlCommand(createIndexSql, connection);
                 await cmd.ExecuteNonQueryAsync();
             }
+        }
+        // -------------------------------------------------------------------
+        // 19) USER LOCATIONS
+        // Kullanıcının ülke, il, ilçe ve mahalle bilgilerini tutar.
+        // Google Maps ve manuel giriş aynı tabloyu kullanır.
+        // -------------------------------------------------------------------
+
+        private static async Task EnsureUserLocationsTableAsync(
+            SqlConnection connection)
+        {
+            const string createSql = """
+        IF OBJECT_ID(N'dbo.UserLocations', N'U') IS NULL
+        BEGIN
+            CREATE TABLE [dbo].[UserLocations]
+            (
+                [UserId] INT NOT NULL,
+                [Country] NVARCHAR(100) NOT NULL,
+                [Province] NVARCHAR(100) NOT NULL,
+                [District] NVARCHAR(100) NOT NULL,
+                [Neighbourhood] NVARCHAR(150) NULL,
+                [Address] NVARCHAR(300) NULL,
+
+                [Latitude] FLOAT NULL,
+                [Longitude] FLOAT NULL,
+
+                [CreatedAt] DATETIME2 NOT NULL
+                    CONSTRAINT [DF_UserLocations_CreatedAt]
+                    DEFAULT SYSUTCDATETIME(),
+
+                [UpdatedAt] DATETIME2 NULL,
+
+                CONSTRAINT [PK_UserLocations]
+                    PRIMARY KEY CLUSTERED ([UserId] ASC),
+
+                CONSTRAINT [FK_UserLocations_Users_UserId]
+                    FOREIGN KEY ([UserId])
+                    REFERENCES [dbo].[Users] ([Id])
+                    ON DELETE CASCADE,
+
+                CONSTRAINT [CK_UserLocations_Latitude]
+                    CHECK (
+                        [Latitude] IS NULL
+                        OR [Latitude] BETWEEN -90 AND 90
+                    ),
+
+                CONSTRAINT [CK_UserLocations_Longitude]
+                    CHECK (
+                        [Longitude] IS NULL
+                        OR [Longitude] BETWEEN -180 AND 180
+                    ),
+
+                CONSTRAINT [CK_UserLocations_Coordinates]
+                    CHECK (
+                        ([Latitude] IS NULL AND [Longitude] IS NULL)
+                        OR
+                        ([Latitude] IS NOT NULL AND [Longitude] IS NOT NULL)
+                    )
+            );
+        END;
+
+        -- Mevcut tabloda eksik sütunları tamamla.
+        IF COL_LENGTH(N'dbo.UserLocations', N'Address') IS NULL
+        BEGIN
+            ALTER TABLE [dbo].[UserLocations]
+            ADD [Address] NVARCHAR(300) NULL;
+        END;
+
+        IF COL_LENGTH(N'dbo.UserLocations', N'Latitude') IS NULL
+        BEGIN
+            ALTER TABLE [dbo].[UserLocations]
+            ADD [Latitude] FLOAT NULL;
+        END;
+
+        IF COL_LENGTH(N'dbo.UserLocations', N'Longitude') IS NULL
+        BEGIN
+            ALTER TABLE [dbo].[UserLocations]
+            ADD [Longitude] FLOAT NULL;
+        END;
+
+        -- Koordinat kısıtlarını yalnızca eksikse ekle.
+        IF NOT EXISTS (
+            SELECT 1
+            FROM sys.check_constraints
+            WHERE name = N'CK_UserLocations_Latitude'
+              AND parent_object_id =
+                  OBJECT_ID(N'dbo.UserLocations')
+        )
+        BEGIN
+            ALTER TABLE [dbo].[UserLocations]
+            ADD CONSTRAINT [CK_UserLocations_Latitude]
+            CHECK (
+                [Latitude] IS NULL
+                OR [Latitude] BETWEEN -90 AND 90
+            );
+        END;
+
+        IF NOT EXISTS (
+            SELECT 1
+            FROM sys.check_constraints
+            WHERE name = N'CK_UserLocations_Longitude'
+              AND parent_object_id =
+                  OBJECT_ID(N'dbo.UserLocations')
+        )
+        BEGIN
+            ALTER TABLE [dbo].[UserLocations]
+            ADD CONSTRAINT [CK_UserLocations_Longitude]
+            CHECK (
+                [Longitude] IS NULL
+                OR [Longitude] BETWEEN -180 AND 180
+            );
+        END;
+
+        IF NOT EXISTS (
+            SELECT 1
+            FROM sys.check_constraints
+            WHERE name = N'CK_UserLocations_Coordinates'
+              AND parent_object_id =
+                  OBJECT_ID(N'dbo.UserLocations')
+        )
+        BEGIN
+            ALTER TABLE [dbo].[UserLocations]
+            ADD CONSTRAINT [CK_UserLocations_Coordinates]
+            CHECK (
+                ([Latitude] IS NULL AND [Longitude] IS NULL)
+                OR
+                ([Latitude] IS NOT NULL AND [Longitude] IS NOT NULL)
+            );
+        END;
+
+        -- İl ve ilçe indeksi.
+        IF NOT EXISTS (
+            SELECT 1
+            FROM sys.indexes
+            WHERE name = N'IX_UserLocations_Province_District'
+              AND object_id = OBJECT_ID(N'dbo.UserLocations')
+        )
+        BEGIN
+            CREATE INDEX [IX_UserLocations_Province_District]
+            ON [dbo].[UserLocations] ([Province], [District]);
+        END;
+        """;
+
+            using var command = new SqlCommand(createSql, connection);
+            await command.ExecuteNonQueryAsync();
         }
 
         // -------------------------------------------------------------------

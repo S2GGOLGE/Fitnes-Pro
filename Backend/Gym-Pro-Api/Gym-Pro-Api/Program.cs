@@ -115,6 +115,10 @@ builder.Services.AddScoped<IMessageRequestService>(sp =>
 // MESSAGE SERVICE
 // =========================================================
 builder.Services.AddScoped<IMessageService, MessageService>();
+// =========================================================
+// Map SERVICE
+// =========================================================
+builder.Services.AddScoped<IMapService, MapService>();
 #endregion
 
 #region JWT Authentication

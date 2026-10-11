@@ -432,7 +432,37 @@
     /**
      * Verileri Sakla ve E-posta Doğrulama Sayfasına Yönlendir
      */
-    function saveAndNavigateNext() {
+    async function saveAndNavigateNext() {
+        if (elements.btnContinue) {
+            elements.btnContinue.disabled = true;
+            elements.btnContinue.textContent = "Kaydediliyor...";
+        }
+
+        // Eğer kullanıcı bir konum seçtiyse Backend Maps API'sine gönder
+        if (state.locationSelected && window.MapEndpoint && typeof window.MapEndpoint.saveLocation === "function") {
+            try {
+                const apiPayload = {
+                    country: state.locationData.country || "Türkiye",
+                    province: state.locationData.city || state.locationData.province || "",
+                    district: state.locationData.district || "",
+                    neighbourhood: state.locationData.neighborhood || state.locationData.neighbourhood || "",
+                    address: [state.locationData.neighborhood, state.locationData.district, state.locationData.city].filter(Boolean).join(", "),
+                    latitude: state.locationData.lat,
+                    longitude: state.locationData.lng
+                };
+
+                const saveResult = await window.MapEndpoint.saveLocation(apiPayload);
+                if (saveResult && saveResult.message) {
+                    showAlert(saveResult.message, "success", 2000);
+                }
+            } catch (apiErr) {
+                console.warn("[Backend Maps API]:", apiErr.message);
+                // Backend hatası olsa bile (örneğin oturumsuz test veya 401) akışı kitlemeyip bildiriyoruz
+                showAlert(`Backend Bildirimi: ${apiErr.message}`, "warning", 3000);
+            }
+        }
+
+        let isEmailVerified = false;
         try {
             sessionStorage.setItem("fitnesspro_location", JSON.stringify(state.locationData));
             // Kullanıcı seviyesini ve e-postasını bir sonraki sayfaya aktar
@@ -440,16 +470,36 @@
                 username: state.username,
                 email: state.userEmail,
                 level: state.userLevel,
-                locationSet: state.locationSelected
+                locationSet: true
             };
+            const stored = sessionStorage.getItem("fitnesspro_register_user");
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    if (parsed.emailVerified === true) {
+                        userState.emailVerified = true;
+                        isEmailVerified = true;
+                    }
+                } catch (e) {}
+            }
+            if (sessionStorage.getItem("fitnesspro_email_verified") === "true") {
+                isEmailVerified = true;
+                userState.emailVerified = true;
+            }
             sessionStorage.setItem("fitnesspro_register_user", JSON.stringify(userState));
         } catch (e) {
             console.warn("Storage hatası:", e);
         }
 
-        // E-posta Doğrulama Sayfasına Yönlendir
-        const targetUrl = `EpostaDogrulama.html${state.userEmail ? `?email=${encodeURIComponent(state.userEmail)}` : ""}`;
-        window.location.href = targetUrl;
+        // Eğer e-posta zaten doğrulanmışsa ana sayfaya (index.html), henüz doğrulanmadıysa E-posta Doğrulama Sayfasına Yönlendir
+        setTimeout(() => {
+            if (isEmailVerified) {
+                window.location.href = "index.html";
+            } else {
+                const targetUrl = `EpostaDogrulama.html${state.userEmail ? `?email=${encodeURIComponent(state.userEmail)}` : ""}`;
+                window.location.href = targetUrl;
+            }
+        }, 600);
     }
 
     /**
