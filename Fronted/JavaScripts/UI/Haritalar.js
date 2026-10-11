@@ -217,13 +217,16 @@
     }
 
     // =========================================================
+    // =========================================================
     // 23. JAVASCRIPT MANTIĞI: initializeMapPage()
     // =========================================================
-    function initializeMapPage() {
+    async function initializeMapPage() {
         updateUserData();
         bindEvents();
-        loadMockUsers();
         initializeMap();
+
+        // Backend'den kayıtlı kullanıcı konumlarını getir
+        await fetchRegisteredLocations();
 
         // Tarayıcı daha önce konum iznini reddettiyse, otomatik olarak banner'ı göster
         // böylece kullanıcı "Tekrar Dene" butonunu görebilsin.
@@ -239,6 +242,131 @@
             });
         } else {
             requestUserLocation(false);
+        }
+    }
+
+    // =========================================================
+    // BACKEND API ENTEGRASYONU: fetchRegisteredLocations()
+    // =========================================================
+    let rawApiUsers = [];
+
+    async function fetchRegisteredLocations() {
+        if (!window.MapEndpoint || typeof window.MapEndpoint.getLocations !== 'function') {
+            console.warn('[Haritalar] MapEndpoint.getLocations bulunamadı, varsayılan veriler yükleniyor.');
+            loadMockUsers();
+            return;
+        }
+
+        showLoading(true);
+
+        try {
+            const data = await window.MapEndpoint.getLocations();
+            rawApiUsers = Array.isArray(data) ? data : [];
+
+            // Giriş yapan aktif kullanıcının kimliğini al
+            let currentUserId = 0;
+            if (window.Auth && typeof window.Auth.getUser === 'function') {
+                const u = window.Auth.getUser();
+                if (u && (u.id || u.userId)) {
+                    currentUserId = Number(u.id || u.userId);
+                }
+            }
+
+            // Backend verisinden geçerli koordinata sahip kullanıcıları filtrele
+            // Enlem [-90, 90], Boylam [-180, 180] ve (0,0) olmayanlar
+            const validLocations = rawApiUsers.filter(item => {
+                const lat = Number(item.latitude);
+                const lng = Number(item.longitude);
+                return (
+                    !isNaN(lat) &&
+                    !isNaN(lng) &&
+                    lat >= -90 && lat <= 90 &&
+                    lng >= -180 && lng <= 180 &&
+                    !(lat === 0 && lng === 0)
+                );
+            });
+
+            // Kendi konumumuz veritabanında varsa ve henüz GPS almadıysak haritayı oraya merkezle
+            const myLocation = validLocations.find(loc => loc.userId === currentUserId);
+            if (myLocation && !userLocation.isCustom) {
+                userLocation.lat = Number(myLocation.latitude);
+                userLocation.lng = Number(myLocation.longitude);
+                if (isLeafletReady && mapInstance) {
+                    renderUserLocationMarker();
+                }
+            }
+
+            // Diğer kayıtlı kullanıcıları harita listesine dönüştür
+            const otherUsers = validLocations.filter(loc => loc.userId !== currentUserId);
+
+            if (otherUsers.length > 0) {
+                mockUsers = otherUsers.map(loc => {
+                    const lat = Number(Number(loc.latitude).toFixed(6));
+                    const lng = Number(Number(loc.longitude).toFixed(6));
+                    const distance = calculateHaversineDistance(userLocation.lat, userLocation.lng, lat, lng);
+                    const distNum = getDistanceNumeric(userLocation.lat, userLocation.lng, lat, lng);
+
+                    const roleStr = (loc.role || '').toLowerCase();
+                    const isTrainer = roleStr.includes('trainer') || roleStr.includes('antren') || roleStr.includes('admin') || roleStr.includes('ileri');
+
+                    const username = loc.username || `uye_${loc.userId}`;
+                    const fullname = loc.fullName || loc.fullname || username;
+
+                    // Avatar harfleri (örn: Ali Demir -> AD)
+                    const parts = fullname.trim().split(/\s+/);
+                    let avatarLetters = 'FP';
+                    if (parts.length >= 2) {
+                        avatarLetters = (parts[0][0] + parts[1][0]).toUpperCase();
+                    } else if (parts.length === 1 && parts[0].length >= 2) {
+                        avatarLetters = parts[0].substring(0, 2).toUpperCase();
+                    }
+
+                    return {
+                        id: loc.userId,
+                        username: username,
+                        fullname: fullname,
+                        type: isTrainer ? 'trainer' : 'friend',
+                        typeTitle: isTrainer ? 'Antrenör' : 'Arkadaş',
+                        roleDescription: isTrainer ? 'Personal Trainer' : (loc.role || 'Fitness Partneri'),
+                        avatarLetters: avatarLetters,
+                        profilePhoto: '',
+                        latitude: lat,
+                        longitude: lng,
+                        distance: distance,
+                        distanceMeters: distNum,
+                        bio: `@${username} Fitness Pro kayıtlı üyesi.`
+                    };
+                });
+
+                // Mesafeye göre sırala
+                mockUsers.sort((a, b) => a.distanceMeters - b.distanceMeters);
+
+                updateCounters();
+                renderSidebarQuickUsers();
+                renderNearbyUsers();
+                renderUserMarkers();
+            } else if (validLocations.length === 0) {
+                // Veritabanında hiç koordinatlı kullanıcı yoksa boş durum göster
+                mockUsers = [];
+                updateCounters();
+                renderSidebarQuickUsers();
+                showEmptyState(false);
+                if (markersLayerGroup) markersLayerGroup.clearLayers();
+            } else {
+                // Sadece kendisi varsa
+                mockUsers = [];
+                updateCounters();
+                renderSidebarQuickUsers();
+                showEmptyState(false);
+                if (markersLayerGroup) markersLayerGroup.clearLayers();
+            }
+        } catch (err) {
+            console.error('[Haritalar] Konumlar backendden alınırken hata oluştu:', err);
+            showError(err.message || 'Konumlar sunucudan alınamadı.');
+            // API hatası durumunda mevcut tohum verileriyle devam et
+            loadMockUsers();
+        } finally {
+            showLoading(false);
         }
     }
 
@@ -704,8 +832,12 @@
             locationBanner.style.display = 'none';
         }
 
-        // Mock kullanıcıları yeni koordinata göre tekrar hizala
-        loadMockUsers();
+        // Kayıtlı kullanıcılar varsa konumlarına göre mesafelerini güncelle, yoksa mock kullanıcıları hizala
+        if (rawApiUsers && rawApiUsers.length > 0) {
+            fetchRegisteredLocations();
+        } else {
+            loadMockUsers();
+        }
 
         // Haritayı güncelle
         if (isLeafletReady && mapInstance) {
@@ -861,6 +993,19 @@
 
         if (activeFilterCountBadge) {
             activeFilterCountBadge.textContent = '0 Kişi Listeleniyor';
+        }
+    }
+
+    function showError(message) {
+        if (locationBanner && locationBannerText) {
+            locationBannerText.textContent = message || "Konum bilgileri yüklenirken bir hata oluştu.";
+            locationBanner.style.display = 'flex';
+        } else if (window.GlobalModal && typeof window.GlobalModal.alert === 'function') {
+            window.GlobalModal.alert({
+                type: 'error',
+                title: 'Hata',
+                message: message || "Bir hata oluştu."
+            });
         }
     }
 

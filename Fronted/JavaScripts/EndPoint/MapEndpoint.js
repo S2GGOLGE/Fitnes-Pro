@@ -11,6 +11,26 @@
     "use strict";
 
     const API_BASE_URL = window.API_BASE_URL || "http://localhost:8081";
+    const ONBOARDING_TOKEN_KEY = "fitnesspro_onboarding_token";
+
+    // Kayıt/giriş sonrası verilen sınırlı yetkili onboarding token'ı varsa onu,
+    // yoksa normal oturum token'ını kullanır.
+    function getAuthToken() {
+        let token = null;
+        try {
+            token = sessionStorage.getItem(ONBOARDING_TOKEN_KEY);
+        } catch (e) {
+            token = null;
+        }
+        if (!token) {
+            if (window.Auth && typeof window.Auth.getToken === "function") {
+                token = window.Auth.getToken();
+            } else {
+                token = localStorage.getItem("fitness_pro_token");
+            }
+        }
+        return token;
+    }
 
     async function saveLocation(locationData) {
         if (!locationData) {
@@ -33,13 +53,7 @@
                 : (locationData.lng !== undefined && locationData.lng !== null ? parseFloat(locationData.lng) : null)
         };
 
-        // Token alımı (window.Auth varsa oradan, yoksa localStorage'dan)
-        let token = null;
-        if (window.Auth && typeof window.Auth.getToken === "function") {
-            token = window.Auth.getToken();
-        } else {
-            token = localStorage.getItem("fitness_pro_token");
-        }
+        let token = getAuthToken();
 
         const headers = {
             "Content-Type": "application/json",
@@ -85,10 +99,105 @@
             throw new Error(msg);
         }
 
-        return result || { success: true, message: "Konum başarıyla kaydedildi." };
+        // Backend başarıyı açıkça bildirmediyse kaydı başarılı sayma.
+        if (!result || result.success !== true) {
+            throw new Error((result && (result.message || result.Message)) || "Konum kaydı backend tarafından onaylanmadı.");
+        }
+
+        return result;
+    }
+
+    // Backend'den konum / e-posta doğrulama durumunu getirir (GET /api/locations/status).
+    async function getStatus() {
+        const token = getAuthToken();
+        if (!token) {
+            throw new Error("Oturum bilgisi bulunamadı. Lütfen tekrar giriş yapınız.");
+        }
+
+        let response;
+        try {
+            response = await fetch(`${API_BASE_URL}/api/locations/status`, {
+                method: "GET",
+                headers: {
+                    "Accept": "application/json",
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+        } catch (netErr) {
+            throw new Error("Sunucuya bağlanılamadı.");
+        }
+
+        let result = null;
+        try {
+            result = await response.json();
+        } catch (e) {
+            result = null;
+        }
+
+        if (response.status === 401) {
+            throw new Error("Oturum süresi dolmuş veya kimlik doğrulanamadı (401). Lütfen tekrar giriş yapınız.");
+        }
+        if (!response.ok || !result || result.success !== true || !result.data) {
+            throw new Error((result && result.message) || `Durum alınamadı (HTTP ${response.status}).`);
+        }
+
+        return result.data;
+    }
+
+    // Backend'den kayıtlı kullanıcı konumlarını getirir (GET /api/locations veya /api/maps).
+    async function getLocations(userId) {
+        const token = getAuthToken();
+        if (!token) {
+            throw new Error("Oturum bilgisi bulunamadı. Lütfen tekrar giriş yapınız.");
+        }
+
+        const headers = {
+            "Accept": "application/json",
+            "Authorization": `Bearer ${token}`
+        };
+
+        const queryString = userId ? `?userId=${encodeURIComponent(userId)}` : "";
+        let response;
+        try {
+            response = await fetch(`${API_BASE_URL}/api/locations${queryString}`, {
+                method: "GET",
+                headers: headers
+            });
+        } catch (netErr) {
+            // /api/locations erişilemezse /api/maps rotasını dene
+            try {
+                response = await fetch(`${API_BASE_URL}/api/maps${queryString}`, {
+                    method: "GET",
+                    headers: headers
+                });
+            } catch (fallbackErr) {
+                throw new Error("Sunucuya bağlanılamadı. Backend servisinin (" + API_BASE_URL + ") çalıştığından emin olunuz.");
+            }
+        }
+
+        let result = null;
+        try {
+            result = await response.json();
+        } catch (e) {
+            result = null;
+        }
+
+        if (response.status === 401) {
+            throw new Error("Oturum süresi dolmuş veya kimlik doğrulanamadı (401). Lütfen tekrar giriş yapınız.");
+        }
+
+        if (!response.ok || !result || result.success !== true) {
+            const msg = (result && (result.message || result.Message)) || `Konumlar alınamadı (HTTP ${response.status}).`;
+            throw new Error(msg);
+        }
+
+        // result.data listesini (veya boş listeyi) döndür
+        return Array.isArray(result.data) ? result.data : [];
     }
 
     window.MapEndpoint = {
-        saveLocation: saveLocation
+        saveLocation: saveLocation,
+        getStatus: getStatus,
+        getLocations: getLocations
     };
 })();

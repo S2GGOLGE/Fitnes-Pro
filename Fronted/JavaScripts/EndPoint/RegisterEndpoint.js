@@ -113,11 +113,23 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (response.ok && result && result.success) {
-                // Success Handling
-                showAlert("Kayıt başarılı! Oturum açılıyor...", "success");
+                // Backend, yalnızca konum ve e-posta doğrulama adımlarında geçerli olan
+                // sınırlı yetkili/kısa ömürlü onboarding token'ı döner (normal oturum DEĞİL).
+                const onboardingToken =
+                    result.data && typeof result.data.onboardingToken === "string"
+                        ? result.data.onboardingToken
+                        : "";
 
-                // Kayıt olan kullanıcı bilgilerini kayıt sonrası adımlar (E-posta Doğrulama & Harita) için sakla
+                if (!onboardingToken) {
+                    showAlert("Kayıt tamamlandı ancak devam adımı başlatılamadı. Lütfen giriş ekranından giriş yapınız.", "warning");
+                    return;
+                }
+
+                // Kayıt sonrası adımlar (Konum & E-posta Doğrulama) için gerekli bilgiler.
+                // Parola ASLA saklanmaz.
                 try {
+                    sessionStorage.removeItem("fitnesspro_email_verified");
+                    sessionStorage.removeItem("fitnesspro_location");
                     sessionStorage.setItem("fitnesspro_register_user", JSON.stringify({
                         email: email,
                         username: username,
@@ -127,69 +139,20 @@ document.addEventListener("DOMContentLoaded", () => {
                         emailVerified: false,
                         locationSet: false
                     }));
+                    sessionStorage.setItem("fitnesspro_onboarding_token", onboardingToken);
                 } catch (e) {
                     console.warn("Session saklama hatası:", e);
-                }
-
-                // Backend Map ve E-posta doğrulama endpoint'leri [Authorize] (JWT) istediğinden
-                // kayıt sonrası otomatik login yaparak geçerli JWT token'ı hazırla.
-                let loginSuccess = false;
-                let loginErrorMsg = "";
-                try {
-                    const loginResp = await fetch(`${API_BASE_URL}/api/login`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ username: username, password: password })
-                    });
-
-                    let loginJson = null;
-                    try {
-                        loginJson = await loginResp.json();
-                    } catch {
-                        loginJson = null;
-                    }
-
-                    if (loginResp.ok && loginJson && loginJson.success && loginJson.data && loginJson.data.token) {
-                        const token = loginJson.data.token;
-                        const userData = {
-                            userId: loginJson.data.userId,
-                            username: loginJson.data.username || username,
-                            role: loginJson.data.role || "User",
-                            level: loginJson.data.level || level,
-                            email: email,
-                            emailVerified: false
-                        };
-
-                        if (window.Auth && typeof window.Auth.saveSession === "function") {
-                            window.Auth.saveSession(token, userData);
-                        } else {
-                            localStorage.setItem("fitness_pro_token", token);
-                            localStorage.setItem("fitness_pro_user", JSON.stringify(userData));
-                        }
-                        loginSuccess = true;
-                    } else {
-                        loginErrorMsg = (loginJson && loginJson.message) || "Otomatik oturum açılamadı.";
-                    }
-                } catch (loginErr) {
-                    console.warn("Otomatik login hatası:", loginErr);
-                    loginErrorMsg = "Giriş servisine bağlanılamadı.";
+                    showAlert("Kayıt tamamlandı ancak tarayıcı depolaması kullanılamıyor. Lütfen giriş ekranından giriş yapınız.", "warning");
+                    return;
                 }
 
                 registerForm.reset();
                 isRedirecting = true;
 
-                if (loginSuccess) {
-                    showAlert("Kayıt ve giriş başarılı! E-posta doğrulama adımına yönlendiriliyorsunuz...", "success");
-                    setTimeout(() => {
-                        window.location.href = `EpostaDogrulama.html?email=${encodeURIComponent(email)}`;
-                    }, 1000);
-                } else {
-                    // Token üretilemediğinde veya otomatik giriş başarısız olduğunda hatayı gizleme; kullanıcıya açık bildir
-                    showAlert(`Kayıt tamamlandı, ancak otomatik oturum açılamadı (${loginErrorMsg}). Lütfen giriş ekranından giriş yapınız.`, "warning");
-                    setTimeout(() => {
-                        window.location.href = "Login.html";
-                    }, 2500);
-                }
+                showAlert("Kayıt başarılı! Konum belirleme adımına yönlendiriliyorsunuz...", "success");
+                setTimeout(() => {
+                    window.location.href = "KonumBelirleme.html";
+                }, 1000);
             } else {
                 // Error Handling (Backend ApiResponseModel or HTTP Status errors)
                 let errorMsg = "Kayıt işlemi sırasında bir hata oluştu.";

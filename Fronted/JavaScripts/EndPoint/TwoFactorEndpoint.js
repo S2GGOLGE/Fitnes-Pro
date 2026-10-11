@@ -51,6 +51,71 @@
         return payload || {};
     }
 
+    const ONBOARDING_TOKEN_KEY = "fitnesspro_onboarding_token";
+
+    function getOnboardingToken() {
+        try {
+            return sessionStorage.getItem(ONBOARDING_TOKEN_KEY);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    async function parseTwoFactorResponse(response) {
+        let payload = null;
+        try {
+            payload = await response.json();
+        } catch (parseError) {
+            payload = null;
+        }
+
+        if (!response.ok) {
+            const backendMessage =
+                payload && typeof payload.message === "string" && payload.message.trim()
+                    ? payload.message
+                    : response.status === 401
+                        ? "Oturum süresi dolmuş veya kimlik doğrulanamadı (401)."
+                        : `İstek başarısız (HTTP ${response.status}).`;
+            throw new Error(backendMessage);
+        }
+
+        return payload || {};
+    }
+
+    // Kayıt sonrası e-posta doğrulama adımı: sınırlı yetkili onboarding token'ı varsa onunla çağır.
+    async function callTwoFactorWithOnboarding(method, path, body) {
+        const onboardingToken = getOnboardingToken();
+        if (!onboardingToken) {
+            return callTwoFactor(method, path, body);
+        }
+
+        const baseUrl = (window.Auth && typeof window.Auth.getBaseUrl === "function")
+            ? window.Auth.getBaseUrl()
+            : (window.API_BASE_URL || "http://localhost:8081");
+
+        const options = {
+            method,
+            headers: {
+                Accept: "application/json",
+                Authorization: `Bearer ${onboardingToken}`
+            }
+        };
+
+        if (body !== undefined) {
+            options.headers["Content-Type"] = "application/json";
+            options.body = JSON.stringify(body);
+        }
+
+        let response;
+        try {
+            response = await fetch(`${baseUrl}${path}`, options);
+        } catch (netErr) {
+            throw new Error("Sunucuya bağlanılamadı.");
+        }
+
+        return parseTwoFactorResponse(response);
+    }
+
     window.TwoFactorEndpoint = {
         fetchStatus: function () {
             return callTwoFactor("GET", "/api/two-factor/status");
@@ -62,10 +127,10 @@
             return callTwoFactor("POST", "/api/two-factor/disable");
         },
         sendCode: function () {
-            return callTwoFactor("POST", "/api/two-factor/send-code");
+            return callTwoFactorWithOnboarding("POST", "/api/two-factor/send-code");
         },
         verify: function (code) {
-            return callTwoFactor("POST", "/api/two-factor/verify", { code });
+            return callTwoFactorWithOnboarding("POST", "/api/two-factor/verify", { code });
         }
     };
 })();

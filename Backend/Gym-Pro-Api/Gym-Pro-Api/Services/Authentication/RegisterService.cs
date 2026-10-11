@@ -11,12 +11,18 @@ public class RegisterService
 {
     private readonly string _connectionString;
     private readonly ILogService _logService;
+    private readonly JwtService _jwtService;
 
-    public RegisterService(string connectionService, ILogService logService)
+    public RegisterService(
+        string connectionService,
+        ILogService logService,
+        JwtService jwtService)
     {
         _connectionString = connectionService;
         _logService = logService
             ?? throw new ArgumentNullException(nameof(logService));
+        _jwtService = jwtService
+            ?? throw new ArgumentNullException(nameof(jwtService));
     }
 
     public async Task<ApiResponseModel> RegisterAsync(
@@ -175,7 +181,27 @@ public class RegisterService
                 clientIp
             );
 
-            return ApiResponseModel.Ok("Kayıt Başarılı");
+            // Normal oturum DEĞİL: yalnızca konum kaydı ve e-posta doğrulama
+            // adımlarında kullanılabilen sınırlı yetkili, kısa ömürlü token.
+            var onboardingToken = _jwtService.CreateOnboardingToken(
+                new JwtModel
+                {
+                    UserId = userId,
+                    Username = model.Username,
+                    Email = model.Email
+                });
+
+            return ApiResponseModel.Ok(
+                "Kayıt Başarılı",
+                new
+                {
+                    userId,
+                    username = model.Username,
+                    email = model.Email,
+                    level = model.Level,
+                    onboardingToken,
+                    nextStep = "location"
+                });
         }
         catch
         {

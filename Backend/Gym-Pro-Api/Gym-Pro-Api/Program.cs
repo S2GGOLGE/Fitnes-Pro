@@ -58,8 +58,15 @@ builder.Services.AddSingleton<LoginRateLimitingService>(sp =>
 builder.Services.AddScoped<RegisterService>(sp =>
     new RegisterService(
         defaultConnection,
-        sp.GetRequiredService<Apı.Services.ILogService>()
+        sp.GetRequiredService<Apı.Services.ILogService>(),
+        sp.GetRequiredService<JwtService>()
     ));
+
+// =========================================================
+// ONBOARDING (konum + e-posta doğrulama durumu)
+// =========================================================
+
+builder.Services.AddScoped<OnboardingService>();
 
 // =========================================================
 // LOGIN
@@ -72,7 +79,8 @@ builder.Services.AddScoped<LoginService>(sp =>
         sp.GetRequiredService<RoleService>(),
         sp.GetRequiredService<LoginRateLimitingService>(),
         sp.GetRequiredService<BanStorageService>(),
-        sp.GetRequiredService<Apı.Services.ILogService>()
+        sp.GetRequiredService<Apı.Services.ILogService>(),
+        sp.GetRequiredService<OnboardingService>()
     ));
 
 // =========================================================
@@ -143,6 +151,24 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtConfig["Issuer"],
         ValidAudience = jwtConfig["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+        ClockSkew = TimeSpan.Zero
+    };
+})
+// Sınırlı yetkili onboarding token'ı: farklı audience, normal Bearer şeması
+// bu token'ı reddeder; yalnızca açıkça bu şemayı kabul eden endpoint'lerde geçerlidir.
+.AddJwtBearer(JwtService.OnboardingScheme, options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = false;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtConfig["Issuer"],
+        ValidAudience = jwtConfig["Audience"] + JwtService.OnboardingAudienceSuffix,
         IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
         ClockSkew = TimeSpan.Zero
     };

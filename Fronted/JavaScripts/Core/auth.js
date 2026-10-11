@@ -170,10 +170,23 @@
             this.clearAdmin();
 
             if (redirect) {
+                const currentPath =
+                    window.location.pathname.toLowerCase();
+
+                const isAuthOrOnboardingPage =
+                    currentPath.includes("login.html") ||
+                    currentPath.includes("singup.html") ||
+                    currentPath.includes("register.html") ||
+                    currentPath.includes("epostadogrulama.html") ||
+                    currentPath.includes("konumbelirleme.html");
+
+                // Kullanıcı zaten kayıt/giriş/onboarding sürecindeyse sayfadan koparıp Login'e yönlendirme
+                if (isAuthOrOnboardingPage) {
+                    return;
+                }
+
                 const isInPagesDir =
-                    window.location.pathname
-                        .toLowerCase()
-                        .includes("/pages/");
+                    currentPath.includes("/pages/");
 
                 const loginPath = isInPagesDir
                     ? "Login.html"
@@ -659,6 +672,21 @@
 
     const initializeAuthUI = async () => {
         Auth.bindLogoutButtons();
+
+        const currentPath =
+            window.location.pathname.toLowerCase();
+
+        const isAuthOrOnboardingPage =
+            currentPath.includes("login.html") ||
+            currentPath.includes("singup.html") ||
+            currentPath.includes("register.html") ||
+            currentPath.includes("epostadogrulama.html") ||
+            currentPath.includes("konumbelirleme.html");
+
+        // Kayıt ve onboarding sayfalarında arka planda yetki sorgusu yapıp 401 ile yönlendirme tetiklenmesini engelle
+        if (isAuthOrOnboardingPage) {
+            return;
+        }
 
         if (!Auth.isAuthenticated()) {
             Auth.clearAdmin();

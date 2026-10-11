@@ -13,11 +13,16 @@
     let remainingSeconds = TOTAL_SECONDS;
     let timerInterval = null;
 
+    const ONBOARDING_TOKEN_KEY = "fitnesspro_onboarding_token";
+
     // State
     const state = {
         email: "",
         username: "",
-        isVerified: false
+        isVerified: false,
+        isConfirming: false,
+        isLoggingIn: false,
+        initialCodeSent: false
     };
 
     // DOM Elements
@@ -134,18 +139,20 @@
 
         try {
             // Backend TwoFactorController /api/two-factor/send-code çağrısı
-            if (window.TwoFactorEndpoint && typeof window.TwoFactorEndpoint.sendCode === "function") {
-                try {
-                    const sendResult = await window.TwoFactorEndpoint.sendCode();
-                    showAlert(sendResult.message || "Yeni doğrulama kodu başarıyla e-posta adresinize gönderildi!", "success", 4000);
-                } catch (apiErr) {
-                    console.warn("[Backend 2FA SendCode API]:", apiErr.message);
-                    showAlert(`Bildirim: ${apiErr.message}`, "info", 4000);
-                }
-            } else {
-                showAlert("Yeni doğrulama kodu e-posta adresinize gönderildi!", "success", 4000);
+            if (!window.TwoFactorEndpoint || typeof window.TwoFactorEndpoint.sendCode !== "function") {
+                showAlert("Doğrulama servisi yüklenemedi. Sayfayı yenileyip tekrar deneyiniz.", "error", 5000);
+                return;
             }
-            
+
+            try {
+                const sendResult = await window.TwoFactorEndpoint.sendCode();
+                showAlert((sendResult && sendResult.message) || "Yeni doğrulama kodu başarıyla e-posta adresinize gönderildi!", "success", 4000);
+            } catch (apiErr) {
+                console.warn("[Backend 2FA SendCode API]:", apiErr.message);
+                showAlert(`Kod gönderilemedi: ${apiErr.message}`, "error", 5000);
+                return;
+            }
+
             // Yeniden gönderim başarılı -> Sayaç tekrar 5 dakikadan başlar, buton gizlenir
             startCountdown();
         } catch (err) {
@@ -178,9 +185,11 @@
 
     /**
      * Doğrulama Kodu Onaylama
-     * Kural: Doğrulama başarılı olduğunda kullanıcı Login ekranına yönlendirilecektir.
+     * Kural: Otomatik giriş YALNIZCA backend doğrulamayı başarılı bildirdikten sonra başlar.
      */
     async function handleConfirm() {
+        if (state.isConfirming || state.isVerified) return;
+
         const code = elements.codeInput ? elements.codeInput.value.trim() : "";
 
         if (!code || code.length !== 6 || !/^\d{6}$/.test(code)) {
@@ -189,86 +198,245 @@
             return;
         }
 
+        if (!window.TwoFactorEndpoint || typeof window.TwoFactorEndpoint.verify !== "function") {
+            showAlert("Doğrulama servisi yüklenemedi. Sayfayı yenileyip tekrar deneyiniz.", "error", 6000);
+            return;
+        }
+
+        state.isConfirming = true;
         if (elements.btnConfirm) {
             elements.btnConfirm.disabled = true;
             elements.btnConfirm.textContent = "Doğrulanıyor...";
         }
 
-        let verifiedSuccess = false;
-
-        // Backend TwoFactorController /api/two-factor/verify çağrısı
-        if (window.TwoFactorEndpoint && typeof window.TwoFactorEndpoint.verify === "function") {
-            try {
-                const verifyResult = await window.TwoFactorEndpoint.verify(code);
-                if (verifyResult && (verifyResult.verified === true || verifyResult.success === true)) {
-                    verifiedSuccess = true;
-                }
-            } catch (verifyErr) {
-                console.warn("[Backend 2FA Verify API]:", verifyErr.message);
-                // Eğer backend açık ve kod hatalıysa hatayı kullanıcıya göster
-                if (!verifyErr.message.includes("401") && !verifyErr.message.includes("hazır değil")) {
-                    showAlert(verifyErr.message, "error", 4000);
-                    if (elements.btnConfirm) {
-                        elements.btnConfirm.disabled = false;
-                        elements.btnConfirm.textContent = "Onayla";
-                    }
-                    return;
-                }
-                // Token yoksa (örnek/standalone mod) demo doğrulamayı kabul et
-                verifiedSuccess = true;
-            }
-        } else {
-            verifiedSuccess = true;
+        let verifyResult = null;
+        try {
+            verifyResult = await window.TwoFactorEndpoint.verify(code);
+        } catch (verifyErr) {
+            // Hatalı/süresi dolmuş kod, yetki hatası veya bağlantı hatası: otomatik giriş YAPILMAZ.
+            console.warn("[Backend Verify API]:", verifyErr.message);
+            showAlert(verifyErr.message, "error", 5000);
+            resetConfirmButton();
+            return;
         }
 
-        if (verifiedSuccess) {
-            state.isVerified = true;
+        if (!verifyResult || verifyResult.verified !== true) {
+            showAlert("Doğrulama backend tarafından onaylanmadı. Lütfen tekrar deneyiniz.", "error", 5000);
+            resetConfirmButton();
+            return;
+        }
 
-            // Auth ve session durumu güncelle
-            let isLocationAlreadySet = false;
-            try {
-                sessionStorage.setItem("fitnesspro_email_verified", "true");
-                const stored = sessionStorage.getItem("fitnesspro_register_user");
-                if (stored) {
-                    const parsed = JSON.parse(stored);
-                    parsed.emailVerified = true;
-                    if (parsed.locationSet === true) {
-                        isLocationAlreadySet = true;
-                    }
-                    sessionStorage.setItem("fitnesspro_register_user", JSON.stringify(parsed));
-                }
-                if (sessionStorage.getItem("fitnesspro_location")) {
-                    isLocationAlreadySet = true;
-                }
+        state.isVerified = true;
+        showAlert("E-posta adresiniz başarıyla doğrulandı! Giriş yapılıyor...", "success", 0);
+        await performAutoLogin();
+    }
 
-                // window.Auth session user objesini güncelle
-                if (window.Auth && typeof window.Auth.getUser === "function" && typeof window.Auth.saveSession === "function") {
-                    const currentUser = window.Auth.getUser();
-                    const token = window.Auth.getToken();
-                    if (currentUser && token) {
-                        currentUser.emailVerified = true;
-                        window.Auth.saveSession(token, currentUser);
-                    }
-                }
-            } catch (e) {
-                // Sessizce geç
+    function resetConfirmButton() {
+        state.isConfirming = false;
+        if (elements.btnConfirm) {
+            elements.btnConfirm.disabled = false;
+            elements.btnConfirm.textContent = "Onayla";
+        }
+    }
+
+    /**
+     * Onboarding token'ını (yoksa normal oturum token'ını) döndürür.
+     */
+    function getOnboardingToken() {
+        try {
+            return sessionStorage.getItem(ONBOARDING_TOKEN_KEY);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function getApiBaseUrl() {
+        return (window.Auth && typeof window.Auth.getBaseUrl === "function")
+            ? window.Auth.getBaseUrl()
+            : (window.API_BASE_URL || "http://localhost:8081");
+    }
+
+    function clearOnboardingStorage() {
+        try {
+            sessionStorage.removeItem(ONBOARDING_TOKEN_KEY);
+            sessionStorage.removeItem("fitnesspro_register_user");
+            sessionStorage.removeItem("fitnesspro_location");
+            sessionStorage.removeItem("fitnesspro_email_verified");
+        } catch (e) {
+            // Sessizce geç
+        }
+    }
+
+    /**
+     * Backend'den onboarding durumunu getirir (GET /api/locations/status).
+     */
+    async function fetchOnboardingStatus() {
+        const token = getOnboardingToken() || (window.Auth && window.Auth.getToken ? window.Auth.getToken() : null);
+        if (!token) {
+            throw new Error("AUTH:Oturum bilgisi bulunamadı.");
+        }
+
+        let response;
+        try {
+            response = await fetch(`${getApiBaseUrl()}/api/locations/status`, {
+                method: "GET",
+                headers: { Accept: "application/json", Authorization: `Bearer ${token}` }
+            });
+        } catch (e) {
+            throw new Error("Sunucuya bağlanılamadı.");
+        }
+
+        if (response.status === 401) {
+            throw new Error("AUTH:Oturum süresi dolmuş veya kimlik doğrulanamadı.");
+        }
+
+        let result = null;
+        try { result = await response.json(); } catch (e) { result = null; }
+
+        if (!response.ok || !result || result.success !== true || !result.data) {
+            throw new Error((result && result.message) || `Durum alınamadı (HTTP ${response.status}).`);
+        }
+        return result.data;
+    }
+
+    /**
+     * Otomatik giriş: backend'de konum + e-posta doğrulaması tamamlandıysa
+     * POST /api/login/complete-onboarding normal JWT üretir (parola saklanmaz / gerekmez).
+     */
+    async function performAutoLogin() {
+        if (state.isLoggingIn) return;
+        state.isLoggingIn = true;
+
+        if (elements.btnConfirm) {
+            elements.btnConfirm.disabled = true;
+            elements.btnConfirm.textContent = "Giriş yapılıyor...";
+        }
+
+        let failureMessage = "";
+        try {
+            const onboardingToken = getOnboardingToken();
+            if (!onboardingToken) {
+                throw new Error("Oturum bilgisi bulunamadı.");
             }
 
-            const nextTarget = isLocationAlreadySet ? "index.html" : "KonumBelirleme.html";
-            const successMsg = isLocationAlreadySet
-                ? "E-posta adresiniz başarıyla doğrulandı! Ana sayfaya yönlendiriliyorsunuz..."
-                : "E-posta adresiniz başarıyla doğrulandı! Konum belirleme adımına yönlendiriliyorsunuz...";
+            let response;
+            try {
+                response = await fetch(`${getApiBaseUrl()}/api/login/complete-onboarding`, {
+                    method: "POST",
+                    headers: { Accept: "application/json", Authorization: `Bearer ${onboardingToken}` }
+                });
+            } catch (netErr) {
+                throw new Error("Giriş servisine bağlanılamadı.");
+            }
 
-            showAlert(successMsg, "success", 3000);
+            let result = null;
+            try { result = await response.json(); } catch (e) { result = null; }
 
-            // Başarılı doğrulama sonrası onboarding akışındaki konum belirleme sayfasına (veya ana sayfaya) yönlendirilir
+            const data = result && result.data;
+            if (!response.ok || !result || result.success !== true || !data || typeof data.token !== "string" || !data.token) {
+                throw new Error((result && result.message) || "Otomatik giriş başarısız oldu: oturum anahtarı üretilemedi.");
+            }
+
+            // /api/login yanıt yapısı: { token, userId, username, email, role, level, roles, emailVerified }
+            const userData = {
+                userId: data.userId,
+                username: data.username || state.username,
+                email: data.email || state.email,
+                role: data.role || "User",
+                level: data.level || null,
+                roles: Array.isArray(data.roles) ? data.roles : [data.role || "User"],
+                emailVerified: true
+            };
+
+            if (window.Auth && typeof window.Auth.saveSession === "function") {
+                window.Auth.saveSession(data.token, userData);
+            } else {
+                localStorage.setItem("fitness_pro_token", data.token);
+                localStorage.setItem("fitness_pro_user", JSON.stringify(userData));
+            }
+
+            // Oturumun gerçekten kaydedildiğini doğrula
+            const saved = (window.Auth && typeof window.Auth.getToken === "function")
+                ? window.Auth.getToken()
+                : localStorage.getItem("fitness_pro_token");
+            if (!saved) {
+                throw new Error("Oturum kaydedilemedi.");
+            }
+
+            clearOnboardingStorage();
+            showAlert("Giriş başarılı! Ana sayfaya yönlendiriliyorsunuz...", "success", 0);
             setTimeout(() => {
-                window.location.href = nextTarget;
-            }, 1200);
-        } else {
-            if (elements.btnConfirm) {
-                elements.btnConfirm.disabled = false;
-                elements.btnConfirm.textContent = "Onayla";
+                window.location.href = "index.html";
+            }, 800);
+            return;
+        } catch (err) {
+            failureMessage = err.message || "Otomatik giriş başarısız oldu.";
+        }
+
+        // Otomatik giriş başarısız: hatayı açıkça göster, kullanıcıyı giriş ekranına yönlendir.
+        // (E-posta doğrulaması backend'de tamamlandığı için normal girişle devam edebilir.)
+        console.warn("[Auto Login]:", failureMessage);
+        showAlert(`E-posta doğrulandı ancak otomatik giriş yapılamadı: ${failureMessage} Giriş ekranına yönlendiriliyorsunuz...`, "error", 0);
+        clearOnboardingStorage();
+        setTimeout(() => {
+            window.location.href = "Login.html";
+        }, 4000);
+    }
+
+    /**
+     * Sayfa açılışı: backend durumuna göre adım kontrolü.
+     * - Oturum/token yoksa Login'e
+     * - Konum kaydı yoksa KonumBelirleme'ye
+     * - E-posta zaten doğrulanmışsa doğrudan otomatik giriş
+     * - Aksi halde doğrulama kodunu gönder ve sayacı başlat
+     */
+    async function initOnboardingState() {
+        let status;
+        try {
+            status = await fetchOnboardingStatus();
+        } catch (err) {
+            if (err.message.startsWith("AUTH:")) {
+                showAlert(`${err.message.slice(5)} Giriş ekranına yönlendiriliyorsunuz...`, "error", 0);
+                setTimeout(() => { window.location.href = "Login.html"; }, 3000);
+                return;
+            }
+            // Geçici hata: sayfa kullanılabilir kalsın, doğrulama backend'de yapılacak.
+            showAlert(err.message, "warning", 5000);
+            startCountdown();
+            return;
+        }
+
+        if (status.locationSet !== true) {
+            showAlert("Önce konum belirlemeniz gerekiyor. Yönlendiriliyorsunuz...", "warning", 0);
+            setTimeout(() => { window.location.href = "KonumBelirleme.html"; }, 1500);
+            return;
+        }
+
+        if (status.emailVerified === true) {
+            state.isVerified = true;
+            showAlert("E-posta adresiniz zaten doğrulanmış. Giriş yapılıyor...", "success", 0);
+            await performAutoLogin();
+            return;
+        }
+
+        startCountdown();
+        await sendInitialCode();
+    }
+
+    /**
+     * Sayfa açıldığında doğrulama kodunu bir kez gönder.
+     */
+    async function sendInitialCode() {
+        if (state.initialCodeSent) return;
+        state.initialCodeSent = true;
+        try {
+            const sendResult = await window.TwoFactorEndpoint.sendCode();
+            showAlert((sendResult && sendResult.message) || "Doğrulama kodu e-posta adresinize gönderildi.", "success", 4000);
+        } catch (err) {
+            console.warn("[Backend 2FA SendCode API]:", err.message);
+            showAlert(`Doğrulama kodu gönderilemedi: ${err.message} 'Tekrar Gönder' ile yeniden deneyebilirsiniz.`, "error", 6000);
+            if (elements.btnResend) {
+                elements.btnResend.classList.remove("hidden");
             }
         }
     }
@@ -278,7 +446,7 @@
      */
     document.addEventListener("DOMContentLoaded", () => {
         initUserData();
-        startCountdown();
+        initOnboardingState();
 
         // Sadece rakam girişine izin ver
         if (elements.codeInput) {

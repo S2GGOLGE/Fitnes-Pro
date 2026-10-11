@@ -13,6 +13,7 @@ public class LoginService
     private readonly LoginRateLimitingService _rateLimitService;
     private readonly BanStorageService _banStorageService;
     private readonly ILogService _logService;
+    private readonly OnboardingService _onboardingService;
 
     public LoginService(
         string connectionString,
@@ -20,8 +21,13 @@ public class LoginService
         RoleService roleService,
         LoginRateLimitingService rateLimitingService,
         BanStorageService banStorageService,
-        ILogService logService)
+        ILogService logService,
+        OnboardingService onboardingService)
     {
+        _onboardingService =
+            onboardingService
+            ?? throw new ArgumentNullException(nameof(onboardingService));
+
         _connectionString =
             connectionString
             ?? throw new ArgumentNullException(nameof(connectionString));
@@ -287,6 +293,155 @@ public class LoginService
         _rateLimitService.Reset(clientIp);
 
         // =========================================================
+        // ONBOARDING DURUMU (backend kaynaklı)
+        // 1) Konum kaydı yoksa        -> nextStep = "location"
+        // 2) E-posta doğrulanmamışsa  -> nextStep = "email"
+        // Bu durumlarda NORMAL JWT üretilmez; yalnızca konum kaydı ve
+        // e-posta doğrulama endpoint'lerinde geçerli sınırlı token döner.
+        // =========================================================
+
+        var onboarding =
+            await _onboardingService.GetStatusAsync(userId);
+
+        if (!onboarding.IsComplete)
+        {
+            var onboardingToken =
+                _jwtService.CreateOnboardingToken(
+                    new JwtModel
+                    {
+                        UserId = userId,
+                        Username = models.Username,
+                        Email = email
+                    }
+                );
+
+            try
+            {
+                await _logService.LogUserAsync(
+                    userId,
+                    models.Username,
+                    "LoginOnboardingRequired",
+                    $"Giriş için tamamlanmamış adım: {onboarding.NextStep}",
+                    clientIp
+                );
+            }
+            catch
+            {
+                // Log hatası ana işlemi bozmamalı.
+            }
+
+            return ApiResponseModel.Ok(
+                "Giriş için kayıt adımlarının tamamlanması gerekiyor.",
+                new
+                {
+                    onboardingRequired = true,
+                    nextStep = onboarding.NextStep,
+                    locationSet = onboarding.LocationSet,
+                    emailVerified = onboarding.EmailVerified,
+                    onboardingToken,
+                    userId,
+                    username = models.Username,
+                    email,
+                    level
+                }
+            );
+        }
+
+        return await IssueSessionAsync(
+            userId,
+            models.Username,
+            email,
+            level,
+            clientIp
+        );
+    }
+
+    // =========================================================
+    // ONBOARDING SONRASI OTOMATİK GİRİŞ
+    // Yalnızca backend'de konum kaydı VE e-posta doğrulaması
+    // tamamlandıysa normal JWT üretir. Parola gerekmez; kimlik
+    // sınırlı onboarding token'ından (userId) gelir.
+    // =========================================================
+
+    public async Task<ApiResponseModel> CompleteOnboardingLoginAsync(
+        int userId,
+        string clientIp)
+    {
+        const string query = """
+            SELECT Username, Email, Level
+            FROM dbo.Users
+            WHERE Id = @UserId
+            """;
+
+        string username;
+        string email;
+        string level;
+
+        await using (var connection = new SqlConnection(_connectionString))
+        {
+            await connection.OpenAsync();
+
+            await using var command = new SqlCommand(query, connection);
+            command.Parameters.Add("@UserId", System.Data.SqlDbType.Int).Value = userId;
+
+            await using var reader = await command.ExecuteReaderAsync();
+
+            if (!await reader.ReadAsync())
+            {
+                return ApiResponseModel.Fail("Kullanıcı bulunamadı.");
+            }
+
+            username = reader.GetString(0);
+            email = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
+            level = reader.IsDBNull(2) || string.IsNullOrWhiteSpace(reader.GetString(2))
+                ? "Acemi"
+                : reader.GetString(2);
+        }
+
+        if (await _banStorageService.IsBannedAsync(username))
+        {
+            return ApiResponseModel.FailLocked(
+                "Güvenlik nedeniyle erişiminiz kalıcı olarak bloke edilmiştir."
+            );
+        }
+
+        var onboarding = await _onboardingService.GetStatusAsync(userId);
+
+        if (!onboarding.LocationSet)
+        {
+            return ApiResponseModel.Fail(
+                "Konum kaydı tamamlanmadan giriş yapılamaz."
+            );
+        }
+
+        if (!onboarding.EmailVerified)
+        {
+            return ApiResponseModel.Fail(
+                "E-posta doğrulaması tamamlanmadan giriş yapılamaz."
+            );
+        }
+
+        return await IssueSessionAsync(
+            userId,
+            username,
+            email,
+            level,
+            clientIp
+        );
+    }
+
+    // =========================================================
+    // NORMAL OTURUM (JWT) ÜRETİMİ - ortak
+    // =========================================================
+
+    private async Task<ApiResponseModel> IssueSessionAsync(
+        int userId,
+        string username,
+        string email,
+        string level,
+        string clientIp)
+    {
+        // =========================================================
         // ROLLER
         // =========================================================
 
@@ -310,7 +465,7 @@ public class LoginService
                 new JwtModel
                 {
                     UserId = userId,
-                    Username = models.Username,
+                    Username = username,
                     Email = email,
                     Roles = roles
                 }
@@ -324,7 +479,7 @@ public class LoginService
         {
             await _logService.LogUserAsync(
                 userId,
-                models.Username,
+                username,
                 "LoginSuccess",
                 "Kullanıcı başarıyla giriş yaptı",
                 clientIp
@@ -345,10 +500,14 @@ public class LoginService
             {
                 token,
                 userId,
-                username = models.Username,
+                username,
+                email,
                 role = primaryRole,
                 level,
-                roles
+                roles,
+                emailVerified = true,
+                onboardingRequired = false,
+                nextStep = "complete"
             }
         );
     }

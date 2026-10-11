@@ -1,5 +1,6 @@
 using Apı.Model;
 using Microsoft.Data.SqlClient;
+using Apı.Helpers;
 namespace Apı.Service;
 
 public partial class MapService : IMapService
@@ -18,5 +19,5 @@ public partial class MapService : IMapService
         }
         return new SqlConnection(connectionString);
     }
-    
+
 }

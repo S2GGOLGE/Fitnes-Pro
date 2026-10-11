@@ -97,4 +97,58 @@ public class JwtService
         return new JwtSecurityTokenHandler()
             .WriteToken(token);
     }
+
+    // =========================================================
+    // ONBOARDING TOKEN
+    // Kayıt/giriş sonrası konum ve e-posta doğrulama adımları için
+    // verilen SINIRLI yetkili ve kısa ömürlü token.
+    // - Farklı audience (normal Bearer şeması tarafından reddedilir)
+    // - Rol claim'i içermez
+    // - Aynı imza anahtarı backend'de kalır, frontend'e taşınmaz.
+    // =========================================================
+
+    public const string OnboardingScheme = "Onboarding";
+    public const string OnboardingAudienceSuffix = ".onboarding";
+    public const string OnboardingScopeClaim = "scope";
+    public const string OnboardingScopeValue = "onboarding";
+    public const int OnboardingExpireMinutes = 30;
+
+    public string CreateOnboardingToken(JwtModel model)
+    {
+        var jwt = _configuration.GetSection("jwt");
+
+        var key = new SymmetricSecurityKey(
+            Convert.FromBase64String(jwt["Key"]!)
+        );
+
+        var credentials = new SigningCredentials(
+            key,
+            SecurityAlgorithms.HmacSha256
+        );
+
+        var claims = new List<Claim>
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, model.UserId.ToString()),
+            new Claim(ClaimTypes.NameIdentifier, model.UserId.ToString()),
+            new Claim(JwtRegisteredClaimNames.UniqueName, model.Username),
+            new Claim(ClaimTypes.Name, model.Username),
+            new Claim(OnboardingScopeClaim, OnboardingScopeValue)
+        };
+
+        if (!string.IsNullOrWhiteSpace(model.Email))
+        {
+            claims.Add(new Claim(ClaimTypes.Email, model.Email.Trim()));
+        }
+
+        var token = new JwtSecurityToken(
+            issuer: jwt["Issuer"],
+            audience: jwt["Audience"] + OnboardingAudienceSuffix,
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(OnboardingExpireMinutes),
+            signingCredentials: credentials
+        );
+
+        return new JwtSecurityTokenHandler()
+            .WriteToken(token);
+    }
 }

@@ -16,6 +16,8 @@
         userEmail: "",
         username: "",
         locationSelected: false,
+        isSaving: false,
+        backendLocationSet: false,
         locationData: {
             country: "Türkiye",
             city: "",
@@ -110,15 +112,10 @@
             }
         }
 
-        // Uzman kullanıcılar için "Atla" butonunu gizle
+        // Konum kaydı zorunlu olduğundan "Atla" butonu tüm seviyeler için gizlenir
         if (elements.btnSkipLocation) {
-            if (isUzman) {
-                elements.btnSkipLocation.classList.add("hidden");
-                elements.btnSkipLocation.setAttribute("aria-hidden", "true");
-            } else {
-                elements.btnSkipLocation.classList.remove("hidden");
-                elements.btnSkipLocation.removeAttribute("aria-hidden");
-            }
+            elements.btnSkipLocation.classList.add("hidden");
+            elements.btnSkipLocation.setAttribute("aria-hidden", "true");
         }
     }
 
@@ -400,14 +397,53 @@
     }
 
     /**
+     * Sayfa açılışında backend'den durumu sorgular:
+     * - Geçerli onboarding/oturum token'ı yoksa kullanıcı giriş ekranına yönlendirilir.
+     * - Konum zaten kayıtlıysa tekrar kayıt yaptırılmaz.
+     */
+    async function checkBackendStatus() {
+        if (!window.MapEndpoint || typeof window.MapEndpoint.getStatus !== "function") return;
+
+        try {
+            const status = await window.MapEndpoint.getStatus();
+            if (status && status.locationSet === true) {
+                state.backendLocationSet = true;
+                showAlert("Konumunuz zaten kayıtlı. E-posta doğrulama adımına yönlendiriliyorsunuz...", "success", 3000);
+                if (elements.btnContinue) elements.btnContinue.disabled = true;
+                state.isSaving = true;
+                navigateToEmailVerification();
+            }
+        } catch (err) {
+            console.warn("[Backend Maps Status]:", err.message);
+            if (!/Oturum/.test(err.message)) {
+                // Geçici/ağ hatası: kullanıcıyı sayfada tut, kayıt sırasında backend zaten doğrulanacak.
+                showAlert(err.message, "warning", 5000);
+                return;
+            }
+            showAlert(`${err.message} Giriş ekranına yönlendiriliyorsunuz...`, "error", 6000);
+            state.isSaving = true;
+            if (elements.btnContinue) elements.btnContinue.disabled = true;
+            setTimeout(() => {
+                window.location.href = "Login.html";
+            }, 3000);
+        }
+    }
+
+    /**
      * Devam Et Butonu Kontrolü
-     * Kural: Standart kullanıcılar atlayabilir, Uzman seviyesindekiler atlayamaz!
+     * Kural: Konum zorunludur; backend kaydı doğrulanmadan sonraki adıma geçilmez.
      */
     function handleContinue() {
-        const isUzman = state.userLevel && state.userLevel.toLowerCase() === "uzman";
+        if (state.isSaving) return;
 
-        if (isUzman && !state.locationSelected) {
-            showAlert("Uzman seviyesindeki eğitmenler için konum belirleme zorunludur! Lütfen haritadan veya Manuel Giriş ile konumunuzu belirleyiniz.", "warning", 5000);
+        // Backend'de konum zaten kayıtlıysa ve kullanıcı yeni bir konum seçmediyse tekrar kayıt yapma.
+        if (state.backendLocationSet && !state.locationSelected) {
+            navigateToEmailVerification();
+            return;
+        }
+
+        if (!state.locationSelected) {
+            showAlert("Devam etmek için konumunuzu haritadan veya Manuel Giriş ile belirlemeniz gerekmektedir.", "warning", 5000);
             return;
         }
 
@@ -415,54 +451,68 @@
     }
 
     /**
-     * Standart Kullanıcılar İçin Atla
+     * Konum bu akışta zorunludur (normal giriş de kayıtlı konum gerektirir),
+     * bu nedenle atlama desteklenmez.
      */
     function handleSkip() {
-        const isUzman = state.userLevel && state.userLevel.toLowerCase() === "uzman";
-        if (isUzman) {
-            showAlert("Uzman seviyesindeki kullanıcılar bu adımı atlayamaz.", "warning");
-            return;
-        }
-
-        // Konum seçilmeden devam et
-        state.locationSelected = false;
-        saveAndNavigateNext();
+        showAlert("Konum belirleme zorunludur. Lütfen haritadan veya Manuel Giriş ile konumunuzu belirleyiniz.", "warning", 5000);
     }
 
     /**
-     * Verileri Sakla ve E-posta Doğrulama Sayfasına Yönlendir
+     * E-posta Doğrulama sayfasına yönlendir.
+     */
+    function navigateToEmailVerification() {
+        const targetUrl = `EpostaDogrulama.html${state.userEmail ? `?email=${encodeURIComponent(state.userEmail)}` : ""}`;
+        setTimeout(() => {
+            window.location.href = targetUrl;
+        }, 600);
+    }
+
+    /**
+     * Konumu backend'e kaydet; yalnızca backend başarıyı doğrularsa sonraki sayfaya geç.
      */
     async function saveAndNavigateNext() {
+        if (state.isSaving) return;
+
+        if (!window.MapEndpoint || typeof window.MapEndpoint.saveLocation !== "function") {
+            showAlert("Konum servisi yüklenemedi. Sayfayı yenileyip tekrar deneyiniz.", "error", 5000);
+            return;
+        }
+
+        state.isSaving = true;
+        const originalText = elements.btnContinue ? elements.btnContinue.textContent : "";
         if (elements.btnContinue) {
             elements.btnContinue.disabled = true;
             elements.btnContinue.textContent = "Kaydediliyor...";
         }
 
-        // Eğer kullanıcı bir konum seçtiyse Backend Maps API'sine gönder
-        if (state.locationSelected && window.MapEndpoint && typeof window.MapEndpoint.saveLocation === "function") {
-            try {
-                const apiPayload = {
-                    country: state.locationData.country || "Türkiye",
-                    province: state.locationData.city || state.locationData.province || "",
-                    district: state.locationData.district || "",
-                    neighbourhood: state.locationData.neighborhood || state.locationData.neighbourhood || "",
-                    address: [state.locationData.neighborhood, state.locationData.district, state.locationData.city].filter(Boolean).join(", "),
-                    latitude: state.locationData.lat,
-                    longitude: state.locationData.lng
-                };
+        try {
+            const apiPayload = {
+                country: state.locationData.country || "Türkiye",
+                province: state.locationData.city || state.locationData.province || "",
+                district: state.locationData.district || "",
+                neighbourhood: state.locationData.neighborhood || state.locationData.neighbourhood || "",
+                address: [state.locationData.neighborhood, state.locationData.district, state.locationData.city].filter(Boolean).join(", "),
+                latitude: state.locationData.lat,
+                longitude: state.locationData.lng
+            };
 
-                const saveResult = await window.MapEndpoint.saveLocation(apiPayload);
-                if (saveResult && saveResult.message) {
-                    showAlert(saveResult.message, "success", 2000);
-                }
-            } catch (apiErr) {
-                console.warn("[Backend Maps API]:", apiErr.message);
-                // Backend hatası olsa bile (örneğin oturumsuz test veya 401) akışı kitlemeyip bildiriyoruz
-                showAlert(`Backend Bildirimi: ${apiErr.message}`, "warning", 3000);
+            const saveResult = await window.MapEndpoint.saveLocation(apiPayload);
+            if (saveResult && saveResult.message) {
+                showAlert(saveResult.message, "success", 2000);
             }
+        } catch (apiErr) {
+            // Kayıt başarısız: kullanıcıya hatayı göster ve mevcut sayfada kal.
+            console.warn("[Backend Maps API]:", apiErr.message);
+            showAlert(`Konum kaydedilemedi: ${apiErr.message}`, "error", 6000);
+            state.isSaving = false;
+            if (elements.btnContinue) {
+                elements.btnContinue.disabled = false;
+                elements.btnContinue.textContent = originalText;
+            }
+            return;
         }
 
-        let isEmailVerified = false;
         try {
             sessionStorage.setItem("fitnesspro_location", JSON.stringify(state.locationData));
             // Kullanıcı seviyesini ve e-postasını bir sonraki sayfaya aktar
@@ -470,36 +520,16 @@
                 username: state.username,
                 email: state.userEmail,
                 level: state.userLevel,
-                locationSet: true
+                locationSet: true,
+                emailVerified: false
             };
-            const stored = sessionStorage.getItem("fitnesspro_register_user");
-            if (stored) {
-                try {
-                    const parsed = JSON.parse(stored);
-                    if (parsed.emailVerified === true) {
-                        userState.emailVerified = true;
-                        isEmailVerified = true;
-                    }
-                } catch (e) {}
-            }
-            if (sessionStorage.getItem("fitnesspro_email_verified") === "true") {
-                isEmailVerified = true;
-                userState.emailVerified = true;
-            }
             sessionStorage.setItem("fitnesspro_register_user", JSON.stringify(userState));
         } catch (e) {
             console.warn("Storage hatası:", e);
         }
 
-        // Eğer e-posta zaten doğrulanmışsa ana sayfaya (index.html), henüz doğrulanmadıysa E-posta Doğrulama Sayfasına Yönlendir
-        setTimeout(() => {
-            if (isEmailVerified) {
-                window.location.href = "index.html";
-            } else {
-                const targetUrl = `EpostaDogrulama.html${state.userEmail ? `?email=${encodeURIComponent(state.userEmail)}` : ""}`;
-                window.location.href = targetUrl;
-            }
-        }, 600);
+        // Backend kaydı doğrulandı -> E-posta doğrulama adımı (buton kilitli kalır, tekrar gönderim yok)
+        navigateToEmailVerification();
     }
 
     /**
@@ -508,6 +538,7 @@
     document.addEventListener("DOMContentLoaded", () => {
         initUserData();
         initMap();
+        checkBackendStatus();
 
         if (elements.btnAutoLocation) {
             elements.btnAutoLocation.addEventListener("click", requestUserLocation);

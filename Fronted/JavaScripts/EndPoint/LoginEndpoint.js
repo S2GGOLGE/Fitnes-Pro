@@ -433,6 +433,89 @@
 
                         const data = result.data;
 
+                        // -----------------------------------------
+                        // ONBOARDING GEREKLİ (backend kararı)
+                        // Konum kaydı yoksa nextStep="location",
+                        // e-posta doğrulanmamışsa nextStep="email".
+                        // Bu durumda normal JWT YOKTUR; yalnızca
+                        // sınırlı yetkili onboarding token'ı gelir.
+                        // -----------------------------------------
+
+                        if (
+                            data &&
+                            typeof data === "object" &&
+                            data.onboardingRequired === true
+                        ) {
+
+                            const nextStep = data.nextStep;
+                            const onboardingToken = data.onboardingToken;
+
+                            if (
+                                !onboardingToken ||
+                                (nextStep !== "location" && nextStep !== "email")
+                            ) {
+                                showAlert(
+                                    "Giriş tamamlanamadı: kayıt adımı bilgisi alınamadı. Lütfen tekrar deneyiniz.",
+                                    "error"
+                                );
+                                return;
+                            }
+
+                            try {
+                                // Önceki kullanıcıdan kalan oturum/onboarding verisini temizle
+                                if (window.Auth) {
+                                    window.Auth.clearSession();
+                                    window.Auth.clearAdmin();
+                                }
+                                sessionStorage.removeItem("fitnesspro_email_verified");
+                                sessionStorage.removeItem("fitnesspro_location");
+                                sessionStorage.setItem(
+                                    "fitnesspro_onboarding_token",
+                                    onboardingToken
+                                );
+                                sessionStorage.setItem(
+                                    "fitnesspro_register_user",
+                                    JSON.stringify({
+                                        email: data.email || "",
+                                        username: data.username || username,
+                                        level: data.level || "Acemi",
+                                        locationSet: data.locationSet === true,
+                                        emailVerified: data.emailVerified === true
+                                    })
+                                );
+                            } catch (storageErr) {
+                                showAlert(
+                                    "Tarayıcı depolaması kullanılamadığı için kayıt adımlarına devam edilemiyor.",
+                                    "error"
+                                );
+                                return;
+                            }
+
+                            if (window.LoginRateLimitUI) {
+                                window.LoginRateLimitUI.stop();
+                            }
+
+                            loginForm.reset();
+
+                            const targetPage =
+                                nextStep === "location"
+                                    ? "KonumBelirleme.html"
+                                    : `EpostaDogrulama.html${data.email ? `?email=${encodeURIComponent(data.email)}` : ""}`;
+
+                            showAlert(
+                                nextStep === "location"
+                                    ? "Konum belirleme adımına yönlendiriliyorsunuz..."
+                                    : "E-posta doğrulama adımına yönlendiriliyorsunuz...",
+                                "success"
+                            );
+
+                            setTimeout(() => {
+                                window.location.href = targetPage;
+                            }, 1000);
+
+                            return;
+                        }
+
                         let token = null;
                         let userData = null;
 
@@ -449,18 +532,20 @@
                             token = data.token || null;
 
                             // Yeni response yapısındaki alanlar:
-                            // userId, username, role, level, roles
+                            // userId, username, email, role, level, roles, emailVerified
                             userData = {
                                 userId: data.userId,
                                 username:
                                     data.username || username,
+                                email: data.email || null,
                                 role:
                                     data.role || "User",
                                 level:
                                     data.level || null,
                                 roles: Array.isArray(data.roles)
                                     ? data.roles
-                                    : [data.role || "User"]
+                                    : [data.role || "User"],
+                                emailVerified: data.emailVerified === true
                             };
 
                         } else if (result.token) {
@@ -479,6 +564,12 @@
                                 token,
                                 userData || { username: username }
                             );
+
+                            try {
+                                sessionStorage.removeItem("fitnesspro_onboarding_token");
+                            } catch (e) {
+                                // Sessizce geç
+                            }
                         }
 
                         // -----------------------------------------

@@ -1,4 +1,5 @@
 using Apı.Service;
+using Apı.Service.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -7,21 +8,29 @@ namespace Apı.Controllers;
 
 [ApiController]
 [Route("api/two-factor")]
-[Authorize]
 public class TwoFactorController : ControllerBase
 {
     private readonly ITwoFactorService _twoFactorService;
     private readonly ITwoFactorSettingsService _settingsService;
+    private readonly OnboardingService _onboardingService;
+
+    // Kayıt sonrası e-posta doğrulama adımı sınırlı yetkili onboarding token'ı
+    // ile de çağrılabilir; diğer 2FA işlemleri yalnızca normal oturum içindir.
+    private const string EmailVerificationSchemes =
+        "Bearer," + JwtService.OnboardingScheme;
 
     public TwoFactorController(
         ITwoFactorService twoFactorService,
-        ITwoFactorSettingsService settingsService)
+        ITwoFactorSettingsService settingsService,
+        OnboardingService onboardingService)
     {
         _twoFactorService = twoFactorService;
         _settingsService = settingsService;
+        _onboardingService = onboardingService;
     }
 
     [HttpGet("status")]
+    [Authorize]
     public async Task<IActionResult> GetStatus()
     {
         int userId = GetUserId();
@@ -36,6 +45,7 @@ public class TwoFactorController : ControllerBase
     }
 
     [HttpPost("enable")]
+    [Authorize]
     public async Task<IActionResult> Enable()
     {
         int userId = GetUserId();
@@ -52,6 +62,7 @@ public class TwoFactorController : ControllerBase
     }
 
     [HttpPost("disable")]
+    [Authorize]
     public async Task<IActionResult> Disable()
     {
         int userId = GetUserId();
@@ -66,6 +77,7 @@ public class TwoFactorController : ControllerBase
     }
 
     [HttpPost("send-code")]
+    [Authorize(AuthenticationSchemes = EmailVerificationSchemes)]
     public async Task<IActionResult> SendCode()
     {
         int userId = GetUserId();
@@ -92,6 +104,7 @@ public class TwoFactorController : ControllerBase
     }
 
     [HttpPost("verify")]
+    [Authorize(AuthenticationSchemes = EmailVerificationSchemes)]
     public async Task<IActionResult> Verify(
         [FromBody] VerifyTwoFactorRequest request)
     {
@@ -117,6 +130,9 @@ public class TwoFactorController : ControllerBase
                 message = "Doğrulama kodu geçersiz veya süresi dolmuş."
             });
         }
+
+        // Kod backend'de doğrulandı: e-posta doğrulama durumunu kalıcı olarak işaretle.
+        await _onboardingService.MarkEmailVerifiedAsync(userId);
 
         return Ok(new
         {

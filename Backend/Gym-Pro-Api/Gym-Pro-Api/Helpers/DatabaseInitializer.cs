@@ -33,6 +33,9 @@ namespace Apı.Helpers
                 // ADIM 2: Users tablosu
                 await EnsureUsersTableAsync(connection);
 
+                // ADIM 2.1: Users.EmailVerified kolonu (e-posta doğrulama durumu)
+                await EnsureUsersEmailVerifiedColumnAsync(connection);
+
                 // ADIM 3: Roles tablosu
                 await EnsureRolesTableAsync(connection);
 
@@ -491,6 +494,37 @@ namespace Apı.Helpers
                     await cmd.ExecuteNonQueryAsync();
                 }
             }
+        }
+
+        // -------------------------------------------------------------------
+        // 2.1) USERS.EMAILVERIFIED
+        // Mevcut kullanıcılar dahil tümü 0 (doğrulanmamış) olarak başlar;
+        // ilk girişte e-posta doğrulama adımına yönlendirilirler.
+        // -------------------------------------------------------------------
+
+        private static async Task EnsureUsersEmailVerifiedColumnAsync(
+            SqlConnection connection)
+        {
+            if (await ColumnExistsAsync(
+                connection,
+                "Users",
+                "EmailVerified"))
+            {
+                return;
+            }
+
+            const string addSql = """
+                ALTER TABLE [dbo].[Users]
+                ADD [EmailVerified]
+                    BIT
+                    NOT NULL
+                    CONSTRAINT [DF_Users_EmailVerified]
+                    DEFAULT 0;
+                """;
+
+            using var cmd = new SqlCommand(addSql, connection);
+
+            await cmd.ExecuteNonQueryAsync();
         }
 
         // -------------------------------------------------------------------

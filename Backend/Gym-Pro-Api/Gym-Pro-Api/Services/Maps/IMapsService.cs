@@ -4,5 +4,6 @@ namespace Apı.Service;
 
 public interface IMapService
 {
-    Task<ApiResponseModel> SaveLocationAsync(MapsModel mapsModel);
+    Task<ApiResponseModel> SaveLocationAsync(SaveLocationModel SaveModel);
+    Task<ApiResponseModel> GetLocationAsync(GetLocationModel? GetModel = null);
 }
