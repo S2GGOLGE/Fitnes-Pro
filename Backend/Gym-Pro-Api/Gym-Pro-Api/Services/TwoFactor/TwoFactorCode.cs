@@ -1,5 +1,6 @@
 namespace Apı.Service;
 
+using Apı.Service;
 public static class TwoFactorCode
 {
     public static string Create(string code)
@@ -33,7 +34,7 @@ public static class TwoFactorCode
             </p>
             """;
 
-        return EmailTemplate.BaseTemplate(
+        return LoginVerificationEmailTemplate.Generate(
             "Güvenlik Doğrulaması",
             content
         );

@@ -59,7 +59,8 @@ builder.Services.AddScoped<RegisterService>(sp =>
     new RegisterService(
         defaultConnection,
         sp.GetRequiredService<Apı.Services.ILogService>(),
-        sp.GetRequiredService<JwtService>()
+        sp.GetRequiredService<JwtService>(),
+        sp.GetRequiredService<IEmailService>()
     ));
 
 // =========================================================

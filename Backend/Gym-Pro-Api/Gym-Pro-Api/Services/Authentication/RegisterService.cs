@@ -12,17 +12,20 @@ public class RegisterService
     private readonly string _connectionString;
     private readonly ILogService _logService;
     private readonly JwtService _jwtService;
+    private readonly IEmailService _EmailService;
 
     public RegisterService(
         string connectionService,
         ILogService logService,
-        JwtService jwtService)
+        JwtService jwtService,
+        IEmailService emailService)
     {
         _connectionString = connectionService;
         _logService = logService
             ?? throw new ArgumentNullException(nameof(logService));
         _jwtService = jwtService
             ?? throw new ArgumentNullException(nameof(jwtService));
+        _EmailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
     }
 
     public async Task<ApiResponseModel> RegisterAsync(
@@ -181,6 +184,17 @@ public class RegisterService
                 clientIp
             );
 
+            // =========================================================
+            // EMAIL: WELCOME TEMPLATE GÖNDERİMİ
+            // =========================================================
+
+            await SafeSendWelcomeEmailAsync(
+                model.Email,
+                model.Name,
+                model.Username,
+                clientIp
+            );
+
             // Normal oturum DEĞİL: yalnızca konum kaydı ve e-posta doğrulama
             // adımlarında kullanılabilen sınırlı yetkili, kısa ömürlü token.
             var onboardingToken = _jwtService.CreateOnboardingToken(
@@ -207,6 +221,41 @@ public class RegisterService
         {
             await transaction.RollbackAsync();
             throw;
+        }
+    }
+
+    /// <summary>
+    /// Hoş geldiniz e-postası gönderimi sırasında oluşan hatalar
+    /// tamamlanmış kayıt işlemini (register) bozmamalı.
+    /// </summary>
+    private async Task SafeSendWelcomeEmailAsync(
+        string email,
+        string name,
+        string username,
+        string? clientIp)
+    {
+        try
+        {
+            var emailBody = WelcomeEmailTemplate.Generate(
+                name,
+                "http://localhost:8081"
+            );
+
+            await _EmailService.SendEmailAsync(
+                email,
+                "Fitness Pro'ya Hoş Geldiniz",
+                emailBody,
+                true
+            );
+        }
+        catch (Exception ex)
+        {
+            await SafeLogUserAsync(
+                username,
+                "WelcomeEmailFailed",
+                $"Hoş geldiniz e-postası gönderilemedi: {ex.Message}",
+                clientIp
+            );
         }
     }
 

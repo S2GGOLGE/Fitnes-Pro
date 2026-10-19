@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "x6xgFyNzJEM=",
+  "dgSpecHash": "Z13AweGgNX0=",
   "success": true,
-  "projectFilePath": "C:\\Projects\\Fitnes-Pro\\Backend\\Gym-Pro-Api\\Gym-Pro-Api\\Gym-Pro-Api.csproj",
+  "projectFilePath": "c:\\Projects\\Fitnes-Pro\\Backend\\Gym-Pro-Api\\Gym-Pro-Api\\Gym-Pro-Api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\cetin\\.nuget\\packages\\azure.core\\1.50.0\\azure.core.1.50.0.nupkg.sha512",
     "C:\\Users\\cetin\\.nuget\\packages\\azure.identity\\1.17.1\\azure.identity.1.17.1.nupkg.sha512",
@@ -64,5 +64,30 @@
     "C:\\Users\\cetin\\.nuget\\packages\\system.security.cryptography.pkcs\\10.0.0\\system.security.cryptography.pkcs.10.0.0.nupkg.sha512",
     "C:\\Users\\cetin\\.nuget\\packages\\system.security.cryptography.protecteddata\\9.0.11\\system.security.cryptography.protecteddata.9.0.11.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "'System.Security.Cryptography.Pkcs' 10.0.0 paketinde önem derecesi orta olan bilinen bir https://github.com/advisories/GHSA-2fmv-rv2c-59x7 güvenlik açığı var",
+      "projectPath": "c:\\Projects\\Fitnes-Pro\\Backend\\Gym-Pro-Api\\Gym-Pro-Api\\Gym-Pro-Api.csproj",
+      "warningLevel": 1,
+      "filePath": "c:\\Projects\\Fitnes-Pro\\Backend\\Gym-Pro-Api\\Gym-Pro-Api\\Gym-Pro-Api.csproj",
+      "libraryId": "System.Security.Cryptography.Pkcs",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "'System.Security.Cryptography.Pkcs' 10.0.0 paketinde önem derecesi yüksek olan bilinen bir https://github.com/advisories/GHSA-846f-f764-76mx güvenlik açığı var",
+      "projectPath": "c:\\Projects\\Fitnes-Pro\\Backend\\Gym-Pro-Api\\Gym-Pro-Api\\Gym-Pro-Api.csproj",
+      "warningLevel": 1,
+      "filePath": "c:\\Projects\\Fitnes-Pro\\Backend\\Gym-Pro-Api\\Gym-Pro-Api\\Gym-Pro-Api.csproj",
+      "libraryId": "System.Security.Cryptography.Pkcs",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    }
+  ]
 }

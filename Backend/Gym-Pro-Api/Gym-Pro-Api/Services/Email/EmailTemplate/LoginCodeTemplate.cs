@@ -1,0 +1,105 @@
+using System.Net;
+
+namespace Apı.Service;
+
+public static class LoginVerificationEmailTemplate
+{
+    public static string Generate(string code, string time)
+    {
+        var safeCode = WebUtility.HtmlEncode(code);
+        var safeTime = WebUtility.HtmlEncode(time);
+
+        return $$"""
+        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+        <html xmlns="http://www.w3.org/1999/xhtml" lang="tr">
+        <head>
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <meta name="x-apple-disable-message-reformatting" />
+            <title>Giriş Doğrulama Kodu</title>
+            <!--[if mso]>
+            <style type="text/css">
+                table, td, span, p { font-family: Arial, sans-serif !important; }
+            </style>
+            <![endif]-->
+        </head>
+
+        <body style="margin:0;padding:0;background-color:#f1f5f9;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+
+            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#f1f5f9;">
+                <tr>
+                    <td align="center" style="padding:40px 16px;">
+
+                        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:500px;background-color:#ffffff;border:1px solid #e2e8f0;border-collapse:separate;border-radius:12px;">
+
+                            <tr>
+                                <td align="center" style="padding:40px 32px 16px;">
+                                    <h1 style="margin:0 0 10px;font-size:22px;font-weight:700;color:#0f172a;letter-spacing:-0.3px;">
+                                        Giriş Doğrulama
+                                    </h1>
+                                    <p style="margin:0;font-size:14px;line-height:22px;color:#64748b;">
+                                        Fitness Pro hesabınıza giriş yapmak için gereken tek kullanımlık güvenlik kodunuz aşağıdadır.
+                                    </p>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td align="center" style="padding:16px 32px;">
+                                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center">
+                                        <tr>
+                                            <td align="center" style="background-color:#f8fafc;border:2px dashed #cbd5e1;border-radius:8px;padding:18px 36px;">
+                                                <span style="font-family:Consolas,'Courier New',monospace;font-size:32px;font-weight:700;letter-spacing:8px;color:#2563eb;">
+                                                    {{safeCode}}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td align="center" style="padding:8px 32px 24px;">
+                                    <p style="margin:0;font-size:13px;color:#64748b;line-height:20px;">
+                                        Bu kod <strong style="color:#334155;">5 dakika</strong> süreyle geçerlidir.
+                                        <span style="color:#94a3b8;">{{safeTime}}</span>
+                                    </p>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="padding:0 32px 36px;">
+                                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#fef2f2;border-left:4px solid #ef4444;border-radius:6px;">
+                                        <tr>
+                                            <td style="padding:12px 16px;">
+                                                <p style="margin:0;font-size:12px;line-height:18px;color:#991b1b;">
+                                                    <strong>Önemli:</strong>
+                                                    Bu giriş işlemini siz başlatmadıysanız kodu kimseyle paylaşmayın.
+                                                    Hesabınızda şüpheli bir işlem olduğunu düşünüyorsanız teknik destek ile iletişime geçin.
+                                                </p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+
+                        </table>
+
+                        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:500px;">
+                            <tr>
+                                <td align="center" style="padding:24px 16px 0;">
+                                    <p style="margin:0;font-size:12px;line-height:18px;color:#94a3b8;">
+                                        Bu e-posta Fitness Pro sistemi tarafından otomatik olarak gönderilmiştir.
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+
+                    </td>
+                </tr>
+            </table>
+
+        </body>
+        </html>
+        """;
+    }
+}

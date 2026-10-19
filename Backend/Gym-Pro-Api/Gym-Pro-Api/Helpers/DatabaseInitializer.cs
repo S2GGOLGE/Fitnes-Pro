@@ -82,7 +82,6 @@ namespace Apı.Helpers
                 // ADIM 19: UserLocations tablosu
                 await EnsureUserLocationsTableAsync(connection);
                 // ADIM 20: UserThemeSettings tablosu
-                await EnsureUserThemeSettingsTableAsync(connection);
             }
         }
 
