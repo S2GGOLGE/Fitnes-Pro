@@ -939,11 +939,11 @@
                 typeof window.GlobalModal.open !== "function"
             ) {
                 // Fallback: basit bir prompt
-                const receiverId = window.prompt(
-                    "Arkadaslik istegi gondermek istediginiz kullanici ID:"
+                const username = window.prompt(
+                    "Arkadaslik istegi gondermek istediginiz kullanici adi:"
                 );
-                if (receiverId) {
-                    handleSendRequest(receiverId);
+                if (username) {
+                    handleSendRequest(username);
                 }
                 return;
             }
@@ -951,18 +951,20 @@
             const body = document.createElement("div");
             body.className = "send-request-modal-body";
             body.innerHTML =
-                '<label for="sendRequestUserId" class="send-request-label">' +
-                "Hedef Kullanici ID" +
+                '<label for="sendRequestUsername" class="send-request-label">' +
+                "Hedef Kullanici Adi" +
                 "</label>" +
-                '<input type="number" min="1" id="sendRequestUserId" ' +
-                'class="send-request-input" placeholder="Orn: 42" />' +
+                '<input type="text" id="sendRequestUsername" ' +
+                'class="send-request-input" placeholder="Orn: ahmet_yilmaz" ' +
+                'autocomplete="off" spellcheck="false" ' +
+                'maxlength="100" />' +
                 '<p class="send-request-hint" id="sendRequestHint"></p>';
 
             const modal = window.GlobalModal.open({
                 type: "info",
                 title: "Arkadaslik Istegi Gonder",
                 description:
-                    "Arkadaslik istegi gondermek istediginiz kullanicinin ID numarasini girin.",
+                    "Arkadaslik istegi gondermek istediginiz kullanicinin kullanici adini girin.",
                 content: body,
                 size: "default",
                 buttons: [
@@ -975,7 +977,7 @@
                         variant: "primary",
                         callback: async ({ close }) => {
                             const input = document.getElementById(
-                                "sendRequestUserId"
+                                "sendRequestUsername"
                             );
                             const hint = document.getElementById(
                                 "sendRequestHint"
@@ -987,7 +989,7 @@
                             if (!value) {
                                 if (hint) {
                                     hint.textContent =
-                                        "Lutfen bir kullanici ID girin.";
+                                        "Lutfen bir kullanici adi girin.";
                                     hint.classList.add(
                                         "send-request-hint-error"
                                     );
@@ -995,14 +997,10 @@
                                 return false;
                             }
 
-                            const numericId = Number(value);
-                            if (
-                                !Number.isInteger(numericId) ||
-                                numericId <= 0
-                            ) {
+                            if (value.length < 3) {
                                 if (hint) {
                                     hint.textContent =
-                                        "Gecerli bir kullanici ID girin.";
+                                        "Kullanici adi en az 3 karakter olmalidir.";
                                     hint.classList.add(
                                         "send-request-hint-error"
                                     );
@@ -1010,7 +1008,7 @@
                                 return false;
                             }
 
-                            await handleSendRequest(numericId, close);
+                            await handleSendRequest(value, close);
                         }
                     }
                 ]
@@ -1019,15 +1017,15 @@
             // Ilk odagi input'a al
             setTimeout(() => {
                 const input = document.getElementById(
-                    "sendRequestUserId"
+                    "sendRequestUsername"
                 );
                 if (input) input.focus();
             }, 80);
         }
 
-        async function handleSendRequest(receiverId, modalClose) {
+        async function handleSendRequest(username, modalClose) {
             const result =
-                await window.FriendsAPI.sendRequest(receiverId);
+                await window.FriendsAPI.sendRequest(username);
 
             showResult(
                 result,

@@ -11,43 +11,87 @@ public partial class FriendService
         _connectionString = connectionString;
     }
     // =========================================================
-    // ARKADAŞLIK İSTEĞİ GÖNDER
+    // ARKADAŞLIK İSTEĞİ GÖNDER (Username ile)
     // =========================================================
-    public async Task<ApiResponseModel> SendRequestAsync(int senderId, int receiverId)
+    public async Task<ApiResponseModel> SendRequestAsync(int senderId, string receiverUsername)
     {
         // =========================================================
-        // KENDİNE İSTEK GÖNDERME KONTROLÜ
+        // BOŞ / NULL USERNAME KONTROLÜ
         // =========================================================
-        if (senderId == receiverId)
+        if (string.IsNullOrWhiteSpace(receiverUsername))
         {
             return ApiResponseModel.Fail(
-                " Kendinize istek gonderemezsiniz"
+                "Hedef kullanici adi belirtilmedi"
             );
         }
+
+        var normalizedUsername = receiverUsername.Trim();
+
         // =========================================================
         // DATABASE CONNECTION
         // =========================================================
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync();
+
         // =========================================================
-        // ALICI KULLANICI VAR MI?
+        // ALICI KULLANICI VAR MI? (Username -> Id çözümleme)
         // =========================================================
         const string userQuery =
         """
-        SELECT COUNT(*)
+        SELECT TOP(1)
+                Id,
+                Username
             FROM dbo.Users
-            WHERE Id = @UserId;
+            WHERE Username = @Username;
         """;
+        int receiverId;
+        string? receiverActualUsername;
         await using (var userCommand = new SqlCommand(userQuery, connection))
         {
-            userCommand.Parameters.Add("@UserId", System.Data.SqlDbType.Int).Value = receiverId;
-            var result = await userCommand.ExecuteScalarAsync();
-            var userExist = result != null && Convert.ToInt32(result) > 0;
-            if (!userExist)
+            userCommand.Parameters.Add("@Username", System.Data.SqlDbType.NVarChar, 100).Value = normalizedUsername;
+            await using var reader = await userCommand.ExecuteReaderAsync();
+            if (!await reader.ReadAsync())
             {
                 return ApiResponseModel.Fail("Arkadaşlık isteği gondermek istediğiniz Kullanıcı bulunamadı");
             }
+            receiverId = reader.GetInt32(0);
+            receiverActualUsername = reader.GetString(1);
         }
+
+        // =========================================================
+        // KENDİNE İSTEK GÖNDERME KONTROLÜ
+        // =========================================================
+        const string senderUsernameQuery =
+        """
+        SELECT TOP(1)
+                Username
+            FROM dbo.Users
+            WHERE Id = @SenderId;
+        """;
+        string? senderUsername;
+        await using (var senderCommand = new SqlCommand(senderUsernameQuery, connection))
+        {
+            senderCommand.Parameters.Add("@SenderId", System.Data.SqlDbType.Int).Value = senderId;
+            var result = await senderCommand.ExecuteScalarAsync();
+            senderUsername = result == null || result is DBNull
+                ? null
+                : Convert.ToString(result);
+        }
+
+        if (
+            !string.IsNullOrEmpty(senderUsername) &&
+            string.Equals(
+                senderUsername,
+                receiverActualUsername,
+                StringComparison.OrdinalIgnoreCase
+            )
+        )
+        {
+            return ApiResponseModel.Fail(
+                " Kendinize istek gonderemezsiniz"
+            );
+        }
+
         // =========================================================
         // ZATEN ARKADAŞ MI?
         // =========================================================

@@ -6,11 +6,13 @@ namespace Apı.Service;
 
 public partial class MessageService : IMessageService
 {
-    public async Task<ApiResponseModel> SendMessageAsync(int senderId, SendMessageDto dto)
+    public async Task<ApiResponseModel> SendMessageAsync(string username, SendMessageDto dto)
     {
-        if (senderId <= 0 || dto.ReceviverId <= 0)
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(dto.username))
+        {
             return ApiResponseModel.Fail("Geçersiz Kullanıcı");
-        if (senderId == dto.ReceviverId)
+        }
+        if (username == dto.username)
             return ApiResponseModel.Fail("Kendinize Mesaj Gönderemezsiniz");
         if (string.IsNullOrWhiteSpace(dto.Content))
             return ApiResponseModel.Fail("Boş Mesaj Gonderemezsiniz");
@@ -29,8 +31,8 @@ public partial class MessageService : IMessageService
         """;
         await using (var userCommand = new SqlCommand(userssql, connection))
         {
-            userCommand.Parameters.AddWithValue("@SenderId", senderId);
-            userCommand.Parameters.AddWithValue("@ReceiverId", dto.ReceviverId);
+            userCommand.Parameters.AddWithValue("@SenderId", username);
+            userCommand.Parameters.AddWithValue("@ReceiverId", dto.username);
             int count = Convert.ToInt32(await userCommand.ExecuteScalarAsync());
             if (count != 2)
                 return ApiResponseModel.Fail("Kullanıcı Bulunumadı");
@@ -54,8 +56,8 @@ public partial class MessageService : IMessageService
         """;
         await using (var permisonCommand = new SqlCommand(permissionSql, connection))
         {
-            permisonCommand.Parameters.AddWithValue("@SenderId", senderId);
-            permisonCommand.Parameters.AddWithValue("ReceiverId", dto.ReceviverId);
+            permisonCommand.Parameters.AddWithValue("@SenderId", username);
+            permisonCommand.Parameters.AddWithValue("ReceiverId", dto.username);
             object? permission =
             await permisonCommand.ExecuteScalarAsync();
             if (Convert.ToInt32(permission) != 1)
@@ -74,8 +76,8 @@ public partial class MessageService : IMessageService
         """;
         await using var insertCommand =
         new SqlCommand(insertsql, connection);
-        insertCommand.Parameters.AddWithValue("@SenderId", senderId);
-        insertCommand.Parameters.AddWithValue("@ReceiverId", dto.ReceviverId);
+        insertCommand.Parameters.AddWithValue("@SenderId", username);
+        insertCommand.Parameters.AddWithValue("@ReceiverId", dto.username);
         insertCommand.Parameters.AddWithValue("@Content", dto.Content);
         insertCommand.Parameters.AddWithValue("@MessageType", messageType);
         await using var reader = await insertCommand.ExecuteReaderAsync();
@@ -84,8 +86,8 @@ public partial class MessageService : IMessageService
         var data = new
         {
             MessageId = reader.GetInt32(0),
-            SenderId = senderId,
-            ReceiverId = dto.ReceviverId,
+            SenderId = username,
+            ReceiverId = dto.username,
             Content = dto.Content.Trim(),
             MessageType = messageType,
             CreatedAt = reader.GetDateTime(1)

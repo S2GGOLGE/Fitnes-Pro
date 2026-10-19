@@ -46,7 +46,7 @@ public class MessageController : ControllerBase
             }
 
             var userId = GetUserıd();
-            var response = await _service.SendMessageAsync(userId, dto);
+            var response = await _service.SendMessageAsync(userId.ToString(), dto);
             return response.Success ? Ok(response) : BadRequest(response);
         }
         catch (UnauthorizedAccessException)

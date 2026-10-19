@@ -81,6 +81,8 @@ namespace Apı.Helpers
                 await EnsureMessagesTableAsync(connection);
                 // ADIM 19: UserLocations tablosu
                 await EnsureUserLocationsTableAsync(connection);
+                // ADIM 20: UserThemeSettings tablosu
+                await EnsureUserThemeSettingsTableAsync(connection);
             }
         }
 
@@ -1860,6 +1862,64 @@ namespace Apı.Helpers
         BEGIN
             CREATE INDEX [IX_UserLocations_Province_District]
             ON [dbo].[UserLocations] ([Province], [District]);
+        END;
+        """;
+
+            using var command = new SqlCommand(createSql, connection);
+            await command.ExecuteNonQueryAsync();
+        }
+
+
+
+
+        private static async Task EnsureUserThemeSettingsTableAsync(
+            SqlConnection connection)
+        {
+            const string createSql = """
+        IF OBJECT_ID(N'dbo.UserThemeSettings', N'U') IS NULL
+        BEGIN
+            CREATE TABLE [dbo].[UserThemeSettings]
+            (
+                [UserId] INT NOT NULL,
+
+                [Thema] NVARCHAR(20) NOT NULL
+                    CONSTRAINT [DF_UserThemeSettings_Thema]
+                    DEFAULT N'Dark',
+
+                CONSTRAINT [PK_UserThemeSettings]
+                    PRIMARY KEY CLUSTERED ([UserId] ASC),
+
+                CONSTRAINT [FK_UserThemeSettings_Users_UserId]
+                    FOREIGN KEY ([UserId])
+                    REFERENCES [dbo].[Users] ([Id])
+                    ON DELETE CASCADE,
+
+                CONSTRAINT [CK_UserThemeSettings_Thema]
+                    CHECK ([Thema] IN (N'Dark', N'Light'))
+            );
+        END;
+
+        -- Mevcut tabloda eksik sütunları tamamla.
+        IF COL_LENGTH(N'dbo.UserThemeSettings', N'Thema') IS NULL
+        BEGIN
+            ALTER TABLE [dbo].[UserThemeSettings]
+            ADD [Thema] NVARCHAR(20) NOT NULL
+                CONSTRAINT [DF_UserThemeSettings_Thema]
+                DEFAULT N'Dark';
+        END;
+
+        -- Tema kısıtını yalnızca eksikse ekle.
+        IF NOT EXISTS (
+            SELECT 1
+            FROM sys.check_constraints
+            WHERE name = N'CK_UserThemeSettings_Thema'
+              AND parent_object_id =
+                  OBJECT_ID(N'dbo.UserThemeSettings')
+        )
+        BEGIN
+            ALTER TABLE [dbo].[UserThemeSettings]
+            ADD CONSTRAINT [CK_UserThemeSettings_Thema]
+            CHECK ([Thema] IN (N'Dark', N'Light'));
         END;
         """;
 

@@ -75,7 +75,8 @@ ali_id, ayse_id = user_ids
 # -----------------------------------------------------------
 # 2. ARKADAŞLIK İSTEĞİ GÖNDER (Ali -> Ayşe)
 # -----------------------------------------------------------
-code, body = http("POST", f"/api/friends/request/{ayse_id}", token=ali_token)
+code, body = http("POST", "/api/friends/request",
+                  body={"username": "ayse_test_002"}, token=ali_token)
 show("FRIEND REQUEST (ali -> ayse)", code, body)
 
 # -----------------------------------------------------------

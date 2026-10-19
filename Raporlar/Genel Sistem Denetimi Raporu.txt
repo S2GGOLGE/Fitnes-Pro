@@ -1,0 +1,413 @@
+FITNESS PRO — GENEL SİSTEM ANALİZİ VE TEKNİK DENETİM RAPORU
+==========================================================
+Tarih: 2026-10-12
+Kapsam: Backend (.NET 10 Web API), Frontend (HTML/CSS/Vanilla JS), SQL Server şeması,
+        Docker/dağıtım yapılandırması, testler.
+Yöntem: Statik kod analizi + dotnet build. Canlı veritabanı ve çalışan API yoktu
+        (8081 ve 5000 portları kapalıydı), bu nedenle çalışma zamanı testleri yapılamadı.
+Not: Gizli anahtar, parola ve bağlantı bilgileri bu rapora bilinçli olarak yazılmamıştır.
+
+Build sonucu: "dotnet build Gym-Pro-Api.csproj" -> Başarılı, 0 Uyarı, 0 Hata.
+
+
+======================================================================
+A. YÖNETİCİ ÖZETİ
+======================================================================
+
+Genel durum:
+Sistemde temel kimlik doğrulama (kayıt, giriş, onboarding: konum + e-posta doğrulama)
+ile arkadaşlık/mesajlaşma altyapısının iskeleti kurulmuş. Fitness ve koçluk özellikleri
+(Antrenmanlar, Hedefler, İlerleme, Başvurular) backend'de HİÇ UYGULANMAMIŞ; frontend
+bu sayfalarda yalnızca localStorage/IndexedDB ve sabit (mock) veri kullanıyor.
+
+Tamamlanmış görünen modüller:
+  1. Kayıt ve giriş (/api/register, /api/login)
+  2. Onboarding (konum kaydı + e-posta doğrulama, sınırlı yetkili OnboardingScheme JWT)
+  3. Parola güncelleme (/api/passupdate)
+  4. Giriş hız sınırlama (rate limiting) ve ban
+  5. Ban itiraz sistemi (/api/auth/ban-appeal, /api/admin/ban-appeals)
+  6. Log kaydı (SystemLogs, UserLogs, AdminLogs, AppealLogs, GeneralLogs)
+
+Kritik sorunlar:
+  - JWT imzalama anahtarı appsettings.json içinde ve bu dosya git'te takip ediliyor.
+    (.env dosyası .gitignore ile dışlanmış ve takip EDİLMİYOR; ancak diskte SA parolası
+    ve SMTP uygulama parolası düz metin olarak duruyor.)
+  - Parola hashleme: tek turlu, salt eklenmiş SHA-256 (yavaş/uyarlanabilir algoritma değil).
+  - /api/passupdate üzerinde [Authorize] yok ve rate limit yok.
+  - 15 başarısız girişte kullanıcı adı DB'de kalıcı olarak banlanıyor. Kullanıcı adını
+    bilen herkes hedef hesabı kalıcı kilitleyebilir (DoS).
+  - Mesaj izni yalnızca FriendRequests tablosuna bakıyor; mesaj istekleri MessageRequests
+    tablosuna yazılıyor. Kabul edilmiş mesaj isteğinden sonra mesaj gönderilemiyor.
+
+Dağıtıma hazır olma durumu: HAZIR DEĞİL.
+
+En önemli beş risk:
+  1. Repoda JWT anahtarı + zayıf SHA-256 parola hashleme.
+  2. Kimlik doğrulamasız ve limitsiz parola güncelleme endpoint'i.
+  3. Kullanıcı adı ile keyfi kalıcı ban (hesap kilitleme DoS).
+  4. Mesajlaşma izni ile mesaj istekleri tablolarının birbirinden kopuk olması.
+  5. Admin kullanıcısı oluşturacak seed veya endpoint olmaması (RoleController boş).
+
+
+======================================================================
+B. SİSTEM MİMARİSİ
+======================================================================
+
++------------------------------------------------------------------------+
+| FRONTEND (Fronted/) — statik, python http.server ile port 3000          |
+|  Başlangıç.html, Login, Singup, KonumBelirleme, EpostaDogrulama,        |
+|  index, Profile*, Workouts*, Goals*, Progress*, Basvurular*,            |
+|  Admin, Mesajlar, Friends, setting, Haritalar                           |
+|  * = yalnızca mock / localStorage / IndexedDB, backend bağlantısı yok   |
++-----------------------------------+------------------------------------+
+                                    | HTTP/JSON, fetch + JWT Bearer
+                                    | config.js: localhost:8081
+                                    | run-backend.cmd ve tests/*.py: 5000 (tutarsız)
++-----------------------------------v------------------------------------+
+| BACKEND — ASP.NET Core Web API (.NET 10), namespace "Apı"              |
+|  Controllers: Login, Register, Passwordupdate, Map, TwoFactor,         |
+|   AdminBanAppeal, Admin, BanAppeal, Friend, Message, MessageRequests,  |
+|   Privacy, Logs, Rate, Test, Role (BOŞ)                                |
+|  Services: Login, Register, Passwordupdate, Onboarding,                |
+|   LoginRateLimiting (bellek içi) + BanStorage (SQL), Friend, Message,  |
+|   MessageRequest, Map, Email (MailKit), TwoFactor, Log, Jwt, Hash      |
+|  Veri erişimi: Ham ADO.NET (Microsoft.Data.SqlClient)                  |
+|   DatabaseInitializer.cs: ~2111 satır DDL                              |
+|   ApplicationDbContext: boş, DI'a kayıtlı değil (EF Core kullanılmıyor)|
++-----------------------------------+------------------------------------+
+                                    | T-SQL, parametreli sorgular
++-----------------------------------v------------------------------------+
+| SQL SERVER 2022 — Veritabanı: FitnesPro                                |
+|  Users, Roles, UserLocations, TwoFactorCodes, UserTwoFactorSettings,  |
+|  BannedUsers, BanAppeals, Friends, FriendRequests, Messages,          |
+|  MessageRequests, UserPrivacySettings,                                |
+|  SystemLogs, UserLogs, AdminLogs, AppealLogs, GeneralLogs             |
+|  (Workout / Goal / Progress / Application tabloları YOK)              |
++------------------------------------------------------------------------+
+| DOCKER — docker-compose.yml                                            |
+|  fitnesspro-db (mssql 2022, 1433, volume), fitness-pro-api (8081:8080) |
+|  Eksik: SQL healthcheck, frontend container, reverse proxy, HTTPS      |
++------------------------------------------------------------------------+
+
+
+======================================================================
+C. MODÜL DURUM TABLOSU
+======================================================================
+
+Durum anahtarı: Çalışıyor / Kısmen çalışıyor / Çalışmıyor / Doğrulanamadı / Uygulanmamış
+Not: Çalışma zamanı testi yapılamadığı için "Çalışıyor" ifadesi kod incelemesine dayanır.
+
+[Kayıt] — Çalışıyor (kod incelemesine göre)
+  Kanıt: RegisterControllers.cs, RegisterService.cs (Users + Roles transaction içinde,
+         onboarding token dönüyor).
+  Aksiyon: Yok.
+
+[Giriş] — Kısmen çalışıyor
+  Kanıt: LoginService.cs
+  Eksik: 2FA etkin kullanıcıda girişte 2FA kontrolü yapılmıyor.
+  Aksiyon: LoginService'e 2FA adımı eklenmeli.
+
+[Parola güncelleme] — Kısmen çalışıyor
+  Kanıt: PasswordupdateContollers.cs, PasswordupdateService.cs
+  Eksik: [Authorize] yok, rate limit yok, kullanıcı adı body'den alınıyor.
+  Aksiyon: [Authorize] eklenmeli, kullanıcı claim'den alınmalı.
+
+[Onboarding: konum + e-posta] — Çalışıyor (kod incelemesine göre)
+  Kanıt: MapController.cs, TwoFactorController.cs, OnboardingService.cs
+  Not: Konum ve e-posta doğrulanmadan normal JWT verilmiyor. SMTP: Doğrulanamadı.
+
+[Rate limit ve ban] — Kısmen çalışıyor
+  Kanıt: LoginRateLimitingService.cs (satır ~350: InsertBanAsync(username))
+  Eksik: Kullanıcı adı tabanlı kalıcı ban kötüye kullanılabilir. Bellek içi sayaç
+         restart'ta sıfırlanır.
+  Aksiyon: Kalıcı ban IP bazlı / geçici kilit + e-posta ile açma.
+
+[Ban itirazı] — Çalışıyor (backend); frontend'de alan uyuşmazlığı var
+  Kanıt: BanAppealController.cs, AdminBanAppealController.cs
+  Eksik: Admin.js "appealReason" bekliyor, backend "message" dönüyor -> gerekçe görünmüyor.
+         Admin.js onay/ret sonrası API yanıtını kontrol etmeden yerel durumu güncelliyor.
+
+[Arkadaşlık] — Çalışıyor (kod incelemesine göre)
+  Kanıt: FriendController.cs, FriendService (çift yönlü Friends kaydı, transaction).
+  Eksik: Kullanıcı arama yok; istek göndermek için hedef kullanıcının ID'si elle girilmeli.
+         Friends tablosunda (UserId, FriendUserId) unique kısıtı doğrulanmadı.
+
+[Mesaj istekleri ve gizlilik] — Kısmen çalışıyor
+  Kanıt: MessageRequestsController.cs, PrivacyController.cs
+  Eksik: Rota yazım hatası: "accted-message".
+
+[Mesajlaşma] — Çalışmıyor (istek tabanlı akışta)
+  Kanıt: SendMessageAsync.cs satır 40-66
+  Eksik: İzin kontrolü MessageRequests'e bakmıyor.
+
+[Admin paneli / roller] — Kısmen çalışıyor
+  Kanıt: AdminConttroller.cs, LogsController.cs, RoleController.cs (boş)
+  Eksik: Admin seed yok, rol atama endpoint'i yok. Admin endpoint'leri backend'de
+         [Authorize(Roles="Admin")] ile korunuyor (AdminController /access hariç; o yalnızca
+         isAdmin bilgisi döner, bu bir açık değildir).
+  Not: Frontend localStorage "fitness_pro_admin" bayrağı yalnızca görsel; backend bu
+       bayrağa güvenmiyor. Admin.html girişte /api/admin/access ile sunucuya soruyor.
+
+[Loglar] — Kısmen çalışıyor
+  Kanıt: LogService.GetAllLogAsync (5 tablodan sınırsız SELECT)
+  Eksik: Sayfalama/filtre yok; tablolar büyüdükçe bellek riski. Saklama (retention) politikası yok.
+
+[Profil] — Uygulanmamış (backend)
+  Kanıt: Profile.js sabit veri + sahte ProfileAPI katmanı.
+
+[Antrenmanlar] — Uygulanmamış (backend). Workouts.js mock veri.
+[Hedefler] — Uygulanmamış (backend). Goals.js localStorage.
+[İlerleme] — Uygulanmamış (backend). Progress.js: "No backend / API / fetch calls".
+[Koç başvuruları] — Uygulanmamış (backend). Basvurular.js IndexedDB; /api/applications yok.
+
+
+======================================================================
+D. HATA VE GÜVENLİK BULGULARI
+======================================================================
+
+BULGU-01 | Repoda gizli anahtar / diskte düz metin sırlar | KRİTİK
+  Dosya: Backend/Gym-Pro-Api/Gym-Pro-Api/appsettings.json (Jwt:Key, git'te takip ediliyor)
+         Backend/Gym-Pro-Api/Gym-Pro-Api/.env (gitignore'da, takip edilmiyor; diskte düz metin)
+  Kanıt: "git ls-files" appsettings.json'ı listeliyor; ".env" Backend/Gym-Pro-Api/.gitignore:51
+         ile dışlanmış.
+  Sonuç: Repoya erişen biri geçerli JWT üretebilir (Admin rolü dahil).
+  Çözüm: Jwt:Key appsettings.json'dan çıkarılsın, user-secrets / ortam değişkeni kullanılsın,
+         anahtar YENİLENSİN (git geçmişinde kaldığı için). SMTP ve SA parolaları da
+         rotasyona alınmalı.
+  Doğrulama: Eski anahtarla imzalanan token'ın 401 alması.
+
+BULGU-02 | Zayıf parola hashleme (salt + tek tur SHA-256) | KRİTİK
+  Dosya: Services/HashService.cs, Hash()
+  Sonuç: DB sızarsa parolalar GPU ile hızlı şekilde kırılabilir.
+  Çözüm: PasswordHasher<T> (PBKDF2), BCrypt veya Argon2id. Girişte eski hash'i doğrulayıp
+         yeni formatla yeniden yazma (kademeli geçiş).
+  Doğrulama: Birim testi + eski kullanıcıların giriş yapabildiğinin kontrolü.
+
+BULGU-03 | Parola güncellemede yetkilendirme ve rate limit yok | YÜKSEK
+  Dosya: Controllers/Authentication/PasswordupdateContollers.cs
+  Senaryo: /api/login'deki kilit mekanizmasını atlayarak "OldPassword" alanıyla sınırsız
+           parola denemesi yapılabilir.
+  Çözüm: [Authorize]; kullanıcı adını JWT claim'inden al; rate limit uygula.
+  Doğrulama: Token'sız istek -> 401; başka kullanıcının adını göndermek etkisiz.
+
+BULGU-04 | Kullanıcı adı ile keyfi kalıcı ban (DoS) | YÜKSEK
+  Dosya: Services/Authentication/LoginRateLimitingService.cs, RegisterFailedAttempt (~350)
+  Senaryo: Saldırgan admin'in kullanıcı adıyla 15 yanlış giriş yapar -> admin kalıcı banlanır.
+  Çözüm: Kalıcı engel IP'ye uygulansın; hesap için geçici kilit + e-posta ile açma.
+  Doğrulama: Simülasyonda hedef hesabın BannedUsers'a yazılmadığının kontrolü
+             (Fronted/tests/simulate-login-block*.ps1 kullanılabilir).
+
+BULGU-05 | Mesaj izni ile mesaj istekleri kopuk | YÜKSEK
+  Dosya: Services/Message/Engine/SendMessageAsync.cs (40-66),
+         Services/Message/MessageRequests/AcceptRequestAsync.cs
+  Kanıt: Kabul işlemi MessageRequests.Status='Accepted' yazıyor; gönderim kontrolü yalnızca
+         FriendRequests.Status='Accepted' arıyor.
+  Sonuç: Mesaj isteği kabul edilse bile mesaj gönderilemez.
+  Çözüm: İzin sorgusu Friends VEYA MessageRequests(Accepted) kapsamalı.
+  Ek: Satır 58'de parametre adı "@" öneki olmadan "ReceiverId" verilmiş; SqlClient bunu
+      tolere edebilir ama tutarlılık için "@ReceiverId" yapılmalı.
+  Doğrulama: Arkadaş olmayan ama mesaj isteği kabul edilmiş iki kullanıcı arasında
+             gönderim testi.
+
+BULGU-06 | Arkadaşlıktan çıkarınca mesaj yetkisi kalkmıyor | ORTA
+  Dosya: Services/FriendService/RemoveFriend.cs
+  Kanıt: Yalnızca Friends siliniyor; FriendRequests 'Accepted' kaydı kalıyor ve
+         SendMessageAsync bu kayda bakıyor.
+  Çözüm: Silmede FriendRequests durumunu güncelle veya izin kontrolünü Friends'e bağla.
+
+BULGU-07 | Girişte 2FA uygulanmıyor | YÜKSEK
+  Dosya: Services/Authentication/LoginService.cs (2FA referansı yok)
+  Sonuç: Ayarlardan 2FA açılsa bile giriş tek faktörlü.
+  Çözüm: Parola doğrulandıktan sonra 2FA etkinse geçici token + kod doğrulama adımı.
+
+BULGU-08 | Admin seed ve rol yönetimi yok | ORTA
+  Dosya: Helpers/DatabaseInitializer.cs, Controllers/RoleController.cs (tek satır yorum)
+  Sonuç: Temiz kurulumda kimse Admin olamaz; elle SQL gerekir.
+  Çözüm: Ortam değişkeniyle yapılandırılan güvenli ilk-admin seed'i + Admin-only rol atama
+         endpoint'i.
+
+BULGU-09 | API sözleşmesinde yazım hataları / alan uyuşmazlıkları | ORTA
+  - DTOs/Message/Engine/SendMessageDto.cs: "ReceviverId"; MessageType regex'i "Fıle"
+    (noktasız ı). DB CHECK kısıtı ise N'File' bekliyor -> "Fıle" ile gönderilen mesaj
+    INSERT sırasında CHECK hatası verir.
+  - MessageRequestsController.cs: "accted-message" rotası.
+  - AdminConttroller.cs, LogsController.cs: "succes" (frontend iki yazımı da kontrol ediyor).
+  - Admin.js: item.appealReason bekleniyor; backend "message" dönüyor.
+  - MessageRequestsController catch bloğunda "succes = false".
+  Çözüm: Standart isimlere geçiş (backend + frontend birlikte).
+
+BULGU-10 | Sınırsız log okuma | ORTA
+  Dosya: Services/Log/LogService.cs GetAllLogAsync, Controllers/LogsController.cs
+  Çözüm: OFFSET/FETCH sayfalama, tarih/seviye filtresi, log saklama süresi.
+
+BULGU-11 | Aşırı izin veren CORS | ORTA
+  Dosya: Program.cs (SetIsOriginAllowed(_ => true) + AllowCredentials)
+  Not: Kimlik doğrulama cookie değil Bearer header ile yapıldığı için CSRF riski düşük;
+       yine de origin listesi ortam bazlı sınırlandırılmalı.
+
+BULGU-12 | Docker başlatma sırası ve healthcheck | ORTA
+  Dosya: docker-compose.yml
+  Kanıt: depends_on yalnızca başlatma sırası sağlar; SQL Server hazır olmadan API
+         DatabaseInitializer'ı çalıştırıp çökebilir (restart: unless-stopped ile tekrar dener).
+         Program.cs UseHttpsRedirection çağırıyor ama container yalnızca HTTP dinliyor.
+         1433 portu dışarıya açık.
+  Çözüm: SQL healthcheck + depends_on condition: service_healthy; 1433'ü dışarı açmama;
+         reverse proxy arkasında HTTPS (Cloudflare kullanılacaksa ForwardedHeaders ayarı,
+         aksi halde RemoteIpAddress tüm kullanıcılar için proxy IP'si olur ve IP bazlı
+         rate limit herkesi birlikte kilitler).
+
+BULGU-13 | Bilgi sızdıran hata mesajları / loglar | DÜŞÜK
+  - LoginService ve LoginRateLimitingService Console.WriteLine ile kullanıcı adı ve IP basıyor.
+  - Register "Kullanıcı adı veya email dolu" -> kullanıcı/e-posta varlığı tespit edilebilir
+    (enumeration).
+  - Repoda api-test.err.log / api-test.out.log dosyaları var; içerik doğrulanmadı.
+
+BULGU-14 | XSS riski — GlobalModal innerHTML | DÜŞÜK/BİLGİ
+  Dosya: Fronted/JavaScripts/Core/GlobalModalManager.js (string içerik innerHTML ile basılıyor)
+  Not: Mesajlar.js, Admin.js, Haritalar.js escapeHtml kullanıyor. Kullanıcı verisinin
+       GlobalModal'a string olarak geçildiği yerler tek tek kontrol edilmeli (tam tarama
+       yapılmadı -> Doğrulanamadı).
+
+
+======================================================================
+E. TEKNİK BORÇ LİSTESİ (önem / karmaşıklık)
+======================================================================
+
+1. Kullanılmayan EF Core paketleri + boş ApplicationDbContext (Düşük karmaşıklık)
+   -> Ya kaldır ya planlı geçiş yap; ikisini karışık tutma.
+2. Port tutarsızlığı: config.js/compose 8081, run-backend.cmd ve tests/*.py 5000 (Düşük)
+3. Yinelenen / yönlendirme sayfaları: Register.html, Ayarlar.html, Settings.html,
+   Notifications.html, "Konum Belirleme.html", "Eposta Dogrulama.html",
+   RegisterLocation.html, EmailVerification.html (Düşük)
+4. Türkçe/typo isimler: "Fronted", "Başlangıç.html", namespace "Apı",
+   "AdminConttroller", "PasswordupdateContollers", "RegRegisterController" (Orta;
+   Linux/CI ortamlarında kodlama sorunları riski)
+5. Admin.js iyimser UI: API sonucu kontrol edilmeden durum güncelleniyor (Düşük)
+6. ~2111 satırlık DatabaseInitializer: şema yönetimi migration araçlarına taşınmalı (Yüksek)
+7. Controller'larda tekrarlanan GetUserId() ve catch-all blokları; tutarsız response
+   formatları (ApiResponseModel vs anonim nesne; TwoFactorController düz {message}) (Orta)
+8. CancellationToken hiçbir async uçta kullanılmıyor (Düşük)
+9. Bellek içi rate limit: ölçeklemede (birden fazla instance) çalışmaz (Orta)
+10. Otomatik test projesi yok; yalnızca manuel Python betikleri var (Orta)
+
+
+======================================================================
+F. EKSİK ÖZELLİKLER
+======================================================================
+
+Kodda bulunmayan:
+  - Kullanıcı arama (kullanıcı adıyla)
+  - Profil getirme/güncelleme, profil fotoğrafı
+  - Antrenman, Hedef, İlerleme API'leri ve tabloları
+  - Koç başvurusu API'si, dosya yükleme, admin değerlendirmesi
+  - Rol atama / kullanıcı yönetimi
+  - Refresh token
+  - Bildirim sistemi backend'i
+  - Coach rolüne özel mesajlaşma akışı (yalnızca TestController'da "Coach" rolü geçiyor)
+
+Kısmen uygulanmış:
+  - 2FA (kod gönderme/doğrulama var, girişe bağlı değil)
+  - Mesajlaşma (okuma var, istek tabanlı gönderim kopuk)
+  - Admin paneli (itirazlar + loglar; sistem ayarları ve istatistikler simülasyon)
+
+Çalışma zamanında doğrulanamayan:
+  - SMTP ile e-posta teslimi
+  - Docker ortamında DB bağlantısı ve yeniden başlatma davranışı
+  - Eşzamanlı isteklerde arkadaşlık/mesaj isteği tekrarları
+    (FriendRequests'te bekleyen istek için unique index yok; MessageRequests'te
+    UX_MessageRequests_Pending var)
+  - Frontend konsol hataları ve mobil uyumluluk
+
+
+======================================================================
+G. ÖNCELİKLENDİRİLMİŞ YOL HARİTASI
+======================================================================
+
+1) Kritik güvenlik
+   1.1 Jwt:Key'i appsettings.json'dan çıkar, anahtarı ve diğer sırları yenile.
+       Dosyalar: appsettings.json, Program.cs, docker-compose.yml
+       Kabul: Repoda sır yok; uygulama ortam değişkeniyle açılıyor.
+   1.2 Parola hashlemeyi PBKDF2/BCrypt/Argon2'ye taşı (kademeli geçiş).
+       Dosyalar: HashService.cs, LoginService.cs, RegisterService.cs, PasswordupdateService.cs
+       Risk: Mevcut kullanıcıların girişinin bozulması -> eski formatı tanıyan doğrulama şart.
+   1.3 /api/passupdate: [Authorize] + claim'den kullanıcı + rate limit.
+   1.4 Kullanıcı adı bazlı kalıcı banı kaldır / yeniden tasarla.
+
+2) Uygulamayı bozan hatalar
+   2.1 SendMessageAsync izin sorgusunu düzelt (MessageRequests + Friends).
+   2.2 MessageType "Fıle" -> "File" (DTO, servis, frontend) — DB CHECK ile uyum.
+   2.3 RemoveFriend sonrası mesaj yetkisinin kalkması.
+
+3) Backend / DB tutarlılığı
+   3.1 Güvenli ilk-admin seed'i + rol atama endpoint'i.
+   3.2 Girişe 2FA adımı.
+   3.3 Log sayfalama + saklama politikası.
+   3.4 FriendRequests için bekleyen istek unique index'i (çift yön).
+
+4) Frontend / API entegrasyonu
+   4.1 Typo'lar: ReceviverId, accted-message, succes, appealReason/message.
+   4.2 Admin.js'de API yanıtına göre UI güncelleme.
+   4.3 Port standardizasyonu (config.js, run-backend.cmd, tests).
+
+5) Eksik temel özellikler
+   5.1 Kullanıcı arama. 5.2 Profil API'si. 5.3 Antrenman/Hedef/İlerleme. 5.4 Koç başvuruları.
+
+6) Performans ve kod kalitesi
+   Docker healthcheck, ForwardedHeaders, CORS kısıtlama, ortak response modeli,
+   CancellationToken, test projesi.
+
+7) İyileştirmeler
+   Refresh token, bildirimler, dağıtık rate limit.
+
+
+======================================================================
+H. SONUÇ VE KARAR
+======================================================================
+
+Sistem mevcut durumda çalışır mı?
+  Kısmen. Kayıt, onboarding, giriş, arkadaşlık ve ban itirazı akışları kod düzeyinde
+  tutarlı. İstek tabanlı mesajlaşma çalışmıyor, 2FA girişte devreye girmiyor, fitness
+  modülleri sahte veriyle çalışıyor.
+
+Kanıtla doğrulananlar (kod + build):
+  Proje hatasız derleniyor. Kayıt transaction'ı, onboarding kısıtı, itiraz kuralları
+  (en fazla 2 itiraz, 1 bekleyen), Admin endpoint'lerinin rol ile korunması, parametreli
+  SQL kullanımı (string birleştirmeli SQL bulunmadı).
+  Çalışma zamanı testi yapılmadı.
+
+Kısmen çalışanlar: Giriş (2FA yok), parola güncelleme, rate limit, mesaj istekleri,
+  admin paneli, loglar.
+
+Kullanıcıyı doğrudan etkileyenler: Mesaj gönderilememesi, ID ile arkadaş ekleme,
+  çalışmayan 2FA, profil/antrenman verilerinin kalıcı olmaması.
+
+Dış test kullanıcılarına açmadan önce çözülmesi gerekenler:
+  BULGU-01, 02, 03, 04, 05 ve Docker/HTTPS/ForwardedHeaders yapılandırması.
+
+İlk yapılacak üç iş:
+  1. JWT anahtarını repodan çıkarıp tüm sırları yenilemek.
+  2. /api/passupdate'i korumak ve kullanıcı adı bazlı kalıcı banı kaldırmak.
+  3. SendMessageAsync izin sorgusunu ve "Fıle"/"File" uyuşmazlığını düzeltmek.
+
+
+======================================================================
+FITNESS PRO — GENEL SİSTEM DENETİMİ SONUCU
+======================================================================
+
+Gerçek durum:
+Fitness Pro, kimlik doğrulama ve onboarding tarafında düşünülmüş bir temele sahip,
+ancak henüz erken entegrasyon aşamasında bir sistem. Veri erişimi tamamen ham ADO.NET
+ile yapılıyor; EF Core paketleri yüklü ama kullanılmıyor. Güvenlik tarafında repodaki
+JWT anahtarı, zayıf parola hashleme, korumasız parola güncelleme ve kullanıcı adıyla
+kalıcı ban açığı öncelikli. Fitness ve koçluk özelliklerinin backend karşılığı yok.
+
+Doğrulanamayan noktalar:
+Canlı SQL Server ve çalışan API olmadığı için çalışma zamanı davranışı, SMTP teslimi,
+eşzamanlılık, Docker'da DB bağlantısı ve frontend konsol hataları doğrulanamadı.
+Python test betikleri port 5000'e ayarlı ve servis kapalı olduğu için çalıştırılmadı.
+
+Sonraki aşamada izlenecek sıra:
+  1. Güvenlik (sırlar, hashleme, yetkilendirme, ban tasarımı)
+  2. Entegrasyon hataları (mesaj izni, File tipi, typo'lar, admin seed, 2FA)
+  3. Dağıtım (healthcheck, HTTPS/proxy, port standardı)
+  4. Eksik modüller (arama, profil, antrenman/hedef/ilerleme, başvurular)

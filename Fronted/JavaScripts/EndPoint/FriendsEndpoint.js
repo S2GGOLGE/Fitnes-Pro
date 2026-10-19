@@ -145,19 +145,20 @@
     // ---------------------------------------------------------
 
     /**
-     * Arkadaslik istegi gonder.
-     * POST /api/friends/request/{receiverId}
+     * Arkadaslik istegi gonder (username ile).
+     * POST /api/friends/request
+     * Body: { "username": "<hedef_kullanici_adi>" }
      */
-    async function sendRequest(receiverId) {
+    async function sendRequest(username) {
         if (
-            receiverId === undefined ||
-            receiverId === null ||
-            receiverId === ""
+            username === undefined ||
+            username === null ||
+            (typeof username === "string" && username.trim() === "")
         ) {
             return {
                 ok: false,
                 success: false,
-                message: "Hedef kullanici belirtilmedi.",
+                message: "Hedef kullanici adi belirtilmedi.",
                 data: null,
                 unauthorized: false,
                 rateLimited: false,
@@ -166,10 +167,10 @@
             };
         }
 
-        const safeId = encodeURIComponent(String(receiverId));
         return await request(
             "POST",
-            `/api/friends/request/${safeId}`
+            "/api/friends/request",
+            { username: String(username).trim() }
         );
     }
 

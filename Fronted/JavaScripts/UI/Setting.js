@@ -5,6 +5,70 @@
     const toggle = document.querySelector('[data-sidebar-open]');
     let twoFactorEnabled = false;
     let currentView = null;
+
+    // =========================================================================
+    // RENK TEMA YÖNETİMİ (Dark / Light) — yalnızca UI/UX
+    // Backend'e yazılmaz; localStorage üzerinden sayfa içi kalıcı olur.
+    // Diğer sekmelerde de anında senkronize olur (storage event).
+    // =========================================================================
+    const THEME_STORAGE_KEY = "fitness_pro_theme";
+    const THEME_OPTIONS = [
+        { value: "dark",  title: "Koyu Tema",  description: "Koyu arka plan, göz yorgunluğunu azaltır.", swatch: "#0b0f0d" },
+        { value: "light", title: "Açık Tema",  description: "Aydınlık arka plan, ferah görünüm sunar.", swatch: "#f8fafc" }
+    ];
+    let currentTheme = "dark";
+
+    function getPreferredTheme() {
+        try {
+            const stored = localStorage.getItem(THEME_STORAGE_KEY);
+            if (stored === "dark" || stored === "light") return stored;
+        } catch (e) {}
+        if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
+            return "light";
+        }
+        return "dark";
+    }
+
+    function applyTheme(theme) {
+        const selected = (theme === "light") ? "light" : "dark";
+        currentTheme = selected;
+        document.documentElement.setAttribute("data-theme", selected);
+        if (selected === "light") {
+            document.body.classList.add("light-theme");
+        } else {
+            document.body.classList.remove("light-theme");
+        }
+    }
+
+    function persistTheme(theme) {
+        try {
+            localStorage.setItem(THEME_STORAGE_KEY, theme);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function setTheme(theme) {
+        if (!THEME_OPTIONS.some(o => o.value === theme)) return;
+        applyTheme(theme);
+        persistTheme(theme);
+        // Aktif görünüm "appearance" ise seçili buton görsellerini tazele
+        if (currentView === "appearance") {
+            loadView("appearance");
+        }
+    }
+
+    // Sayfa ilk açılışında uygula ve diğer sekmelerden gelen değişimleri dinle
+    applyTheme(getPreferredTheme());
+    window.addEventListener("storage", (event) => {
+        if (event.key === THEME_STORAGE_KEY && (event.newValue === "dark" || event.newValue === "light")) {
+            applyTheme(event.newValue);
+            if (currentView === "appearance") {
+                loadView("appearance");
+            }
+        }
+    });
     const avatar = (letters = 'US') => `<div class="avatar avatar-medium" aria-hidden="true">${letters}</div>`;
     const header = (tag, title, text) => `<header class="page-header"><p class="eyebrow">${tag}</p><h1>${title}</h1><p>${text}</p></header>`;
     const status = (text, type = 'success') => `<span class="status status-${type}"><i></i>${text}</span>`;
@@ -119,7 +183,48 @@
         `).join("");
         return `${header('MESAJLAR', 'Mesaj İstekleri', 'Kimlerin sana mesaj isteği gönderebileceğini seç.')}<article class="card"><form class="radio-option-group" id="messageRequestForm" autocomplete="off">${radios}</form></article>`;
     };
-    const views = { account, password, subscriptions, coaches, messages };
+
+    // Renk tema seçim ekranı (UI/UX only)
+    const appearance = () => {
+        const buttons = THEME_OPTIONS.map(opt => {
+            const isActive = currentTheme === opt.value;
+            return `
+                <button type="button"
+                        class="theme-option${isActive ? " is-active" : ""}"
+                        data-theme-option="${opt.value}"
+                        aria-pressed="${isActive ? "true" : "false"}">
+                    <span class="theme-option-preview" aria-hidden="true">
+                        <span class="theme-option-swatch" style="background:${opt.swatch};"></span>
+                        <span class="theme-option-check">✓</span>
+                    </span>
+                    <span class="theme-option-body">
+                        <strong class="theme-option-title">${opt.title}</strong>
+                        <span class="theme-option-desc">${opt.description}</span>
+                    </span>
+                </button>`;
+        }).join("");
+
+        return `${header('GÖRÜNÜM', 'Renk Teması', 'Arayüz için koyu veya açık renk temasını seç.')}
+            <article class="card">
+                <div class="card-heading">
+                    <div>
+                        <span class="card-kicker">TEMA</span>
+                        <h2>Renk Teması Seçimi</h2>
+                        <p>Tercih ettiğin renk temasını seç. Seçimin tüm ayarlar sayfasında anında uygulanır.</p>
+                    </div>
+                    <b class="security-icon" aria-hidden="true">◐</b>
+                </div>
+                <div class="theme-options" id="themeOptions" role="radiogroup" aria-label="Renk teması seçimi">
+                    ${buttons}
+                </div>
+                <p class="theme-current-state" aria-live="polite">
+                    <span class="card-kicker">SEÇİLİ</span>
+                    <strong>${currentTheme === "light" ? "Açık Tema" : "Koyu Tema"}</strong>
+                </p>
+            </article>`;
+    };
+
+    const views = { account, password, subscriptions, coaches, messages, appearance };
     const closeSidebar = () => { sidebar.classList.remove('is-open'); document.body.classList.remove('sidebar-is-open'); toggle?.setAttribute('aria-expanded', 'false'); };
     function showToast(message, type) {
         if (!window.GlobalModal || typeof window.GlobalModal.alert !== "function") return;
@@ -305,6 +410,25 @@
                 if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
                     openDetail();
+                }
+            });
+        });
+
+        // Renk tema seçim butonları (Dark / Light)
+        document.querySelectorAll('[data-theme-option]').forEach(btn => {
+            const apply = () => {
+                const value = btn.dataset.themeOption;
+                if (!value || !THEME_OPTIONS.some(o => o.value === value)) return;
+                if (value === currentTheme) return;
+                setTheme(value);
+                const selectedTitle = THEME_OPTIONS.find(o => o.value === value)?.title || value;
+                showToast('Tema "' + selectedTitle + '" olarak değiştirildi.', 'success');
+            };
+            btn.addEventListener('click', apply);
+            btn.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    apply();
                 }
             });
         });

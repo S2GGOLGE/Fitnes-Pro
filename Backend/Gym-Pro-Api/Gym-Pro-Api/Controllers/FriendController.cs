@@ -1,4 +1,5 @@
 using Apı.Service;
+using Apı.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -39,21 +40,29 @@ public class FriendController : ControllerBase
     }
 
     // =========================================================
-    // ARKADAŞLIK İSTEĞİ GÖNDER
+    // ARKADAŞLIK İSTEĞİ GÖNDER (Username ile)
     // =========================================================
 
-    [HttpPost("request/{receiverId:int}")]
+    [HttpPost("request")]
     public async Task<IActionResult> SendRequest(
-        int receiverId)
+        [FromBody] SendFriendRequestDto? dto)
     {
         try
         {
+            if (dto is null || string.IsNullOrWhiteSpace(dto.Username))
+            {
+                return BadRequest(
+                    ApiResponseModel
+                        .Fail("Hedef kullanici adi belirtilmedi.")
+                );
+            }
+
             var senderId = GetUserId();
 
             var response =
                 await _friendService.SendRequestAsync(
                     senderId,
-                    receiverId
+                    dto.Username.Trim()
                 );
 
             return Ok(response);
@@ -291,4 +300,12 @@ public class FriendController : ControllerBase
             );
         }
     }
+}
+
+// =========================================================
+// DTO: Arkadaşlık isteği gönder (username ile)
+// =========================================================
+public class SendFriendRequestDto
+{
+    public string Username { get; set; } = string.Empty;
 }

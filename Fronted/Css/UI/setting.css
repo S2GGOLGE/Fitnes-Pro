@@ -13,6 +13,57 @@
     --transition: 180ms cubic-bezier(.2, .75, .25, 1)
 }
 
+/* ==========================================================================
+   RENK TEMA SİSTEMİ (UI/UX)
+   <html data-theme="light"> veya body.light-theme aktifken değişkenler
+   açık temaya dönüşür. Koyu tema varsayılan :root ile sağlanır.
+   ========================================================================== */
+[data-theme="light"],
+.light-theme {
+    --bg: #f4f7f5;
+    --surface: #ffffff;
+    --surface-soft: #eef3ef;
+    --border: rgba(15, 23, 42, .08);
+    --border-green: rgba(22, 163, 74, .28);
+    --primary: #16a34a;
+    --primary-hover: #15803d;
+    --text: #0f172a;
+    --secondary: #475569;
+    --muted: #94a3b8;
+    --shadow: 0 16px 38px rgba(15, 23, 42, .08);
+}
+
+[data-theme="light"] body,
+.light-theme {
+    background: radial-gradient(circle at 100% 0, rgba(22, 163, 74, .06), transparent 26rem), var(--bg);
+}
+
+[data-theme="light"] .settings-sidebar,
+.light-theme .settings-sidebar {
+    background: rgba(255, 255, 255, .92);
+}
+
+[data-theme="light"] .sidebar-overlay,
+.light-theme .sidebar-overlay {
+    background: rgba(15, 23, 42, .35);
+}
+
+[data-theme="light"] .button-secondary,
+.light-theme .button-secondary {
+    background: rgba(15, 23, 42, .03);
+}
+
+[data-theme="light"] .form-input::placeholder,
+.light-theme .form-input::placeholder {
+    color: #94a3b8;
+}
+
+[data-theme="light"] .avatar,
+.light-theme .avatar {
+    background: linear-gradient(135deg, rgba(22, 163, 74, .22), rgba(22, 163, 74, .06));
+    color: #15803d;
+}
+
 * {
     box-sizing: border-box
 }
@@ -543,6 +594,150 @@ input:focus-visible {
 .button-secondary:hover {
     border-color: var(--border-green);
     background: rgba(34, 197, 94, .06)
+}
+
+/* ==========================================================================
+   TEMA SEÇİCİ (Renk Tema ayar bölümü)
+   ========================================================================== */
+.theme-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 4px;
+}
+
+.theme-option {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface-soft);
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+    transition: transform var(--transition), border-color var(--transition), background var(--transition), box-shadow var(--transition);
+}
+
+.theme-option:hover {
+    border-color: var(--border-green);
+    background: rgba(34, 197, 94, .06);
+    transform: translateY(-2px);
+}
+
+.theme-option:active {
+    transform: scale(.98);
+}
+
+.theme-option.is-active {
+    border-color: var(--primary);
+    background: rgba(34, 197, 94, .08);
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, .14);
+}
+
+[data-theme="light"] .theme-option:hover,
+.light-theme .theme-option:hover {
+    background: rgba(22, 163, 74, .08);
+}
+
+[data-theme="light"] .theme-option.is-active,
+.light-theme .theme-option.is-active {
+    background: rgba(22, 163, 74, .1);
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, .18);
+}
+
+.theme-option-preview {
+    position: relative;
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg);
+    overflow: hidden;
+}
+
+.theme-option-swatch {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+}
+
+.theme-option-check {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #07200e;
+    font-size: 11px;
+    font-weight: 800;
+    opacity: 0;
+    transform: scale(.6);
+    transition: opacity var(--transition), transform var(--transition);
+}
+
+.theme-option.is-active .theme-option-check {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.theme-option-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.theme-option-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.theme-option-desc {
+    margin: 0;
+    color: var(--secondary);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.theme-current-state {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 18px 0 0;
+    padding: 12px 14px;
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    background: rgba(34, 197, 94, .04);
+    color: var(--secondary);
+    font-size: 12px;
+}
+
+.theme-current-state strong {
+    color: var(--text);
+    font-weight: 700;
+}
+
+[data-theme="light"] .theme-current-state,
+.light-theme .theme-current-state {
+    background: rgba(22, 163, 74, .05);
+}
+
+@media (max-width: 640px) {
+    .theme-options {
+        grid-template-columns: 1fr;
+    }
 }
 
 .form-card {

@@ -5,7 +5,7 @@ public class SendMessageDto
 {
     [Required]
     [Range(1, int.MaxValue)]
-    public int ReceviverId { get; set; }
+    public string username { get; set; }=string.Empty;
     [Required]
     [RegularExpression(
         "^(Text|Image|Fıle)$"
