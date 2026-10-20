@@ -1,0 +1,8 @@
+- Login EmailDoğrulama input css eksikliği
+ * Referans Gorseller 1
+- Renk Tema uyumsuzluğu açık tema da bazı alanlar dark temada kalmaktadır 
+ * Referans Gorseller 2-3
+- Password Update Modalında göster/gizle ıcon uyumsuzluğu
+ * Referans Gorseller 4
+- Register Password İnputlarında göster/gizle ıcon uyumsuzluğu
+ * Referans Gorseller 5
