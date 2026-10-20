@@ -171,3 +171,5 @@ C:\Projects\Fitnes-Pro\Backend\Gym-Pro-Api\Gym-Pro-Api\bin\Debug\net10.0\Swashbu
 C:\Projects\Fitnes-Pro\Backend\Gym-Pro-Api\Gym-Pro-Api\bin\Debug\net10.0\BouncyCastle.Cryptography.dll
 C:\Projects\Fitnes-Pro\Backend\Gym-Pro-Api\Gym-Pro-Api\bin\Debug\net10.0\MailKit.dll
 C:\Projects\Fitnes-Pro\Backend\Gym-Pro-Api\Gym-Pro-Api\bin\Debug\net10.0\MimeKit.dll
+C:\Projects\Fitnes-Pro\Backend\Gym-Pro-Api\Gym-Pro-Api\bin\Debug\net10.0\System.Security.Cryptography.Pkcs.dll
+C:\Projects\Fitnes-Pro\Backend\Gym-Pro-Api\Gym-Pro-Api\bin\Debug\net10.0\runtimes\win\lib\net10.0\System.Security.Cryptography.Pkcs.dll

@@ -35,8 +35,8 @@ public static class TwoFactorCode
             """;
 
         return LoginVerificationEmailTemplate.Generate(
-            "Güvenlik Doğrulaması",
-            content
+            code,
+            ""
         );
     }
 }
