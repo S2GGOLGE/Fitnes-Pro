@@ -20,38 +20,13 @@
 (function () {
     "use strict";
 
-    async function callTwoFactor(method, path, body) {
-        if (!window.Auth || typeof window.Auth.authFetch !== "function") {
-            throw new Error("Kimlik doğrulama altyapısı hazır değil.");
-        }
-
-        const options = { method };
-
-        if (body !== undefined) {
-            options.body = JSON.stringify(body);
-        }
-
-        const response = await window.Auth.authFetch(path, options);
-
-        let payload = null;
-        try {
-            payload = await response.json();
-        } catch (parseError) {
-            payload = null;
-        }
-
-        if (!response.ok) {
-            const backendMessage =
-                payload && typeof payload.message === "string" && payload.message.trim()
-                    ? payload.message
-                    : `İstek başarısız (HTTP ${response.status}).`;
-            throw new Error(backendMessage);
-        }
-
-        return payload || {};
-    }
-
     const ONBOARDING_TOKEN_KEY = "fitnesspro_onboarding_token";
+
+    function getBaseUrl() {
+        return (window.Auth && typeof window.Auth.getBaseUrl === "function")
+            ? window.Auth.getBaseUrl()
+            : (window.API_BASE_URL || "http://localhost:8081");
+    }
 
     function getOnboardingToken() {
         try {
@@ -82,22 +57,12 @@
         return payload || {};
     }
 
-    // Kayıt sonrası e-posta doğrulama adımı: sınırlı yetkili onboarding token'ı varsa onunla çağır.
-    async function callTwoFactorWithOnboarding(method, path, body) {
-        const onboardingToken = getOnboardingToken();
-        if (!onboardingToken) {
-            return callTwoFactor(method, path, body);
-        }
-
-        const baseUrl = (window.Auth && typeof window.Auth.getBaseUrl === "function")
-            ? window.Auth.getBaseUrl()
-            : (window.API_BASE_URL || "http://localhost:8081");
-
+    async function callWithExplicitToken(method, path, body, token) {
         const options = {
             method,
             headers: {
                 Accept: "application/json",
-                Authorization: `Bearer ${onboardingToken}`
+                Authorization: `Bearer ${token}`
             }
         };
 
@@ -108,7 +73,7 @@
 
         let response;
         try {
-            response = await fetch(`${baseUrl}${path}`, options);
+            response = await fetch(`${getBaseUrl()}${path}`, options);
         } catch (netErr) {
             throw new Error("Sunucuya bağlanılamadı.");
         }
@@ -116,9 +81,58 @@
         return parseTwoFactorResponse(response);
     }
 
+    async function callTwoFactor(method, path, body, explicitToken) {
+        if (explicitToken && typeof explicitToken === "string") {
+            return callWithExplicitToken(method, path, body, explicitToken);
+        }
+
+        if (!window.Auth || typeof window.Auth.authFetch !== "function") {
+            throw new Error("Kimlik doğrulama altyapısı hazır değil.");
+        }
+
+        const options = { method };
+
+        if (body !== undefined) {
+            options.body = JSON.stringify(body);
+        }
+
+        const response = await window.Auth.authFetch(path, options);
+
+        let payload = null;
+        try {
+            payload = await response.json();
+        } catch (parseError) {
+            payload = null;
+        }
+
+        if (!response.ok) {
+            const backendMessage =
+                payload && typeof payload.message === "string" && payload.message.trim()
+                    ? payload.message
+                    : `İstek başarısız (HTTP ${response.status}).`;
+            throw new Error(backendMessage);
+        }
+
+        return payload || {};
+    }
+
+    // Kayıt sonrası veya login e-posta doğrulama adımı:
+    // Açıkça verilen token veya sınırlı yetkili onboarding token'ı varsa onunla çağır.
+    async function callTwoFactorWithOnboarding(method, path, body, explicitToken) {
+        const tokenToUse =
+            (explicitToken && typeof explicitToken === "string" ? explicitToken : null) ||
+            getOnboardingToken();
+
+        if (!tokenToUse) {
+            return callTwoFactor(method, path, body);
+        }
+
+        return callWithExplicitToken(method, path, body, tokenToUse);
+    }
+
     window.TwoFactorEndpoint = {
-        fetchStatus: function () {
-            return callTwoFactor("GET", "/api/two-factor/status");
+        fetchStatus: function (explicitToken) {
+            return callTwoFactor("GET", "/api/two-factor/status", undefined, explicitToken);
         },
         enable: function () {
             return callTwoFactor("POST", "/api/two-factor/enable");
@@ -126,11 +140,11 @@
         disable: function () {
             return callTwoFactor("POST", "/api/two-factor/disable");
         },
-        sendCode: function () {
-            return callTwoFactorWithOnboarding("POST", "/api/two-factor/send-code");
+        sendCode: function (explicitToken) {
+            return callTwoFactorWithOnboarding("POST", "/api/two-factor/send-code", undefined, explicitToken);
         },
-        verify: function (code) {
-            return callTwoFactorWithOnboarding("POST", "/api/two-factor/verify", { code });
+        verify: function (code, explicitToken) {
+            return callTwoFactorWithOnboarding("POST", "/api/two-factor/verify", { code }, explicitToken);
         }
     };
 })();

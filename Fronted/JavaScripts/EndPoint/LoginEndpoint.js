@@ -1,4 +1,3 @@
-
     // =========================================================
     // FITNESS PRO - LOGIN ENDPOINT INTEGRATION
     // =========================================================
@@ -48,6 +47,7 @@
             "http://localhost:8081";
 
         const LOGIN_ENDPOINT = `${API_BASE_URL}/api/login`;
+        const COMPLETE_ONBOARDING_ENDPOINT = `${API_BASE_URL}/api/login/complete-onboarding`;
 
         // =========================================================
         // FORM ELEMENTS (mevcut ID'ler korunur)
@@ -140,6 +140,110 @@
 
             alertBox.className =
                 "form-alert";
+        }
+
+        // =========================================================
+        // SESSION & ONBOARDING HELPERS
+        // =========================================================
+
+        function persistSession(token, userData, fallbackUsername) {
+            if (!token) {
+                return;
+            }
+
+            const resolvedUser = userData || { username: fallbackUsername || "" };
+
+            if (window.Auth && typeof window.Auth.saveSession === "function") {
+                window.Auth.saveSession(token, resolvedUser);
+            } else {
+                try {
+                    localStorage.setItem("fitness_pro_token", token);
+                    localStorage.setItem("fitness_pro_user", JSON.stringify(resolvedUser));
+                } catch (e) {
+                    // Sessizce geç
+                }
+            }
+
+            try {
+                sessionStorage.removeItem("fitnesspro_onboarding_token");
+            } catch (e) {
+                // Sessizce geç
+            }
+        }
+
+        async function completeOnboardingWithToken(onboardingToken, fallbackUsername, fallbackEmail) {
+            const response = await fetch(COMPLETE_ONBOARDING_ENDPOINT, {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    Authorization: `Bearer ${onboardingToken}`
+                }
+            });
+
+            const result = await parseResponseBody(response);
+            const data = result && result.data;
+
+            if (
+                !response.ok ||
+                !result ||
+                result.success !== true ||
+                !data ||
+                typeof data.token !== "string" ||
+                !data.token
+            ) {
+                throw new Error(
+                    (result && result.message) ||
+                    "Oturum anahtarı oluşturulamadı. Lütfen tekrar giriş yapınız."
+                );
+            }
+
+            const userData = {
+                userId: data.userId,
+                username: data.username || fallbackUsername,
+                email: data.email || fallbackEmail || null,
+                role: data.role || "User",
+                level: data.level || null,
+                roles: Array.isArray(data.roles) ? data.roles : [data.role || "User"],
+                emailVerified: true
+            };
+
+            persistSession(data.token, userData, fallbackUsername);
+            try {
+                sessionStorage.setItem("fitnesspro_email_verified", "true");
+            } catch (e) {
+                // Sessizce geç
+            }
+        }
+
+        async function checkIfTwoFactorRequired(data, token) {
+            if (
+                data &&
+                typeof data === "object" &&
+                (
+                    data.twoFactorRequired === true ||
+                    data.twoFactorEnabled === true ||
+                    data.requiresEmailVerification === true
+                )
+            ) {
+                return true;
+            }
+
+            if (
+                token &&
+                window.TwoFactorEndpoint &&
+                typeof window.TwoFactorEndpoint.fetchStatus === "function"
+            ) {
+                try {
+                    const status = await window.TwoFactorEndpoint.fetchStatus(token);
+                    if (status && status.isEnabled === true) {
+                        return true;
+                    }
+                } catch (err) {
+                    console.warn("[LOGIN] 2FA status check skipped:", err && err.message ? err.message : err);
+                }
+            }
+
+            return false;
         }
 
         // =========================================================
@@ -432,6 +536,9 @@
                         // -----------------------------------------
 
                         const data = result.data;
+                        const triggerRedirect = () => {
+                            window.location.href = "index.html";
+                        };
 
                         // -----------------------------------------
                         // ONBOARDING GEREKLİ (backend kararı)
@@ -497,6 +604,58 @@
 
                             loginForm.reset();
 
+                            // E-posta doğrulaması gerekiyorsa ve Login sayfasında EmailVerificationModal
+                            // mevcutsa doğrudan modalı aç; aksi halde ilgili onboarding sayfasına yönlendir.
+                            if (
+                                nextStep === "email" &&
+                                window.EmailVerificationModal &&
+                                typeof window.EmailVerificationModal.open === "function"
+                            ) {
+                                showAlert(
+                                    "Giriş başarılı! Lütfen e-postanızı doğrulayın.",
+                                    "success"
+                                );
+
+                                window.EmailVerificationModal.open({
+                                    email: data.email || "",
+                                    authToken: onboardingToken,
+                                    onVerified: async () => {
+                                        try {
+                                            await completeOnboardingWithToken(
+                                                onboardingToken,
+                                                data.username || username,
+                                                data.email || ""
+                                            );
+                                            showAlert(
+                                                "E-posta doğrulandı! Ana sayfaya yönlendiriliyorsunuz...",
+                                                "success"
+                                            );
+                                            setTimeout(triggerRedirect, 250);
+                                        } catch (completeErr) {
+                                            showAlert(
+                                                completeErr && completeErr.message
+                                                    ? completeErr.message
+                                                    : "E-posta doğrulandı ancak oturum başlatılamadı. Lütfen tekrar giriş yapınız.",
+                                                "error"
+                                            );
+                                        }
+                                    },
+                                    onCancel: () => {
+                                        try {
+                                            sessionStorage.removeItem("fitnesspro_onboarding_token");
+                                        } catch (e) {
+                                            // Sessizce geç
+                                        }
+                                        showAlert(
+                                            "E-posta doğrulaması tamamlanmadığı için giriş işlemi durduruldu.",
+                                            "error"
+                                        );
+                                    }
+                                });
+
+                                return;
+                            }
+
                             const targetPage =
                                 nextStep === "location"
                                     ? "KonumBelirleme.html"
@@ -555,25 +714,7 @@
                         }
 
                         // -----------------------------------------
-                        // SESSION KAYDET (mevcut auth mimarisi korunur)
-                        // -----------------------------------------
-
-                        if (token && window.Auth) {
-
-                            window.Auth.saveSession(
-                                token,
-                                userData || { username: username }
-                            );
-
-                            try {
-                                sessionStorage.removeItem("fitnesspro_onboarding_token");
-                            } catch (e) {
-                                // Sessizce geç
-                            }
-                        }
-
-                        // -----------------------------------------
-                        // RATE LIMIT STATE TEMİZLE
+                        // RATE LIMIT STATE TEMİZLE & FORM RESET
                         // -----------------------------------------
 
                         if (window.LoginRateLimitUI) {
@@ -583,50 +724,80 @@
                         loginForm.reset();
 
                         // -----------------------------------------
-                        // E-POSTA DOĞRULAMA (frontend simülasyonu)
+                        // E-POSTA DOĞRULAMA & 2FA KONTROLÜ
                         // -----------------------------------------
                         //
-                        // User data üzerinde emailVerified flag'i yoksa
-                        // veya false ise EmailVerificationModal tetiklenir.
-                        // Modal kapandıktan sonra yönlendirme yapılır.
+                        // Kullanıcının e-postası doğrulanmamışsa (emailVerified !== true)
+                        // veya iki aşamalı doğrulama (2FA) aktifse EmailVerificationModal
+                        // açılır. Doğrulama tamamlanmadan kalıcı oturum (localStorage)
+                        // kaydedilmez; böylece sayfa yenilense bile doğrulamasız giriş
+                        // engellenir.
 
                         const isEmailVerified =
-                            (userData && userData.emailVerified === true) ||
-                            sessionStorage.getItem("fitnesspro_email_verified") === "true";
+                            Boolean(userData && userData.emailVerified === true);
 
-                        const triggerRedirect = () => {
-                            window.location.href = "index.html";
-                        };
+                        const isTwoFactorRequired =
+                            await checkIfTwoFactorRequired(data, token);
+
+                        const requiresVerificationModal =
+                            !isEmailVerified || isTwoFactorRequired;
 
                         if (
-                            !isEmailVerified &&
+                            requiresVerificationModal &&
                             window.EmailVerificationModal &&
                             typeof window.EmailVerificationModal.open === "function"
                         ) {
-                            // Modalın içinde doğrulama sonrası yönlendirme
-                            // çağrılabilmesi için bir kerelik event dinle.
-                            const onVerified = () => {
-                                window.removeEventListener(
-                                    "fitnesspro:email-verified",
-                                    onVerified
-                                );
-                                setTimeout(triggerRedirect, 250);
-                            };
-                            window.addEventListener(
-                                "fitnesspro:email-verified",
-                                onVerified
-                            );
+                            // Doğrulama tamamlanana kadar önceki kalıcı oturumu temiz tut
+                            if (window.Auth) {
+                                window.Auth.clearSession();
+                            }
 
-                            // Yönlendirmeyi durdur — modal kapandığında
-                            // biz tetikleyeceğiz.
                             showAlert(
-                                "Giriş başarılı! Lütfen e-postanızı doğrulayın.",
+                                "Giriş başarılı! Lütfen e-postanıza gönderilen doğrulama kodunu giriniz.",
                                 "success"
                             );
-                            window.EmailVerificationModal.open();
+
+                            window.EmailVerificationModal.open({
+                                email: (userData && userData.email) || (data && data.email) || "",
+                                authToken: token,
+                                onVerified: () => {
+                                    const verifiedUser = userData
+                                        ? { ...userData, emailVerified: true }
+                                        : { username: username, emailVerified: true };
+
+                                    persistSession(token, verifiedUser, username);
+
+                                    try {
+                                        sessionStorage.setItem("fitnesspro_email_verified", "true");
+                                    } catch (e) {
+                                        // Sessizce geç
+                                    }
+
+                                    showAlert(
+                                        "Doğrulama tamamlandı! Yönlendiriliyorsunuz...",
+                                        "success"
+                                    );
+                                    setTimeout(triggerRedirect, 250);
+                                },
+                                onCancel: () => {
+                                    if (window.Auth) {
+                                        window.Auth.clearSession();
+                                    }
+                                    showAlert(
+                                        "Doğrulama işlemi tamamlanmadığı için giriş iptal edildi.",
+                                        "error"
+                                    );
+                                }
+                            });
 
                             return;
                         }
+
+                        // -----------------------------------------
+                        // SESSION KAYDET (doğrulama gerekmiyorsa doğrudan kaydet)
+                        // -----------------------------------------
+
+                        persistSession(token, userData, username);
 
                         // -----------------------------------------
                         // YÖNLENDİRME (mevcut akış korunur)

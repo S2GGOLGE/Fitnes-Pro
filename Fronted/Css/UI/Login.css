@@ -53,6 +53,44 @@
 
     --transition-fast: 150ms ease;
     --transition-normal: 250ms ease;
+
+    /* Core / GlobalModal Aliases */
+    --bg: var(--color-bg);
+    --surface: var(--color-surface);
+    --surface-soft: var(--color-surface);
+    --card: var(--color-card);
+    --card-hover: #1C251F;
+    --primary: var(--color-primary);
+    --text: var(--color-text);
+    --text-muted: var(--color-text-muted);
+    --border: var(--color-border);
+    --border-green: rgba(34, 197, 94, 0.3);
+}
+
+[data-theme="light"],
+.light-theme {
+    --color-bg: #F4F7F5;
+    --color-surface: #EEF3EF;
+    --color-card: #FFFFFF;
+    --color-primary: #16A34A;
+    --color-primary-hover: #15803D;
+    --color-text: #0F172A;
+    --color-text-muted: #475569;
+    --color-border: rgba(15, 23, 42, 0.12);
+    --color-success: #16A34A;
+    --color-warning: #D97706;
+    --color-error: #DC2626;
+
+    --bg: var(--color-bg);
+    --surface: var(--color-surface);
+    --surface-soft: var(--color-surface);
+    --card: var(--color-card);
+    --card-hover: #E2ECE5;
+    --primary: var(--color-primary);
+    --text: var(--color-text);
+    --text-muted: var(--color-text-muted);
+    --border: var(--color-border);
+    --border-green: rgba(22, 163, 74, 0.3);
 }
 
 
@@ -1704,4 +1742,157 @@ body {
 
         transition: none;
     }
+}
+
+
+/* ==========================================
+   EMAIL VERIFICATION MODAL (GlobalModal)
+   Login e-posta doğrulama kodu alanı stilleri
+   ========================================== */
+
+.two-factor-modal-code {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.two-factor-modal-code .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.two-factor-modal-code .form-group > span {
+    color: var(--color-text);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.form-input,
+.two-factor-code-input {
+    width: 100%;
+    height: 50px;
+    padding: 0 16px;
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    outline: none;
+    font-family: inherit;
+    font-size: 14px;
+    transition:
+        border-color var(--transition-normal),
+        box-shadow var(--transition-normal),
+        background-color var(--transition-normal);
+}
+
+.two-factor-code-input {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.form-input::placeholder,
+.two-factor-code-input::placeholder {
+    color: var(--color-text-muted);
+    opacity: 0.75;
+}
+
+.two-factor-code-input::placeholder {
+    letter-spacing: 0.2em;
+    font-weight: 500;
+}
+
+.form > input:hover:not(:disabled),
+.password-wrapper input:hover:not(:disabled),
+.modal-form .form-group input:hover:not(:disabled),
+.form-input:hover:not(:disabled),
+.two-factor-code-input:hover:not(:disabled) {
+    border-color: rgba(34, 197, 94, 0.4);
+}
+
+.form > input:focus-visible,
+.password-wrapper input:focus-visible,
+.modal-form .form-group input:focus-visible,
+.form-input:focus,
+.form-input:focus-visible,
+.two-factor-code-input:focus,
+.two-factor-code-input:focus-visible {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+}
+
+.form-input:disabled,
+.two-factor-code-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.two-factor-modal-code small {
+    display: block;
+    margin-top: 2px;
+    color: var(--color-text-muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.two-factor-modal-error {
+    margin: 4px 0 0;
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    background-color: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: var(--color-error);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.two-factor-modal-error[hidden] {
+    display: none;
+}
+
+
+/* ==========================================
+   PASSWORD TOGGLE REFINEMENTS (Login & Modal)
+   ========================================== */
+
+.modal-form .password-wrapper {
+    animation: none;
+}
+
+.password-toggle svg,
+.modal-form .password-wrapper .password-toggle svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+    flex-shrink: 0;
+    pointer-events: none;
+}
+
+.modal-form .password-wrapper .password-toggle:active {
+    transform: translateY(-50%) scale(0.9);
+}
+
+.password-toggle:focus-visible,
+.modal-form .password-wrapper .password-toggle:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+    color: var(--color-primary);
+    background-color: rgba(34, 197, 94, 0.08);
+}
+
+[data-theme="light"] .modal-overlay,
+.light-theme .modal-overlay {
+    background-color: rgba(15, 23, 42, 0.45);
+}
+
+[data-theme="light"] .modal-content,
+.light-theme .modal-content {
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.18);
 }

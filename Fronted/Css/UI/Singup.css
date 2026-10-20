@@ -813,3 +813,52 @@ body {
         transition-duration: 0.01ms !important;
     }
 }
+
+
+/* ==========================================
+   LIGHT THEME & PASSWORD TOGGLE REFINEMENTS
+   ========================================== */
+
+[data-theme="light"],
+.light-theme {
+    --color-bg: #F4F7F5;
+    --color-surface: #EEF3EF;
+    --color-card: #FFFFFF;
+    --color-primary: #16A34A;
+    --color-primary-hover: #15803D;
+    --color-text: #0F172A;
+    --color-text-muted: #475569;
+    --color-border: rgba(15, 23, 42, 0.12);
+    --color-success: #16A34A;
+    --color-warning: #D97706;
+    --color-error: #DC2626;
+}
+
+.form > input:hover:not(:disabled),
+.form > select:hover:not(:disabled),
+.password-wrapper input:hover:not(:disabled) {
+    border-color: rgba(34, 197, 94, 0.4);
+}
+
+.form > input:focus-visible,
+.form > select:focus-visible,
+.password-wrapper input:focus-visible {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+}
+
+.password-toggle svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+    flex-shrink: 0;
+    pointer-events: none;
+}
+
+.password-toggle:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+    color: var(--color-primary);
+    background-color: rgba(34, 197, 94, 0.08);
+}

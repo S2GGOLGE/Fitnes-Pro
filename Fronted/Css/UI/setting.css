@@ -10,7 +10,11 @@
     --secondary: #a5b2a9;
     --muted: #718076;
     --shadow: 0 16px 38px rgba(0, 0, 0, .18);
-    --transition: 180ms cubic-bezier(.2, .75, .25, 1)
+    --transition: 180ms cubic-bezier(.2, .75, .25, 1);
+    --card: #18201b;
+    --card-hover: #1c251f;
+    --text-muted: #a5b2a9;
+    --text-secondary: #a5b2a9
 }
 
 /* ==========================================================================
@@ -31,6 +35,10 @@
     --secondary: #475569;
     --muted: #94a3b8;
     --shadow: 0 16px 38px rgba(15, 23, 42, .08);
+    --card: #ffffff;
+    --card-hover: #e2ece5;
+    --text-muted: #475569;
+    --text-secondary: #475569;
 }
 
 [data-theme="light"] body,
@@ -1190,4 +1198,55 @@ input:focus-visible {
         width: 16px;
         height: 16px;
     }
+}
+
+
+/* ==========================================
+   AÇIK TEMA BİLEŞEN UYUMLULUĞU
+   ========================================== */
+
+[data-theme="light"] .radio-option,
+.light-theme .radio-option {
+    background: var(--surface-soft);
+    border-color: var(--border);
+}
+
+[data-theme="light"] .radio-option:hover,
+.light-theme .radio-option:hover {
+    border-color: var(--border-green);
+    background: rgba(22, 163, 74, 0.08);
+}
+
+[data-theme="light"] .radio-option.is-selected,
+.light-theme .radio-option.is-selected {
+    border-color: var(--primary);
+    background: rgba(22, 163, 74, 0.1);
+    box-shadow: 0 0 0 1px var(--primary);
+}
+
+[data-theme="light"] .nav-btn:hover,
+.light-theme .nav-btn:hover {
+    background: rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="light"] .card:hover,
+.light-theme .card:hover {
+    box-shadow: 0 20px 42px rgba(15, 23, 42, 0.12);
+}
+
+[data-theme="light"] .progress-track,
+.light-theme .progress-track {
+    background: #dce7df;
+}
+
+[data-theme="light"] .mobile-topbar,
+.light-theme .mobile-topbar {
+    background: rgba(255, 255, 255, 0.92);
+}
+
+[data-theme="light"] .status-warning,
+.light-theme .status-warning,
+[data-theme="light"] .two-factor-modal-error,
+.light-theme .two-factor-modal-error {
+    color: #d97706;
 }
