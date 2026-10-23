@@ -130,6 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 try {
                     sessionStorage.removeItem("fitnesspro_email_verified");
                     sessionStorage.removeItem("fitnesspro_location");
+                    sessionStorage.removeItem("fitnesspro_location_skipped");
                     sessionStorage.setItem("fitnesspro_register_user", JSON.stringify({
                         email: email,
                         username: username,
@@ -137,7 +138,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         name: name,
                         surname: surname,
                         emailVerified: false,
-                        locationSet: false
+                        locationSet: false,
+                        locationSkipped: false
                     }));
                     sessionStorage.setItem("fitnesspro_onboarding_token", onboardingToken);
                 } catch (e) {

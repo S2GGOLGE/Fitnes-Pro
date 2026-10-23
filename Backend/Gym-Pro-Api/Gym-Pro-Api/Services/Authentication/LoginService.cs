@@ -407,7 +407,8 @@ public class LoginService
 
         var onboarding = await _onboardingService.GetStatusAsync(userId);
 
-        if (!onboarding.LocationSet)
+        var isUzman = string.Equals(level, "Uzman", StringComparison.OrdinalIgnoreCase);
+        if (isUzman && !onboarding.LocationSet)
         {
             return ApiResponseModel.Fail(
                 "Konum kaydı tamamlanmadan giriş yapılamaz."

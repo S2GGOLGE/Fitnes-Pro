@@ -261,6 +261,7 @@
             sessionStorage.removeItem(ONBOARDING_TOKEN_KEY);
             sessionStorage.removeItem("fitnesspro_register_user");
             sessionStorage.removeItem("fitnesspro_location");
+            sessionStorage.removeItem("fitnesspro_location_skipped");
             sessionStorage.removeItem("fitnesspro_email_verified");
         } catch (e) {
             // Sessizce geç
@@ -406,7 +407,27 @@
             return;
         }
 
-        if (status.locationSet !== true) {
+        let userLevel = "";
+        let isLocationSkipped = false;
+        try {
+            const stored = sessionStorage.getItem("fitnesspro_register_user");
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (parsed.level) userLevel = parsed.level;
+                if (parsed.locationSkipped === true) isLocationSkipped = true;
+            }
+            if (sessionStorage.getItem("fitnesspro_location_skipped") === "true") {
+                isLocationSkipped = true;
+            }
+        } catch (e) {
+            console.warn("Storage okunamadı:", e);
+        }
+
+        const effectiveLevel = (status && status.level) || userLevel || "Acemi";
+        const isUzman = effectiveLevel.toLowerCase() === "uzman";
+        const isLocationSatisfied = status.locationSet === true || (!isUzman && isLocationSkipped);
+
+        if (!isLocationSatisfied) {
             showAlert("Önce konum belirlemeniz gerekiyor. Yönlendiriliyorsunuz...", "warning", 0);
             setTimeout(() => { window.location.href = "KonumBelirleme.html"; }, 1500);
             return;

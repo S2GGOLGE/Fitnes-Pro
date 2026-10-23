@@ -39,7 +39,9 @@ public class MapController : ControllerBase
         {
             locationSet = status.LocationSet,
             emailVerified = status.EmailVerified,
-            nextStep = status.NextStep
+            nextStep = status.NextStep,
+            level = status.Level,
+            isUzman = status.IsUzman
         }));
     }
 

@@ -112,10 +112,15 @@
             }
         }
 
-        // Konum kaydı zorunlu olduğundan "Atla" butonu tüm seviyeler için gizlenir
+        // Kural: Standart kullanıcılar atlayabilir, Uzman seviyesindekiler atlayamaz
         if (elements.btnSkipLocation) {
-            elements.btnSkipLocation.classList.add("hidden");
-            elements.btnSkipLocation.setAttribute("aria-hidden", "true");
+            if (isUzman) {
+                elements.btnSkipLocation.classList.add("hidden");
+                elements.btnSkipLocation.setAttribute("aria-hidden", "true");
+            } else {
+                elements.btnSkipLocation.classList.remove("hidden");
+                elements.btnSkipLocation.removeAttribute("aria-hidden");
+            }
         }
     }
 
@@ -451,11 +456,34 @@
     }
 
     /**
-     * Konum bu akışta zorunludur (normal giriş de kayıtlı konum gerektirir),
-     * bu nedenle atlama desteklenmez.
+     * Konum atlama: Standart kullanıcılar atlayabilir, Uzman kullanıcılar atlayamaz.
      */
     function handleSkip() {
-        showAlert("Konum belirleme zorunludur. Lütfen haritadan veya Manuel Giriş ile konumunuzu belirleyiniz.", "warning", 5000);
+        const isUzman = state.userLevel && state.userLevel.toLowerCase() === "uzman";
+        if (isUzman) {
+            showAlert("Uzman seviyesindeki kullanıcılar konum belirleme adımını atlayamaz.", "warning", 5000);
+            return;
+        }
+
+        try {
+            sessionStorage.setItem("fitnesspro_location_skipped", "true");
+            let userState = {};
+            const stored = sessionStorage.getItem("fitnesspro_register_user");
+            if (stored) {
+                userState = JSON.parse(stored);
+            }
+            userState.username = state.username || userState.username;
+            userState.email = state.userEmail || userState.email;
+            userState.level = state.userLevel || userState.level;
+            userState.locationSet = false;
+            userState.locationSkipped = true;
+            sessionStorage.setItem("fitnesspro_register_user", JSON.stringify(userState));
+        } catch (e) {
+            console.warn("Storage hatası:", e);
+        }
+
+        showAlert("Konum adımı atlandı. E-posta doğrulama adımına yönlendiriliyorsunuz...", "info", 2000);
+        navigateToEmailVerification();
     }
 
     /**
@@ -514,6 +542,7 @@
         }
 
         try {
+            sessionStorage.removeItem("fitnesspro_location_skipped");
             sessionStorage.setItem("fitnesspro_location", JSON.stringify(state.locationData));
             // Kullanıcı seviyesini ve e-postasını bir sonraki sayfaya aktar
             const userState = {
@@ -521,6 +550,7 @@
                 email: state.userEmail,
                 level: state.userLevel,
                 locationSet: true,
+                locationSkipped: false,
                 emailVerified: false
             };
             sessionStorage.setItem("fitnesspro_register_user", JSON.stringify(userState));

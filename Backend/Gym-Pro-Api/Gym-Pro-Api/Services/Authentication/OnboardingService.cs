@@ -5,13 +5,15 @@ namespace Apı.Service.Authentication;
 public sealed record OnboardingStatus(
     bool Exists,
     bool LocationSet,
-    bool EmailVerified)
+    bool EmailVerified,
+    string Level = "Acemi")
 {
-    public bool IsComplete => Exists && LocationSet && EmailVerified;
+    public bool IsUzman => string.Equals(Level, "Uzman", StringComparison.OrdinalIgnoreCase);
+    public bool IsComplete => Exists && (!IsUzman || LocationSet) && EmailVerified;
 
     // Frontend yönlendirmesi için açık durum: "location" | "email" | "complete"
     public string NextStep =>
-        !LocationSet ? "location"
+        (IsUzman && !LocationSet) ? "location"
         : !EmailVerified ? "email"
         : "complete";
 }
@@ -55,7 +57,8 @@ public class OnboardingService
                     FROM dbo.UserLocations l
                     WHERE l.UserId = u.Id
                 )
-                THEN 1 ELSE 0 END AS LocationSet
+                THEN 1 ELSE 0 END AS LocationSet,
+                ISNULL(u.Level, 'Acemi') AS Level
             FROM dbo.Users u
             WHERE u.Id = @UserId;
             """;
@@ -70,13 +73,14 @@ public class OnboardingService
 
         if (!await reader.ReadAsync())
         {
-            return new OnboardingStatus(false, false, false);
+            return new OnboardingStatus(false, false, false, "Acemi");
         }
 
         return new OnboardingStatus(
             true,
             reader.GetInt32(1) == 1,
-            reader.GetBoolean(0));
+            reader.GetBoolean(0),
+            reader.IsDBNull(2) ? "Acemi" : reader.GetString(2));
     }
 
     public async Task MarkEmailVerifiedAsync(int userId)
