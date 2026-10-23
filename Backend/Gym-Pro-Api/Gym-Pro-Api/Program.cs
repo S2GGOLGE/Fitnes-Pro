@@ -128,6 +128,10 @@ builder.Services.AddScoped<IMessageService, MessageService>();
 // Map SERVICE
 // =========================================================
 builder.Services.AddScoped<IMapService, MapService>();
+// =========================================================
+// Send Code Ckeck SERVICE
+// =========================================================
+builder.Services.AddScoped<TwoCodeCkeck>();
 #endregion
 
 #region JWT Authentication
