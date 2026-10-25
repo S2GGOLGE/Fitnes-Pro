@@ -74,7 +74,7 @@
 
         const remainingSeconds =
             Number.isFinite(Number(payload.remainingSeconds)) &&
-            Number(payload.remainingSeconds) > 0
+                Number(payload.remainingSeconds) > 0
                 ? Math.ceil(Number(payload.remainingSeconds))
                 : 0;
 
@@ -249,10 +249,10 @@
         // Backend DTO alan adı "ReceviverId" (typo) — JSON'da
         // birebir bu isimle gönderilmelidir.
         const body = {
-            receviverId: receiverNum,
+            receiverId: receiverNum,
             messageType: safeType,
             content: text
-        };
+        }
 
         return await request("POST", "/api/messages", body);
     }

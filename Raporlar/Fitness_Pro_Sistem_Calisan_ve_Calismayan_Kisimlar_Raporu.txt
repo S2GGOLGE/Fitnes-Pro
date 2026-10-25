@@ -1,0 +1,291 @@
+================================================================================
+FITNESS PRO - SİSTEM ÇALIŞAN VE ÇALIŞMAYAN KISIMLAR RAPORU (DEMO SÜRÜMÜ)
+================================================================================
+Rapor Tarihi     : 25 Ekim 2026
+Proje Kapsamı    : Frontend (HTML/CSS/Vanilla JS), Backend (.NET 10 Web API),
+                   Veritabanı (SQL Server 2022 - Docker), Cloudflare Quick Tunnels
+Dağıtım Türü     : Cloudflare Quick Tunnel (.trycloudflare.com) - Demo Sürümü
+Hazırlayan       : Sistem & Kod Tabanı Güvenlik ve İşlevsellik Denetimi
+Not              : Bu rapor doğrultusunda hiçbir kod değişikliği uygulanmamıştır.
+================================================================================
+
+
+1. GENEL DURUM VE CLOUDFLARE DEMO ALTYAPISI
+--------------------------------------------------------------------------------
+Fitness Pro sistemi, Cloudflare Quick Tunnel otomasyonu (start-cloudflare.ps1 ve
+start-all.bat) üzerinden harici erişime sunulacak şekilde yapılandırılmıştır.
+
+Cloudflare Demo Mimarisi İncelemesi:
+  * Backend Portu : http://127.0.0.1:8081 (Docker: fitness-pro-api -> :8080)
+  * Veritabanı    : localhost:1433 (Docker: fitnesspro-db - MSSQL 2022)
+  * Frontend Portu: http://127.0.0.1:3000 (Python http.server)
+  * Quick Tunnel  : cloudflared.exe ile backend ve frontend için dinamik iki adet
+                    .trycloudflare.com tüneli açılmaktadır.
+  * Dinamik Ayar  : start-cloudflare.ps1 betiği, backend tünel adresini tespit
+                    ederek Fronted/JavaScripts/config.js dosyasındaki
+                    window.API_BASE_URL değerini otomatik güncellemektedir.
+
+Mevcut Canlı/Demo Durumu:
+  * Sistem süreçleri (Docker konteynerleri ve Python sunucusu) durdurulduğunda,
+    daha önce üretilen Quick Tunnel adresleri Cloudflare Error 1033 (Tunnel Not Found)
+    vermektedir. Bu durum bir hata değil, Quick Tunnel yapısının geçici (ephemeral)
+    olmasından kaynaklanmaktadır. Sistem "Sistem Başlat.bat" ile çalıştırıldığında
+    yeni tünel adresleri üretilerek sistem çalışır duruma gelmektedir.
+
+
+================================================================================
+2. MODÜL BAZINDA TAM ÇALIŞAN KISIMLAR (Backend + Frontend Entegre)
+================================================================================
+
+[+] 1. KULLANICI KAYDI (Singup.html & RegisterController)
+    - Kullanıcı adı, e-posta, parola, deneyim seviyesi (Acemi, Orta, Uzman)
+      bilgileriyle veritabanına kayıt başarılı şekilde yapılmaktadır.
+    - Kayıt sonrasında sınırlı yetkili OnboardingScheme JWT token üretilmekte ve
+      kullanıcı konum belirleme / e-posta doğrulama akışına yönlendirilmektedir.
+    - Son Güncelleme: Acemi ve Orta seviye kullanıcıların konum belirleme adımını
+      atlayabilmesi ("Atla" butonu) sağlandı. Uzman kullanıcılar için konum zorunluluğu
+      korundu.
+
+[+] 2. KULLANICI GİRİŞİ (Login.html & LoginController)
+    - Kullanıcı adı / parola doğrulaması çalışmaktadır.
+    - Giriş yapan kullanıcının Onboarding durumu kontrol edilmekte; konumu veya
+      e-postası eksikse normal token yerine Onboarding token dönülerek ilgili sayfaya
+      yönlendirilmektedir.
+    - Her iki adım da tamamsa ana sayfaya (index.html) yönlendiren tam yetkili Bearer
+      JWT üretilmektedir.
+    - Gelişmiş Rate Limiting devrededir:
+        * 5 başarısız deneme  -> 5 dakika geçici kilit
+        * 10 başarısız deneme -> 10 dakika geçici kilit
+        * 15 başarısız deneme -> Veritabanına (BannedUsers) kalıcı kilit/ban
+
+[+] 3. E-POSTA DOĞRULAMA & 2FA SERVİSİ (TwoFactorController & MailKit)
+    - /api/two-factor/send-code endpoint'i ile kullanıcının e-posta adresine 6 haneli
+      rastgele doğrulama kodu MailKit SMTP üzerinden gönderilmektedir.
+    - Üretilen kod TwoFactorCodes tablosunda SHA-256 ile hashlenerek saklanmaktadır.
+    - /api/two-factor/verify ile girilen kod doğrulanmakta, süre ve deneme sayısı
+      kontrol edilmektedir.
+    - Kod onaylandığında OnboardingService üzerinden kullanıcının EmailVerified
+      alanı 1 olarak güncellenmektedir.
+
+[+] 4. HARİTA VE KONUM SİSTEMİ (Haritalar.html & MapController)
+    - /api/locations endpoint'i üzerinden kullanıcı koordinatları (enlem, boylam,
+      şehir, ilçe) veritabanına (UserLocations tablosu) kaydedilmektedir.
+    - Haritalar sayfasında Leaflet harita kütüphanesi ile kullanıcıların ve spor
+      salonlarının pinleri harita üzerinde listelenmektedir.
+    - Mesafe filtreleme ve konum arama altyapısı çalışmaktadır.
+
+[+] 5. ARKADAŞLIK SİSTEMİ (Friends.html & FriendController)
+    - Kullanıcı adına göre arkadaşlık isteği gönderme (/api/friends/request) aktiftir.
+    - Gelen istekleri listeleme (/api/friends/requests/incoming) ve giden istekleri
+      listeleme (/api/friends/requests/outgoing) çalışmaktadır.
+    - İstek kabul etme (/accept), istek reddetme (/reject), isteği geri çekme (/cancel)
+      ve arkadaş silme (DELETE /api/friends/{id}) fonksiyonları veritabanında
+      (Friends ve FriendRequests tabloları) eksiksiz çalışmaktadır.
+
+[+] 6. MESAJ İSTEKLERİ VE GİZLİLİK AYARLARI (MessageRequestsController & PrivacyController)
+    - Kullanıcı mesajlaşma gizlilik ayarını (Everyone, FriendsOnly, Nobody) seçebilmekte
+      ve bu ayar /api/privacy/me üzerinden güncellenmektedir.
+    - Arkadaşlar dışındaki kullanıcılardan gelen mesaj talepleri MessageRequests
+      tablosuna düşmekte; kabul veya ret işlemleri yapılabilmektedir.
+
+[+] 7. MESAJLAŞMA SİSTEMİ (Mesajlar.html & MessageController)
+    - İki kullanıcı arasında mesaj gönderme (/api/messages - POST) çalışmaktadır.
+    - Sohbet geçmişi çekme (/api/messages/{userId} - GET) çalışmaktadır.
+    - Mesajı okundu olarak işaretleme (/api/messages/{id}/read - PATCH) çalışmaktadır.
+    - Mesaj silme (/api/messages/{id} - DELETE) çalışmaktadır.
+
+[+] 8. BAN İTİRAZ SİSTEMİ (BanAppealController & AdminBanAppealController)
+    - Hesabı kilitlenen kullanıcılar Login ekranındaki modal üzerinden itiraz
+      gerekçesi ve iletişim bilgisi ileterek BanAppeals tablosuna kayıt açabilmektedir.
+    - Admin panelinde bu itirazlar listelenmekte, onaylanıp hesap açılabilmekte veya
+      gerekçeyle reddedilebilmektedir.
+
+[+] 9. ADMİN VE SİSTEM GÜNLÜKLERİ (Admin.html, LogsController & LogService)
+    - SystemLogs, UserLogs, AdminLogs, AppealLogs ve GeneralLogs tabloları üzerinden
+      sistem aktiviteleri, hatalar ve denetim izleri loglanmaktadır.
+    - Admin arayüzünde logların filtrelenmesi, sayfalanması ve okunması çalışmaktadır.
+
+[+] 10. TEMA VE ARAYÜZ YÖNETİMİ
+    - Koyu / Açık tema desteği localStorage tabanlı olarak çalışmakta, bileşenler
+      tasarım sistemine uyum sağlamaktadır.
+    - GlobalModalManager modülü ile merkezi modal pencereleri düzgün tetiklenmektedir.
+
+
+================================================================================
+3. ÇALIŞMAYAN / HATALI / KOPUK KISIMLAR (Broken / Buggy)
+================================================================================
+
+[-] 1. BİLDİRİMLER SAYFASI - BİLDİRİM AYARLARI BUTONU ÇALIŞMIYOR
+    * Konum: Fronted/Pages/Bildirimler.html (Satır 129-131)
+    * Durum: Sayfadaki "<button class="btn btn-primary"><i data-lucide="settings"></i>
+      Bildirim Ayarları</button>" butonuna hiçbir HTML ID, data attribute veya
+      JavaScript click dinleyicisi (event listener) bağlanmamıştır.
+    * Sonuç: Butona basıldığında hiçbir tepki verilmemektedir. Kullanıcının bildirim
+      tercihlerini (E-posta / Anlık bildirim, öncelik seçimi) yapabileceği modal
+      veya panel henüz bağlanmamıştır.
+
+[-] 2. BİLDİRİMLER SAYFASI - BİLDİRİM DETAY MODALINDA İKON ÇIKMIYOR
+    * Konum: Fronted/JavaScripts/UI/NotificationModalBridge.js (Satır 23)
+    * Durum: Kod `notification.querySelector(".notification-icon")?.textContent?.trim()`
+      şeklinde text okumaktadır. Fakat HTML'de ikonlar `<i data-lucide="..."></i>`
+      şeklinde SVG/i elementi olduğu için textContent boştur ("").
+    * Sonuç: GlobalModalManager üzerinden açılan bildirim detay modalında ikon alanı
+      boş kalmaktadır (Açıklamalar.txt dosyasındaki "Hata: Icon eklenecek" notu).
+
+[-] 3. AYARLAR SAYFASI - ŞİFRE GÜNCELLEME FORMU SAHTE (API'YE BAĞLI DEĞİL)
+    * Konum: Fronted/JavaScripts/UI/Setting.js (Satır 364-368) ve Fronted/Pages/setting.html
+    * Durum: Ayarlar sayfasındaki şifre formuna (`#passwordForm`) girilen mevcut şifre,
+      yeni şifre ve şifre tekrarı alanları hiçbir API'ye gönderilmemektedir.
+      Kod doğrudan `submitButton.textContent = 'Kaydedildi'; submitButton.disabled = true;`
+      yaparak sahte bir başarılı mesajı vermektedir.
+    * Sonuç: Kullanıcı şifresini değiştirdiğini sanmakta, fakat veritabanında şifre
+      asla güncellenmemektedir. (Login.html üzerindeki şifremi unuttum modalı API'ye
+      bağlıyken, Ayarlar sayfasındaki form bağlanmamıştır).
+
+[-] 4. LOGIN ESNASINDA İKİ FAKTÖRLÜ DOĞRULAMA (2FA) DENETİM KOPUKLUĞU
+    * Konum: Backend/Gym-Pro-Api/Gym-Pro-Api/Services/Authentication/LoginService.cs ve
+             Services/TwoFactor/Ckeck/TwoCkeck.cs
+    * Durum: Backend'e `TwoCodeCkeck` servisi yazılmış ve Program.cs'te DI'a eklenmiştir.
+      Ancak `LoginService.cs` içerisinde kullanıcının 2FA açık olup olmadığını kontrol eden
+      ve gerekiyorsa login token'ı bloke edip doğrulama kodu bekleyen bir mantık
+      çağrılmamaktadır.
+    * Sonuç: Bir kullanıcı Ayarlar'dan 2FA'yı etkinleştirse dahi, normal login isteğinde
+      backend şifre doğru olduğu anda tam yetkili token'ı üretmektedir.
+
+[-] 5. PYTHON TEST BETİKLERİ PORT UYUMSUZLUĞU
+    * Konum: tests/ klasöründeki test betikleri (test_messaging_endpoints.py,
+             test_send_message.py, test_three_fixes.py)
+    * Durum: Test dosyalarında BASE URL sabit olarak `http://localhost:5000` tanımlıdır.
+      Ancak Docker üzerinde çalışan Backend API portu `8081`'dir.
+    * Sonuç: Testler doğrudan çalıştırıldığında API'ye bağlanamayarak Connection Refused
+      hatası vermektedir.
+
+
+================================================================================
+4. BACKEND'İ HİÇ BULUNMAYAN / TAMAMEN MOCK OLAN MODÜLLER (Unimplemented)
+================================================================================
+
+[X] 1. ANTRENMANLAR / İDMANLAR (Workouts.html & Workouts.js)
+    * Backend Durumu: Backend tarafında Workout, Exercise veya Antrenman adında hiçbir
+      controller, servis veya veritabanı tablosu BULUNMAMAKTADIR.
+    * Frontend Durumu: Sayfa tamamen frontend içerisinde tanımlanmış `initialWorkouts`
+      mock listesi üzerinden çalışmaktadır.
+    * Sonuç: Eklenen antrenmanlar, filtrelemeler veya detaylar veritabanına yazılmaz,
+      sayfa yenilendiğinde sıfırlanır.
+
+[X] 2. HEDEFLER (Goals.html & Goals.js)
+    * Backend Durumu: Backend'de hedefleri saklayan bir API endpoint'i veya tablosu yoktur.
+    * Frontend Durumu: Hedefler tarayıcının yerel hafızasında (`localStorage`:
+      'fitness_pro_goals_data_v2') tutulmaktadır.
+    * Sonuç: Hedefler sadece girilen tarayıcıda kalır, farklı bir cihazdan veya
+      tarayıcıdan girildiğinde görünmez.
+
+[X] 3. İLERLEME VE VÜCUT ÖLÇÜMLERİ (Progress.html & Progress.js)
+    * Backend Durumu: İlerleme takibi ve vücut ölçümleri için backend tablosu ve API yoktur.
+    * Frontend Durumu: Progress.js dosyasının başında açıkça `* No backend / API / fetch calls`
+      yazmaktadır. 30 günlük, 3 aylık, 6 aylık veriler sabit mock veridir.
+    * Sonuç: Vücut ölçümleri, grafikler ve gelişim yüzdeleri gerçek kullanıcı verisi değildir.
+
+[X] 4. EĞİTMEN / KOÇLUK BAŞVURULARI (Basvurular.html & Basvurular.js)
+    * Backend Durumu: Frontend /api/applications endpoint'ini çağırmayı dener fakat
+      backend'de `ApplicationsController` ve başvuru tabloları MEVCUT DEĞİLDİR.
+    * Frontend Durumu: API bulunamadığında sistem otomatik olarak yerel tarayıcı
+      veri tabanına (`IndexedDB`: 'fitness_pro_attachments') ve mock veriye düşmektedir.
+    * Sonuç: Yapılan koçluk başvuruları sunucuya veya yöneticiye ulaşmamaktadır.
+
+[X] 5. PROFİL SAYFASI İSTATİSTİKLERİ VE DETAYLARI (Profile.html & Profile.js)
+    * Backend Durumu: Kullanıcı profil bilgilerini getiren veya güncelleyen özel bir
+      profil endpoint'i (/api/profile veya /api/users/{id}) yoktur.
+    * Frontend Durumu: Kullanıcı adı auth oturumundan alınmakta; biyografi, seviye (XP),
+      antrenman sayısı (128), seriler (12 gün), yakılan kalori bilgileri sabit mock
+      olarak ekranda gösterilmektedir.
+
+[X] 6. BİLDİRİMLER SERVİSİ
+    * Backend Durumu: Kullanıcıya dinamik bildirim oluşturan, veritabanına kaydeden veya
+      listeleme sağlayan bir NotificationsController / NotificationService yoktur.
+    * Frontend Durumu: Bildirimler.html içerisindeki 6 adet bildirim statik HTML olarak
+      kodlanmıştır. Okundu yapma veya silme işlemleri yalnızca o anki DOM ağacından siler.
+
+[X] 7. ROL VE ADMİN YÖNETİMİ (RoleController.cs)
+    * Backend Durumu: `RoleController.cs` dosyası mevcuttur ancak içi tamamen BOŞTUR (44 bayt).
+    * Sonuç: Yeni bir kullanıcıya Admin rolü vermek için API veya UI yoktur; bu işlem
+      yalnızca doğrudan SQL Server üzerinden Users/Roles tabloları güncellenerek yapılabilir.
+
+
+================================================================================
+5. KRİTİK GÜVENLİK VE MİMARİ RİSKLERİ (Teknik Denetim Notları)
+================================================================================
+
+[!] 1. PAROLA GÜNCELLEME ENDPOINT'İNDE YETKİLENDİRME YOKTUR (/api/passupdate)
+    * Backend'deki PasswordupdateContollers.cs üzerinde `[Authorize]` özniteliği,
+      eski şifre teyidi veya rate limit yoktur.
+    * Yalnızca hedef kullanıcı adı ve yeni parola verilerek herhangi bir kullanıcının
+      parolası değiştirilebilir durumdadır.
+
+[!] 2. KALICI HESAP KİLİTLEME İLE SERVİS DIŞI BIRAKMA (DoS) RİSKİ
+    * Bir kullanıcı adıyla arka arkaya 15 kez yanlış parola gönderildiğinde hesap
+      veritabanında kalıcı olarak banlanmaktadır.
+    * Kötü niyetli birisi bilinen bir kullanıcı adını kasıtlı olarak 15 kez yanlış
+      girerek hedef hesabı kalıcı olarak kilitleyebilir.
+
+[!] 3. PAROLA HASHLEME ALGORİTMASI
+    * Sistemde parolalar tek turlu SHA-256 ile hashlenmektedir.
+    * Endüstri standardı olan modern yavaş/tuzlu algoritmalar (Argon2id, BCrypt veya
+      PBKDF2) henüz uygulanmamıştır.
+
+[!] 4. CLOUDFLARE QUICK TUNNEL DEMO KISITLARI
+    * TryCloudflare tünelleri kalıcı domain sağlamaz; tünel süreci kapandığında URL ölür.
+    * Canlıya geçiş (production) aşamasında Cloudflare Tunnel'ın Named Tunnel (kalıcı
+      CNAME/token ile) ve sabit bir alan adı (fitnesspro.com vb.) üzerinden yapılandırılması
+      gerekmektedir.
+
+
+================================================================================
+6. ÖZET ÇALIŞMA DURUM MATRİSİ
+================================================================================
+
+Modül / Özellik                  Frontend        Backend API    Veritabanı     Genel Durum
+---------------------------------------------------------------------------------------------------
+Kullanıcı Kaydı (Register)       HAZIR           HAZIR          HAZIR          ÇALIŞIYOR
+Onboarding (Konum/Email)         HAZIR           HAZIR          HAZIR          ÇALIŞIYOR
+Giriş (Login & Rate Limit)       HAZIR           HAZIR          HAZIR          ÇALIŞIYOR
+E-Posta Doğrulama & 2FA          HAZIR           HAZIR          HAZIR          ÇALIŞIYOR
+Harita & Konum Listeleme         HAZIR           HAZIR          HAZIR          ÇALIŞIYOR
+Arkadaşlık Sistemi               HAZIR           HAZIR          HAZIR          ÇALIŞIYOR
+Mesaj İstekleri & Gizlilik       HAZIR           HAZIR          HAZIR          ÇALIŞIYOR
+Mesajlaşma (Sohbet)              HAZIR           HAZIR          HAZIR          ÇALIŞIYOR
+Ban İtiraz & Admin Paneli        HAZIR           HAZIR          HAZIR          ÇALIŞIYOR
+Sistem ve Denetim Logları        HAZIR           HAZIR          HAZIR          ÇALIŞIYOR
+Koyu / Açık Tema Yönetimi        HAZIR           (Client Only)  (LocalStorage) ÇALIŞIYOR
+---------------------------------------------------------------------------------------------------
+Bildirim Ayarları Butonu         BAĞLANTISIZ     YOK            YOK            ÇALIŞMIYOR
+Bildirim Detay Modalı İkonu      HATALI          YOK            YOK            HATALI (İkon Boş)
+Ayarlar Şifre Değiştirme         SAHTE SUBMIT    VAR (/passupd) VAR            ÇALIŞMIYOR (API'ye bağlı değil)
+Login 2FA Zorlama Entegrasyonu   MOCK / CLIENT   EKSİK          VAR            KISMEN ÇALIŞIYOR
+Test Betikleri (tests/)          -               PORT 5000!=8081-              HATALI (Port uyuşmazlığı)
+---------------------------------------------------------------------------------------------------
+Antrenmanlar (Workouts)          MOCK            YOK            YOK            UYGULANMAMIŞ (Mock)
+Hedefler (Goals)                 LOCALSTORAGE    YOK            YOK            UYGULANMAMIŞ (Mock)
+İlerleme / Ölçümler (Progress)   STATİK MOCK     YOK            YOK            UYGULANMAMIŞ (Mock)
+Koçluk Başvuruları (Basvurular)  INDEXEDDB MOCK  YOK            YOK            UYGULANMAMIŞ (Mock)
+Kullanıcı Profili Detayları      STATİK MOCK     YOK            YOK            UYGULANMAMIŞ (Mock)
+Bildirimler Altyapısı            STATİK HTML     YOK            YOK            UYGULANMAMIŞ (Mock)
+Admin Rolü Atama / Yönetimi      YOK             BOŞ (RoleCtrl) VAR            UYGULANMAMIŞ (Kod boş)
+---------------------------------------------------------------------------------------------------
+
+================================================================================
+SONUÇ VE ÖNERİ
+================================================================================
+Fitness Pro sistemi şu anki demo sürümünde temel Kimlik Doğrulama, Konum/Harita,
+Arkadaşlık, Mesajlaşma, Ban/İtiraz ve Admin Log mekanizmalarında backend ve
+veritabanı ile tam entegre olarak ÇALIŞMAKTADIR.
+
+Buna karşılık spor odaklı temel modüller (Antrenmanlar, Hedefler, İlerleme,
+Koçluk Başvuruları ve Bildirimler) henüz backend'e bağlanmamış olup tamamen
+mock/tarayıcı içi veri ile çalışmaktadır. Ayrıca Bildirim Ayarları butonu, bildirim
+detay ikonu ve Ayarlar sayfasındaki şifre değiştirme formunun API entegrasyonu
+bulunmamaktadır.
+
+Bu rapor [Raporlar/Fitness_Pro_Sistem_Calisan_ve_Calismayan_Kisimlar_Raporu.txt]
+olarak kaydedilmiştir. Kod tabanında hiçbir değişiklik yapılmamıştır.
+================================================================================
