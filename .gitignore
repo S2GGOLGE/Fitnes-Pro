@@ -131,3 +131,5 @@ coverage.xml
 # ------------------------------------------
 
 docker-data/
+# Cloudflare automation state and logs
+.cloudflare/

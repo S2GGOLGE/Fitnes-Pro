@@ -5,8 +5,8 @@ title Fitness Pro - System Shutdown
 
 rem ============================================================
 rem  FITNESS PRO - SYSTEM SHUTDOWN
-rem  Stops only Fitness Pro services. Docker Desktop stays up.
-rem  No volumes removed.
+rem  Stops Cloudflare tunnels, Frontend, Backend and SQL Server.
+rem  Docker Desktop stays up. No volumes removed.
 rem ============================================================
 
 set "PROJECT_ROOT=%~dp0"
@@ -25,6 +25,15 @@ echo ===========================================================
 echo.
 echo Docker Desktop will stay RUNNING.
 echo.
+
+rem ============================================================
+rem  [00] Stop Cloudflare tunnels
+rem ============================================================
+if exist "%PROJECT_ROOT%\stop-cloudflare.bat" (
+    echo [00] Stopping Cloudflare tunnels...
+    call "%PROJECT_ROOT%\stop-cloudflare.bat"
+    echo.
+)
 
 rem ============================================================
 rem  [01] docker CLI
@@ -105,6 +114,7 @@ echo.
 
 :done
 echo ===========================================================
+echo   Cloudflare    : STOPPED
 echo   Frontend      : STOPPED
 echo   Backend       : STOPPED
 echo   SQL           : STOPPED
