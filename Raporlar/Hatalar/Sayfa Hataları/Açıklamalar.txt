@@ -1,7 +1,410 @@
--Bildirimler.html
-Bildirim ayarlar btn çalışmıyor 
-Bu kısımda kullanıcının Bildirim tercihlerini ayarlayabileceği bir yer olcak 
- Kullanıcı Ya Email Yada anlık bildirim alma seçebilecek ve bildirim onceliğini ayarlayabilecek
--Bildirim detay modalı 
-Hata:Icon eklencek
-Referans görsel :1
+# FITNESS PRO — UI/UX DÜZELTMELERİ VE FONKSİYONEL HATA ANALİZİ
+
+## 1. GENEL GÖREV TANIMI
+
+Fitness Pro projesinde aşağıda belirtilen sayfalardaki UI/UX problemlerini, çalışmayan butonları, modal hatalarını, responsive tasarım sorunlarını ve bildirim ayarları eksikliklerini incele ve düzelt.
+
+**Temel kurallar:**
+
+1. Öncelikle mevcut frontend ve backend kodlarını analiz et. Sorunun kaynağını belirlemeden rastgele kod değişikliği yapma.
+2. Mevcut sayfa tasarımını, renk paletini, bileşen yapısını ve kullanıcı deneyimini koru. İstenen değişiklikler dışında kapsamlı tasarım değişikliği yapma.
+3. Projede zaten bulunan CSS, JavaScript, API servisleri, DTO'lar, modeller ve endpoint'leri incele. Mevcut işlevleri yeniden yazmak yerine gerektiğinde bunları iyileştir.
+4. Yeni bir UI kütüphanesi veya gereksiz bağımlılık ekleme.
+5. Masaüstü, tablet ve mobil ekranlarda test et.
+6. Gerçek backend verisi yerine kalıcı olacak sahte veriler veya yalnızca arayüzde çalışan butonlar kullanma.
+7. Backend değişikliği gerekiyorsa veritabanı, API sözleşmeleri, kimlik doğrulama ve kullanıcı bazlı veri izolasyonunu birlikte değerlendir.
+8. Kullanıcıya ait bildirim tercihleri gibi kişisel ayarları kullanıcı kimliği üzerinden sakla. Kullanıcılar birbirlerinin ayarlarını görüntüleyememeli veya değiştirememeli.
+9. Referans görsellerini kullanarak mevcut sorunları belirle. Görsellerin hangi bileşene ait olduğunu doğrulamadan tahminde bulunma.
+10. Her değişiklikten sonra ilgili fonksiyonları test et. Build hatalarını, konsol hatalarını ve Network hatalarını kontrol et.
+11. İlgisiz dosyaları değiştirme. Mevcut çalışan fonksiyonları bozma.
+12. Bir özellik tamamlanamıyorsa tamamlanmış gibi gösterme; eksikliği, nedenini ve gereken işlemi raporla.
+
+---
+
+## 2. BİLDİRİMLER.HTML — BİLDİRİM AYARLARI VE DETAY MODALI
+
+### 2.1. Bildirim ayarları butonu çalışmıyor
+
+**Mevcut sorun:** `Bildirimler.html` sayfasındaki bildirim ayarları butonu çalışmıyor.
+
+Yapılacaklar:
+
+- Butonun HTML, CSS ve JavaScript bağlantılarını incele.
+- Butona event listener bağlanıp bağlanmadığını kontrol et.
+- Tıklama olayında JavaScript hatası, yanlış element seçicisi, eksik modal veya yanlış fonksiyon çağrısı olup olmadığını belirle.
+- Sorunun kaynağını düzelt ve butonun gerçekten çalıştığını doğrula.
+- Bildirim ayarları için mevcut projede bir modal, panel veya ayar bölümü varsa onu kullan; gereksiz yeni bileşen oluşturma.
+
+### 2.2. Kullanıcının bildirim tercihleri
+
+Kullanıcının bildirim tercihlerini yönetebileceği bir alan oluştur.
+
+#### A. Bildirim kanalı seçimi
+
+Kullanıcı aşağıdaki seçeneklerden birini seçebilmeli:
+
+- **E-posta bildirimi:** Desteklenen bildirimlerin kullanıcının kayıtlı ve doğrulanmış e-posta adresine gönderilmesi.
+- **Anlık bildirim:** Desteklenen bildirimlerin uygulama içerisinde anlık olarak gösterilmesi.
+
+Kullanıcı seçimini değiştirdiğinde tercih kalıcı olarak saklanmalı ve sayfa yenilendiğinde korunmalı.
+
+Önemli teknik ayrım:
+
+- Uygulama içi bildirimler ile Web Push bildirimleri aynı şey değildir.
+- Projede SignalR, Web Push veya benzeri bir gerçek zamanlı bildirim altyapısı varsa mevcut mimariyi incele.
+- Böyle bir altyapı yoksa yalnızca mevcut uygulama içi bildirim sisteminin gerçekten desteklediği davranışı uygula. Web Push özelliğini çalışıyormuş gibi gösterme.
+- E-posta gönderimi için mevcut e-posta servisinden yararlan. Bildirim gönderimi için yeni bir e-posta servisi oluşturma gerekliliği yoksa mevcut servisi kullan.
+
+#### B. Bildirim önceliği
+
+Kullanıcı bildirimlerin önceliğini seçebilmeli.
+
+Önerilen seçenekler:
+
+- **Tüm bildirimler:** Desteklenen tüm bildirimleri al.
+- **Önemli bildirimler:** Yalnızca önemli veya yüksek öncelikli bildirimleri al.
+- **Kritik bildirimler:** Yalnızca kritik olarak sınıflandırılmış bildirimleri al.
+
+Bu sınıflandırmanın mevcut backend bildirim modeliyle uyumunu kontrol et. Öncelik bilgisi mevcut değilse uygun bir model ve API tasarla; ancak bildirim türlerinin hangi önceliğe sahip olacağına dair varsayımları kod içinde belirsiz bırakma.
+
+Güvenlik, hesap erişimi ve zorunlu doğrulama bildirimleri gibi kritik sistem bildirimlerini kullanıcı tercihlerinden bağımsız ele al. Tercih filtresi bu bildirimleri sessizce engellememeli.
+
+#### C. Tercihlerin kalıcı saklanması
+
+- Öncelikle mevcut bildirim tercihleri tablosu, kullanıcı ayarları ve API endpoint'leri olup olmadığını araştır.
+- Mevcut altyapı yeterliyse onu genişlet.
+- Yeterli değilse kullanıcı kimliğiyle ilişkili bir veri modeli oluştur.
+- Tercihler giriş yapan kullanıcıya özel olmalı.
+- Backend tarafında JWT üzerinden doğrulanan kullanıcı kimliğini kullan. İstemciden gelen bir `userId` değerine tek başına güvenme.
+- Kaydetme sırasında başarılı/başarısız durum mesajı göster.
+- Sayfa yenilendiğinde backend'den kayıtlı tercihler yüklenmeli.
+- API hatasında kayıt başarılıymış gibi davranılmamalı.
+
+### 2.3. Bildirim detay modalı — ikon eksikliği
+
+**Mevcut sorun:** Bildirim detay modalında ikon eksik.
+
+Yapılacaklar:
+
+- Mevcut ikon kütüphanesini ve projedeki ikon kullanımını incele.
+- Bildirim türüne uygun bir ikon ekle.
+- Başarı, bilgi, uyarı ve hata bildirimleri birbirinden ayırt edilebilmeli.
+- İkonun boyutu, rengi ve konumu mevcut Fitness Pro tasarımıyla uyumlu olmalı.
+- İkon dekoratifse erişilebilirlik özelliklerini doğru kullan; anlam taşıyorsa uygun bir erişilebilir isim sağla.
+- Modalın başlık, içerik, tarih ve kapatma kontrollerinin düzenini bozma.
+
+### 2.4. Responsive menü varsayılan durumu
+
+**Mevcut sorun:** Responsive menü beklenenden açık geliyor.
+
+Beklenen davranış:
+
+- Mobil/tablet görünümünde menü varsayılan olarak **kapalı** başlamalı.
+- Menü, `index.html` sayfasındaki mevcut responsive menü davranışıyla aynı olmalı.
+- Menü yalnızca kullanıcı menü butonuna bastığında açılmalı.
+- Açık menüde kapatma butonu ve gerekiyorsa arka plan tıklamasıyla kapatma çalışmalı.
+- Sayfa yüklenirken menü açık kalmasına neden olan CSS sınıfı, inline stil, kalıcı durum veya JavaScript başlangıç değerini araştır.
+- Masaüstü menüsünün mevcut davranışını bozma.
+- Klavye ve erişilebilirlik davranışlarını koru.
+
+**Referans:** Görsel 1 ve Görsel 4.
+
+---
+
+## 3. LOGIN.HTML — E-POSTA DOĞRULAMA KODU SÜRESİ
+
+**Mevcut sorun:** `Login.html` sayfasında e-posta doğrulama kodunun kalan süresi gösterilmiyor.
+
+Görev yalnızca arayüzü düzeltmek değil; sorunun frontend kaynaklı mı, backend kaynaklı mı olduğunu kanıtlarla belirlemektir.
+
+### 3.1. Frontend analizi
+
+Şunları kontrol et:
+
+- Geri sayım JavaScript'i mevcut mu?
+- Sayaç doğru DOM elementine bağlanmış mı?
+- Kod gönderildikten sonra sayaç başlatılıyor mu?
+- Sayfa veya modal açılışında zamanlayıcı başlatılıyor mu?
+- Sayaç yalnızca e-posta gönderme başarılı olduğunda mı başlıyor?
+- Yeniden gönderme sırasında önceki zamanlayıcı temizleniyor mu?
+- Kod doğrulama ekranına geçiş sırasında zamanlayıcı kayboluyor mu?
+- `setInterval`, `clearInterval` veya eşdeğer zamanlayıcı yönetiminde hata var mı?
+- Backend yanıtındaki süre alanı doğru okunuyor mu?
+
+### 3.2. Backend analizi
+
+Mevcut e-posta doğrulama ve iki faktörlü doğrulama akışını incele.
+
+Özellikle:
+
+- Kodun geçerlilik süresi nerede tanımlanıyor?
+- Backend yanıtı kalan süreyi, son kullanma zamanını veya geçerlilik süresini döndürüyor mu?
+- Kodun son kullanma zamanı veritabanında saklanıyor mu?
+- Sunucu UTC zamanı ile frontend yerel zamanı arasında hesaplama hatası var mı?
+- Kod yeniden gönderildiğinde önceki kodun süresi ve yeni kodun süresi doğru yönetiliyor mu?
+- Frontend yanlış JSON alanını mı okuyor?
+- Süre alanı backend'de mevcut değilse mevcut API sözleşmesini ve güvenlik gereksinimlerini inceleyerek uygun çözümü belirle.
+
+### 3.3. Beklenen davranış
+
+- Kod başarıyla gönderildiğinde geri sayım başlasın.
+- Kalan süre anlaşılır biçimde gösterilsin; örneğin `04:59`.
+- Sayaç saniyede bir güncellensin.
+- Süre dolduğunda `00:00` gösterilsin.
+- Süre dolmadan yeniden gönderme butonu etkinleşmesin.
+- Süre dolduğunda yeniden gönderme davranışı mevcut güvenlik ve rate limit kurallarına uygun çalışsın.
+- Kod başarıyla doğrulandığında gereksiz zamanlayıcı temizlensin.
+- Kullanıcı sayfayı yenilerse sayaç doğru şekilde yeniden hesaplanmalı. Backend kesin son kullanma zamanını döndürüyorsa onu esas al.
+- İstemci tarafındaki sayaç hiçbir koşulda kodun backend'de geçerli olduğunu tek başına belirlememeli.
+
+### 3.4. Sonuç raporu
+
+Kod değişikliğinden önce veya analiz sonucunda şu soruya net cevap ver:
+
+**Sorun frontend'de mi, backend'de mi, yoksa ikisinde birden mi?**
+
+Kanıt olarak ilgili JavaScript fonksiyonunu, API yanıtını, DTO alanını veya backend süre hesaplama kodunu belirt. Tahmin yürütme.
+
+**Referans:** Görsel 2.
+
+---
+
+## 4. RESPONSIVE MODAL BUTONLARI — GENİŞLİK VE YÜKSEKLİK
+
+**Mevcut sorun:** Responsive görünümde modal içerisindeki butonlar çok küçük kalıyor.
+
+İlgili modal ve butonların ortak CSS sınıflarını incele.
+
+Yapılacaklar:
+
+- Mobil ekranda butonların dokunma alanını büyüt.
+- Butonların genişlik ve yüksekliğini orta seviyede, dengeli bir değere getir.
+- Tüm butonları gereksiz yere ekranın tamamına yayma; modal içeriği ve buton sayısına göre uygun düzen seç.
+- İki veya daha fazla buton varsa dar ekranlarda alt alta dizilme davranışını değerlendir.
+- Buton metinlerinin kesilmesini, taşmasını veya satır aralığının bozulmasını önle.
+- Modalın iç boşluklarını, butonlar arasındaki mesafeyi ve dikey hizalamayı düzelt.
+- Masaüstündeki buton ölçülerini gereksiz yere büyütme.
+
+Başlangıç için değerlendirilebilecek CSS değerleri:
+
+```css
+/* Örnek başlangıç değerleri; mevcut tasarıma göre doğrula. */
+.modal-actions button {
+    min-height: 44px;
+    padding: 10px 18px;
+    font-size: 14px;
+}
+
+@media (max-width: 480px) {
+    .modal-actions {
+        gap: 10px;
+    }
+
+    .modal-actions button {
+        min-height: 44px;
+        padding: 11px 16px;
+    }
+}
+```
+
+Bu değerleri doğrudan her modalın üzerine zorla uygulama. Projedeki gerçek sınıfları ve modal düzenini inceleyerek doğru bileşene uygula. Mevcut CSS mimarisi uygunsa ortak responsive modal sınıfını iyileştir.
+
+**Referans:** Görsel 3, Görsel 11 ve Görsel 12.
+
+---
+
+## 5. İDMANLAR.HTML — FİLTRE UI/UX DÜZENLEMESİ
+
+**Mevcut sorun:** İdmanlar sayfasındaki filtre alanı mevcut yerleşimiyle kullanıcı deneyimini olumsuz etkiliyor.
+
+### 5.1. Filtreyi üç nokta menüsüne taşı
+
+- Filtre alanını uygun bir üç nokta (`...`) menüsü veya filtre açılır paneli içerisine al.
+- Üç nokta butonuna basıldığında filtre alanı görünür hâle gelsin.
+- Aynı butona tekrar basıldığında filtre alanı gizlensin.
+- Menü ilk sayfa yüklenişinde kapalı olsun.
+- Açık menünün diğer içeriklerin üzerine binmesi veya ekran dışına taşması sorunlarını gider.
+- Menü dışına tıklama ve `Escape` ile kapatma davranışlarını değerlendir.
+- Klavye ile kullanılabilirlik ve odak yönetimini koru.
+
+### 5.2. Filtrelerin işlevselliği
+
+- Mevcut filtre kriterlerini koru.
+- Filtre seçeneklerinin gerçekten idman listesini etkilediğini doğrula.
+- Filtre temizleme ve sıfırlama davranışlarını koru veya mevcut değilse ekle.
+- Filtre uygulandığında liste, boş durum mesajı ve sonuç sayısı tutarlı olmalı.
+- Filtre panelinin açılması veya kapanması mevcut filtre değerlerini yanlışlıkla sıfırlamamalı.
+- Mobil ve masaüstü yerleşimini test et.
+
+**Referans:** Görsel 5.
+
+---
+
+## 6. PROFİL.HTML — ÜST ÜSTE BİNEN BİLEŞENLER VE HAKKIMDA MODALI
+
+### 6.1. Sayfa yerleşimi
+
+**Mevcut sorun:** Profil sayfasında bazı bileşenler üst üste geliyor.
+
+İncelenecekler:
+
+- Profil başlığı ve kullanıcı bilgileri.
+- Profil kartları ve istatistik alanları.
+- İçerik genişliği ve yatay taşma.
+- `position: absolute` veya sabit yükseklik nedeniyle oluşan çakışmalar.
+- Grid/flex düzeni, `gap`, margin ve padding değerleri.
+- Farklı ekran genişliklerindeki breakpoint kuralları.
+- Modal açıkken sayfa kaydırma davranışı.
+
+Sorunu yalnızca `z-index` değerlerini artırarak geçiştirme. Önce çakışmanın temel nedenini belirle.
+
+### 6.2. Modal içerisindeki Hakkımda bölümü
+
+- Hakkımda alanının başlık, açıklama ve düzenleme kontrollerini düzenle.
+- Uzun metinlerin modal dışına taşmasını önle.
+- Metin alanının yüksekliğini ve kaydırma davranışını iyileştir.
+- Düzenleme ve kaydetme butonlarının görünür kalmasını sağla.
+- Mobil ekranlarda modal genişliğini ve dikey yüksekliğini ekran boyutuna göre sınırla.
+- Form alanları, hata mesajları ve boş durumlar için tutarlı aralıklar kullan.
+- Kullanıcının mevcut profil metnini ve kayıt işlevini koru.
+
+**Referans:** Görsel 6, Görsel 7 ve Görsel 8.
+
+---
+
+## 7. AYARLAR.HTML — NAME / SURNAME ALANLARININ YÜKSEKLİĞİ
+
+**Mevcut sorun:** Name ve Surname alanlarının bulunduğu bölümün yüksekliği uygun değil.
+
+Yapılacaklar:
+
+- İlgili HTML elementini ve CSS seçicilerini belirle.
+- Alanların yükseklik, iç boşluk, satır yüksekliği ve dikey hizalamasını incele.
+- Label, input ve açıklama metinlerinin birbirine girmesini önle.
+- Diğer form alanlarıyla görsel tutarlılığı koru.
+- Mobilde gereksiz boşluk veya kesilme oluşmasını önle.
+- Sadece gerekli bileşeni düzelt; tüm formun yüksekliğini rastgele değiştirme.
+- Mevcut kayıt/güncelleme davranışının çalıştığını doğrula.
+
+**Referans:** Görsel 9.
+
+---
+
+## 8. MESAJLAR.HTML — INDEX.HTML'E DÖNÜŞ BUTONU
+
+**Mevcut sorun:** `index.html` sayfasına döndüren buton sayfanın altında kalıyor ve kullanıcı arayüzünü bozuyor.
+
+Yapılacaklar:
+
+- Butonun HTML yerleşimini ve bağlı CSS sınıflarını incele.
+- Butonun neden sayfanın altına kaydığını belirle: yanlış DOM hiyerarşisi, `position`, flex/grid yerleşimi, margin, sabit yükseklik veya overflow.
+- Butonu kullanıcı tarafından kolayca erişilebilir, mantıklı bir konuma yerleştir.
+- Mesaj listesinin, sohbet alanının ve alt mesaj yazma alanının kullanılabilirliğini koru.
+- Mesaj yazma alanı veya gönderme butonuyla çakışma oluşturma.
+- Mobilde alt gezinme, klavye açılması ve dikey kaydırma durumlarını test et.
+- Butonun hedefinin gerçekten `index.html` olduğunu ve doğru şekilde çalıştığını doğrula.
+- Gereksiz sabit konumlandırma ile ekranın başka elemanlarını örtme.
+
+**Beklenen sonuç:** Ana sayfaya dönüş butonu kolayca bulunmalı; sayfa içeriğinin altında kaybolmamalı ve mesaj gönderme alanına engel oluşturmamalı.
+
+---
+
+## 9. TEST VE DOĞRULAMA PLANI
+
+Değişikliklerden sonra aşağıdaki kontrolleri gerçekleştir.
+
+### A. Bildirimler
+
+- [ ] Bildirim ayarları butonu çalışıyor.
+- [ ] Bildirim kanalı seçilebiliyor.
+- [ ] Bildirim önceliği değiştirilebiliyor.
+- [ ] Tercihler backend'e kaydediliyor.
+- [ ] Sayfa yenilendiğinde tercihler korunuyor.
+- [ ] Bildirim detay modalında uygun ikon görünüyor.
+- [ ] Responsive menü varsayılan olarak kapalı.
+- [ ] Menü açma ve kapatma işlemleri çalışıyor.
+
+### B. Login ve e-posta kodu
+
+- [ ] Kod gönderimi başarılı olduğunda sayaç başlıyor.
+- [ ] Sayaç doğru süreyi gösteriyor.
+- [ ] Sayaç süresi dolduğunda yeniden gönderme kuralı çalışıyor.
+- [ ] Yeniden gönderme sonrası sayaç doğru şekilde sıfırlanıyor.
+- [ ] Kod doğrulaması backend tarafından gerçekleştiriliyor.
+- [ ] Frontend/backend kaynak analizi raporlandı.
+
+### C. Responsive modallar
+
+- [ ] Butonların genişliği ve yüksekliği iyileştirildi.
+- [ ] Buton metinleri taşmıyor.
+- [ ] Modal ekran dışına çıkmıyor.
+- [ ] Dar ekranda butonlar uygun şekilde yerleşiyor.
+
+### D. İdmanlar
+
+- [ ] Filtre menüsü üç nokta butonundan açılıyor.
+- [ ] Menü tekrar tıklamayla kapanıyor.
+- [ ] Filtreler sonuçları doğru şekilde etkiliyor.
+- [ ] Filtre temizleme işlevi çalışıyor.
+
+### E. Profil
+
+- [ ] Profil bileşenleri üst üste binmiyor.
+- [ ] Hakkımda modalı düzgün görünüyor.
+- [ ] Uzun metinler modal dışına taşmıyor.
+- [ ] Kaydetme işlevi çalışıyor.
+
+### F. Ayarlar
+
+- [ ] Name/Surname alanlarının yüksekliği düzeltildi.
+- [ ] Label ve input alanları doğru hizalandı.
+- [ ] Profil bilgisi güncellemesi çalışıyor.
+
+### G. Mesajlar
+
+- [ ] Ana sayfaya dönüş butonu erişilebilir konumda.
+- [ ] Mesaj yazma ve gönderme alanı butonla çakışmıyor.
+- [ ] Mesaj gönderme işlevi bozulmadı.
+- [ ] Mobil görünümde dikey kaydırma düzgün çalışıyor.
+
+### H. Genel teknik kontroller
+
+- [ ] Tarayıcı konsolunda yeni JavaScript hatası yok.
+- [ ] Network sekmesinde beklenmeyen 4xx/5xx yanıtı yok.
+- [ ] Backend build başarılı.
+- [ ] Değiştirilen frontend dosyaları doğru şekilde yükleniyor.
+- [ ] Mevcut kimlik doğrulama ve yetkilendirme akışları çalışıyor.
+- [ ] Başka sayfaların responsive düzeni bozulmadı.
+
+---
+
+## 10. UYGULAMA SIRASI
+
+Çalışmayı şu sırayla yürüt:
+
+1. İlgili sayfaların HTML, CSS ve JavaScript dosyalarını tespit et.
+2. İlgili backend endpoint, DTO, model ve servislerini incele.
+3. Her sorunun kök nedenini belirle.
+4. Önce en kritik işlevsel hataları düzelt.
+5. Ardından responsive ve modal düzenlemelerini uygula.
+6. Bildirim tercihleri için backend/veritabanı gereksinimlerini belirle ve tamamla.
+7. E-posta kodu geri sayımının kaynağını kanıtla.
+8. Tüm testleri uygula.
+9. Build ve konsol sonuçlarını kontrol et.
+10. Sonuç raporunu oluştur.
+
+Birden fazla sayfayı aynı anda değiştirmek yerine değişiklikleri kontrollü ve doğrulanabilir parçalara ayır. Her parçanın sonunda ilgili testleri tamamla.
+
+## 11. SONUÇ RAPORU
+
+İş sonunda aşağıdaki başlıklarla rapor ver:
+
+1. **Tespit edilen kök nedenler:** Her hatanın gerçek kaynağı.
+2. **Değiştirilen dosyalar:** Dosya yolları ve yapılan değişiklikler.
+3. **Backend değişiklikleri:** Endpoint, DTO, servis ve veritabanı değişiklikleri.
+4. **Frontend değişiklikleri:** HTML, CSS ve JavaScript değişiklikleri.
+5. **E-posta kodu süresi analizi:** Sorunun frontend/backend/karma olduğuna ilişkin kanıt.
+6. **Test sonuçları:** Başarılı, başarısız ve test edilemeyen maddeler.
+7. **Açık kalan işler:** Tamamlanamayan her madde ve nedeni.
+
+**Son şart:** Yalnızca kod değiştirerek görevi tamamlanmış sayma. İstenen işlevin gerçekten çalıştığını doğrula. Referans görselleri mevcut değilse görsel ayrıntıları uydurma; ilgili dosyaları incele ve eksik kanıtı raporla.

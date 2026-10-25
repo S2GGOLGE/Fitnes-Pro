@@ -395,6 +395,13 @@
     cursor: not-allowed;
 }
 
+.global-modal-content .email-verification-timer { display: block; margin-top: 8px; color: var(--text-muted, #8B948E); font-variant-numeric: tabular-nums; }
+.global-modal-content .email-verification-timer[hidden] { display: none; }
+.global-modal-content .email-verification-timer time { color: var(--primary, #22C55E); font-weight: 700; }
+.global-modal-content .notification-settings-form { display: grid; gap: 8px; }
+.global-modal-content .notification-settings-form label { margin-top: 8px; font-size: 13px; font-weight: 600; }
+.global-modal-content .notification-settings-form select { width: 100%; min-height: 44px; padding: 9px 12px; border: 1px solid var(--border, #29332D); border-radius: 8px; background: var(--surface, #121815); color: var(--text, #F3F7F4); font: inherit; }
+
 .global-modal-button:focus-visible {
     outline: 2px solid var(--primary, #22C55E);
     outline-offset: 2px;
@@ -513,12 +520,19 @@
     }
 
     .global-modal-actions {
-        flex-direction: column;
+        flex-direction: row;
+        gap: 10px;
     }
 
     .global-modal-button {
-        width: 100%;
-        min-width: auto;
+        flex: 1 1 120px;
+        width: auto;
+        min-width: 0;
+        min-height: 44px;
+        height: auto;
+        padding: 11px 14px;
+        white-space: normal;
+        line-height: 1.3;
     }
 }
 

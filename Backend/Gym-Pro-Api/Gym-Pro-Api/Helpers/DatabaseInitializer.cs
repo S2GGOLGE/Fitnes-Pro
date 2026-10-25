@@ -74,6 +74,7 @@ namespace Apı.Helpers
                 await EnsureFriendRequestsTableAsync(connection);
                 // ADIM 16: UserPrivacySettings tablosu
                 await EnsureUserPrivacySettingsTableAsync(connection);
+                await EnsureUserNotificationSettingsTableAsync(connection);
 
                 // ADIM 17: MessageRequests tablosu
                 await EnsureMessageRequestsTableAsync(connection);
@@ -1339,6 +1340,27 @@ namespace Apı.Helpers
                     createSql,
                     connection);
 
+            await command.ExecuteNonQueryAsync();
+        }
+
+        private static async Task EnsureUserNotificationSettingsTableAsync(SqlConnection connection)
+        {
+            if (await TableExistsAsync(connection, "UserNotificationSettings")) return;
+
+            const string createSql = """
+                CREATE TABLE [dbo].[UserNotificationSettings]
+                (
+                    [UserId] INT NOT NULL,
+                    [Channel] NVARCHAR(20) NOT NULL CONSTRAINT [DF_UserNotificationSettings_Channel] DEFAULT N'InApp',
+                    [Priority] NVARCHAR(20) NOT NULL CONSTRAINT [DF_UserNotificationSettings_Priority] DEFAULT N'All',
+                    [UpdatedAt] DATETIME2 NOT NULL CONSTRAINT [DF_UserNotificationSettings_UpdatedAt] DEFAULT GETUTCDATE(),
+                    CONSTRAINT [PK_UserNotificationSettings] PRIMARY KEY CLUSTERED ([UserId] ASC),
+                    CONSTRAINT [FK_UserNotificationSettings_Users_UserId] FOREIGN KEY ([UserId]) REFERENCES [dbo].[Users]([Id]) ON DELETE CASCADE,
+                    CONSTRAINT [CK_UserNotificationSettings_Channel] CHECK ([Channel] IN (N'Email', N'InApp')),
+                    CONSTRAINT [CK_UserNotificationSettings_Priority] CHECK ([Priority] IN (N'All', N'Important', N'Critical'))
+                );
+                """;
+            using var command = new SqlCommand(createSql, connection);
             await command.ExecuteNonQueryAsync();
         }
         // -------------------------------------------------------------------

@@ -21,15 +21,40 @@
     let activeState = {
         isSending: false,
         isVerifying: false,
-        verified: false
+        verified: false,
+        expiresAt: null,
+        timer: null
     };
 
     function resetActiveState() {
+        if (activeState.timer) clearInterval(activeState.timer);
         activeState = {
             isSending: false,
             isVerifying: false,
-            verified: false
+            verified: false,
+            expiresAt: null,
+            timer: null
         };
+    }
+
+    function renderCountdown(expiresAt) {
+        activeState.expiresAt = new Date(expiresAt).getTime();
+        const update = () => {
+            const timer = document.getElementById("emailVerificationTimer");
+            const resend = document.querySelector('#globalModalActions [data-global-modal-action="0"]');
+            if (!timer || !Number.isFinite(activeState.expiresAt)) return;
+            timer.closest(".email-verification-timer")?.removeAttribute("hidden");
+            const seconds = Math.max(0, Math.ceil((activeState.expiresAt - Date.now()) / 1000));
+            timer.textContent = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+            if (resend) resend.disabled = seconds > 0 || activeState.isSending;
+            if (seconds === 0 && activeState.timer) {
+                clearInterval(activeState.timer);
+                activeState.timer = null;
+            }
+        };
+        if (activeState.timer) clearInterval(activeState.timer);
+        update();
+        activeState.timer = setInterval(update, 1000);
     }
 
     function getElements() {
@@ -74,12 +99,8 @@
         );
 
         if (!hasBackendToken || !window.TwoFactorEndpoint || typeof window.TwoFactorEndpoint.sendCode !== "function") {
-            setHelpText(
-                isResend
-                    ? "Yeni doğrulama kodu gönderildi. Lütfen 6 haneli kodu girin."
-                    : "E-posta adresinize gönderilen 6 haneli doğrulama kodunu girin."
-            );
-            return true;
+            showError("Doğrulama servisi hazır değil; kod gönderilemedi.");
+            return false;
         }
 
         activeState.isSending = true;
@@ -87,6 +108,7 @@
 
         try {
             const payload = await window.TwoFactorEndpoint.sendCode(authToken);
+            if (payload && payload.expiresAt) renderCountdown(payload.expiresAt);
             const targetText = email ? `${email} adresine` : "e-posta adresinize";
             setHelpText(
                 (payload && payload.message) ||
@@ -96,6 +118,7 @@
             );
             return true;
         } catch (err) {
+            if (err && err.expiresAt) renderCountdown(err.expiresAt);
             setHelpText("E-posta adresinize gönderilen 6 haneli doğrulama kodunu girin.");
             showError(
                 (err && err.message) ||
@@ -145,6 +168,7 @@
                 '<span>6 haneli doğrulama kodu</span>' +
                 '<input class="form-input two-factor-code-input" id="emailVerificationCode" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="123456" aria-describedby="emailVerificationHelp emailVerificationError" required>' +
                 '<small id="emailVerificationHelp">E-posta adresinize gönderilen 6 haneli doğrulama kodunu girin.</small>' +
+                '<small class="email-verification-timer" hidden>Kalan süre: <time id="emailVerificationTimer" aria-live="off">--:--</time></small>' +
                 '</label>' +
                 '<p class="two-factor-modal-error" id="emailVerificationError" role="alert" hidden></p>' +
                 '</div>',
@@ -161,6 +185,10 @@
                         }
                         setLoading(true);
                         try {
+                            if (activeState.expiresAt && Date.now() < activeState.expiresAt) {
+                                showError("Yeni kodu süre dolduktan sonra isteyebilirsiniz.");
+                                return false;
+                            }
                             await triggerSendCode(authToken, email, true);
                             const { input } = getElements();
                             if (input && !input.disabled) {
@@ -211,8 +239,7 @@
                                     throw new Error((payload && payload.message) || "Doğrulama kodu geçersiz veya süresi dolmuş.");
                                 }
                             } else {
-                                // Standalone / simülasyon fallback
-                                await new Promise((resolve) => setTimeout(resolve, 600));
+                                throw new Error("Doğrulama servisi hazır değil; kod sunucu üzerinden doğrulanamadı.");
                             }
 
                             activeState.verified = true;

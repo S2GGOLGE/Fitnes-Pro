@@ -2,7 +2,7 @@ namespace Apı.Service;
 
 public interface ITwoFactorService
 {
-    Task SendCodeAsync(
+    Task<DateTime> SendCodeAsync(
         int userıd,
         string email
     );

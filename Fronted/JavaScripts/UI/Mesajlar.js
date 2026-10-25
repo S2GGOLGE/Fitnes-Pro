@@ -1478,11 +1478,7 @@
 
         if (dom.msgBackBtn) {
             dom.msgBackBtn.addEventListener("click", () => {
-                if (state.currentView !== "overview") {
-                    renderView("overview");
-                } else {
-                    window.location.href = "index.html";
-                }
+                window.location.href = "index.html";
             });
         }
 

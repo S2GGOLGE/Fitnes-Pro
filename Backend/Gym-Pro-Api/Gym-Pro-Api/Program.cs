@@ -105,6 +105,7 @@ builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ITwoFactorService, TwoFactorService>();
 builder.Services.AddScoped<ITwoFactorSettingsService, TwoFactorSettingsService>();
+builder.Services.AddScoped<NotificationSettingsService>();
 
 // =========================================================
 // FRIEND SERVICE

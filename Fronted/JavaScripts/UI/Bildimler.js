@@ -32,9 +32,90 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const searchInput = document.getElementById("searchInput");
     const markAllBtn = document.getElementById("markAllBtn");
+    const settingsButton = document.getElementById("notificationSettingsBtn");
+    const menuButton = document.getElementById("notificationMenuBtn");
+    const sidebar = document.getElementById("notificationSidebar");
+    const sidebarOverlay = document.getElementById("notificationSidebarOverlay");
+
+    const closeSidebar = () => {
+        sidebar?.classList.remove("mobile-open");
+        sidebarOverlay?.classList.remove("active");
+        menuButton?.setAttribute("aria-expanded", "false");
+        document.body.style.overflow = "";
+    };
+    menuButton?.addEventListener("click", () => {
+        const open = sidebar?.classList.toggle("mobile-open");
+        sidebarOverlay?.classList.toggle("active", Boolean(open));
+        menuButton.setAttribute("aria-expanded", String(Boolean(open)));
+        menuButton.setAttribute("aria-label", open ? "Menüyü kapat" : "Menüyü aç");
+        document.body.style.overflow = open ? "hidden" : "";
+        if (open) sidebar?.querySelector("a")?.focus();
+    });
+    sidebarOverlay?.addEventListener("click", closeSidebar);
+    document.addEventListener("keydown", event => { if (event.key === "Escape") closeSidebar(); });
+    sidebar?.querySelectorAll("a").forEach(link => link.addEventListener("click", closeSidebar));
+    window.addEventListener("resize", () => { if (window.innerWidth > 900) closeSidebar(); });
 
     // Filtre butonları (.filter class'ı HTML ile eşleşir)
     const filterButtons = document.querySelectorAll(".filter");
+    let activeFilter = "all";
+    let activeSearch = "";
+
+    function applyNotificationFilters() {
+        document.querySelectorAll(".notification").forEach(notification => {
+            const typeMatch = activeFilter === "all" ||
+                (activeFilter === "unread" ? notification.classList.contains("unread") : notification.dataset.type === activeFilter);
+            const textMatch = !activeSearch || notification.textContent.toLowerCase().includes(activeSearch);
+            notification.style.display = typeMatch && textMatch ? "" : "none";
+        });
+        checkEmpty();
+    }
+
+    if (settingsButton) {
+        settingsButton.addEventListener("click", async () => {
+            if (!window.GlobalModal || !window.NotificationSettingsAPI) {
+                window.GlobalModal?.alert({ type: "error", title: "Hata", message: "Bildirim ayarları servisi kullanılamıyor." });
+                return;
+            }
+            settingsButton.disabled = true;
+            try {
+                const settings = await window.NotificationSettingsAPI.get();
+                window.GlobalModal.open({
+                    type: "info",
+                    title: "Bildirim Ayarları",
+                    description: "Tercihleriniz hesabınıza özel olarak kaydedilir. E-posta gönderimi ve önem sınıflandırması mevcut bildirim akışında henüz desteklenmiyor.",
+                    html: `<div class="notification-settings-form">
+                        <label for="notificationChannel">Bildirim kanalı</label>
+                        <select id="notificationChannel"><option value="InApp">Uygulama içi bildirim</option><option value="Email" ${settings.canUseEmail ? "" : "disabled"}>E-posta ${settings.canUseEmail ? "" : "(doğrulanmış e-posta gerekli)"}</option></select>
+                        <label for="notificationPriority">Öncelik</label>
+                        <select id="notificationPriority"><option value="All">Tüm bildirimler</option><option value="Important">Önemli bildirimler</option><option value="Critical">Kritik bildirimler</option></select>
+                    </div>`,
+                    buttons: [
+                        { text: "Kapat", variant: "secondary" },
+                        { text: "Kaydet", variant: "primary", callback: async ({ close, setLoading }) => {
+                            const channel = document.getElementById("notificationChannel")?.value || "InApp";
+                            const priority = document.getElementById("notificationPriority")?.value || "All";
+                            setLoading(true);
+                            try {
+                                await window.NotificationSettingsAPI.save({ channel, priority });
+                                close();
+                                window.GlobalModal.alert({ type: "success", title: "Kaydedildi", message: "Bildirim tercihleriniz kaydedildi." });
+                            } catch (error) {
+                                window.GlobalModal.alert({ type: "error", title: "Kaydedilemedi", message: error.message });
+                            } finally { setLoading(false); }
+                            return false;
+                        } }
+                    ]
+                });
+                const channel = document.getElementById("notificationChannel");
+                const priority = document.getElementById("notificationPriority");
+                if (channel) channel.value = settings.channel;
+                if (priority) priority.value = settings.priority;
+            } catch (error) {
+                window.GlobalModal.alert({ type: "error", title: "Ayarlar yüklenemedi", message: error.message });
+            } finally { settingsButton.disabled = false; }
+        });
+    }
 
 
     /* =========================================================
@@ -136,25 +217,8 @@ document.addEventListener("DOMContentLoaded", () => {
             filterButtons.forEach(btn => btn.classList.remove("active"));
             button.classList.add("active");
 
-            const filter = button.dataset.filter || "all";
-
-            document.querySelectorAll(".notification").forEach(notification => {
-
-                let show = true;
-
-                if (filter === "all") {
-                    show = true;
-                } else if (filter === "unread") {
-                    show = notification.classList.contains("unread");
-                } else {
-                    // Bildirim tipi (data-type) filtre ile eşleşmeli
-                    show = notification.dataset.type === filter;
-                }
-
-                notification.style.display = show ? "" : "none";
-            });
-
-            checkEmpty();
+            activeFilter = button.dataset.filter || "all";
+            applyNotificationFilters();
         });
     });
 
@@ -167,17 +231,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         searchInput.addEventListener("input", () => {
 
-            const search = searchInput.value.trim().toLowerCase();
-
-            document.querySelectorAll(".notification").forEach(notification => {
-
-                const text = notification.textContent.toLowerCase();
-
-                notification.style.display = text.includes(search) ? "" : "none";
-
-            });
-
-            checkEmpty();
+            activeSearch = searchInput.value.trim().toLowerCase();
+            applyNotificationFilters();
         });
     }
 

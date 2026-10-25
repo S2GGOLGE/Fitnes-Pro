@@ -286,6 +286,7 @@
     margin-bottom: 16px;
     max-width: 650px;
     line-height: 1.5;
+    overflow-wrap: anywhere;
 }
 
 .user-badges {
@@ -368,8 +369,9 @@
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     padding: 20px;
-    display: flex;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr);
+    align-items: center;
     gap: 16px;
     transition: all var(--transition);
     overflow: hidden;
@@ -401,6 +403,7 @@
 }
 
 .stat-info {
+    min-width: 0;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -422,9 +425,12 @@
 }
 
 .stat-badge {
-    position: absolute;
-    top: 14px;
-    right: 14px;
+    position: static;
+    grid-column: 2;
+    justify-self: start;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    margin-top: 4px;
     font-size: 0.72rem;
     font-weight: 600;
     color: var(--text-muted);
@@ -510,6 +516,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    flex-wrap: wrap;
     margin-bottom: 4px;
 }
 
@@ -517,6 +524,8 @@
     font-size: 1rem;
     font-weight: 700;
     color: var(--text);
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .workout-status-tag {
@@ -524,6 +533,7 @@
     font-weight: 700;
     padding: 2px 8px;
     border-radius: var(--radius-full);
+    flex: 0 0 auto;
 }
 
 .workout-status-tag.completed {
@@ -1058,8 +1068,10 @@
     border: 1px solid var(--border);
     border-radius: var(--radius-xl);
     width: min(540px, 100%);
-    max-height: 90vh;
-    overflow-y: auto;
+    max-height: min(90vh, 900px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
     padding: 28px;
     box-shadow: var(--shadow-lg);
     transform: scale(0.95) translateY(10px);
@@ -1118,6 +1130,10 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0 4px 4px 0;
 }
 
 .form-grid-2 {
@@ -1154,6 +1170,8 @@
     outline: none;
     transition: all var(--transition);
 }
+
+.form-group textarea { min-height: 112px; max-height: 32vh; resize: vertical; line-height: 1.5; overflow-wrap: anywhere; font: inherit; }
 
 .form-group input:focus,
 .form-group textarea:focus {
@@ -1235,6 +1253,9 @@
     justify-content: flex-end;
     gap: 12px;
     margin-top: 10px;
+    flex: 0 0 auto;
+    padding-top: 10px;
+    background: var(--card);
 }
 
 /* Workout Modal Body */
@@ -1393,7 +1414,12 @@
 
     .modal-container {
         padding: 22px 18px;
+        max-height: calc(100dvh - 32px);
     }
+
+    .modal-form { gap: 13px; }
+    .modal-actions { position: sticky; bottom: 0; flex-wrap: wrap; gap: 10px; }
+    .modal-actions .btn { flex: 1 1 125px; min-height: 44px; white-space: normal; line-height: 1.3; padding: 10px 14px; }
 }
 
 /* Extra Small Mobile (max-width: 480px) */

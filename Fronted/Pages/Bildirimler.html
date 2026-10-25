@@ -23,7 +23,7 @@
     <div class="app">
 
         <!-- SIDEBAR -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="notificationSidebar">
 
             <a href="index.html" class="logo" style="text-decoration:none; color:inherit;" title="Ana Sayfaya Dön">
                 <div class="logo-icon">F</div>
@@ -84,12 +84,14 @@
             </div>
 
         </aside>
+        <div class="notification-sidebar-overlay" id="notificationSidebarOverlay" aria-hidden="true"></div>
 
         <!-- MAIN -->
         <main class="main">
 
             <!-- TOPBAR -->
             <header class="topbar">
+                <button class="mobile-menu-btn" id="notificationMenuBtn" type="button" aria-label="Menüyü aç" aria-expanded="false" aria-controls="notificationSidebar">☰</button>
 
                 <button class="top-action" title="Bildirimler" aria-label="Bildirimler">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -126,7 +128,7 @@
                             <i data-lucide="check"></i> Tümünü Okundu Yap
                         </button>
 
-                        <button class="btn btn-primary">
+                        <button class="btn btn-primary" id="notificationSettingsBtn" type="button">
                             <i data-lucide="settings"></i> Bildirim Ayarları
                         </button>
                     </div>
@@ -456,6 +458,8 @@
     </div>
 
     <script src="../JavaScripts/Core/GlobalModalManager.js"></script>
+    <script src="../JavaScripts/Core/auth.js"></script>
+    <script src="../JavaScripts/EndPoint/NotificationSettingsEndpoint.js"></script>
     <script src="../JavaScripts/UI/Bildimler.js"></script>
     <script src="../JavaScripts/UI/NotificationModalBridge.js"></script>
     <script>

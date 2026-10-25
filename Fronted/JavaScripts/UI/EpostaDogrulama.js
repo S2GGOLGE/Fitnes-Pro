@@ -9,8 +9,7 @@
     "use strict";
 
     // Configuration
-    const TOTAL_SECONDS = 5 * 60; // 5 dakika (05:00)
-    let remainingSeconds = TOTAL_SECONDS;
+    let remainingSeconds = 0;
     let timerInterval = null;
 
     const ONBOARDING_TOKEN_KEY = "fitnesspro_onboarding_token";
@@ -80,9 +79,16 @@
      * - Tekrar Gönder butonu başlangıçta gizli olacaktır.
      * - Beş dakikalık süre dolduğunda buton görünür hâle gelecektir.
      */
-    function startCountdown() {
+    function startCountdown(expiresAt) {
         clearInterval(timerInterval);
-        remainingSeconds = TOTAL_SECONDS;
+        const expiry = new Date(expiresAt).getTime();
+        if (!Number.isFinite(expiry)) {
+            remainingSeconds = 0;
+            updateTimerDisplay();
+            if (elements.btnResend) elements.btnResend.classList.remove("hidden");
+            return;
+        }
+        remainingSeconds = Math.max(0, Math.ceil((expiry - Date.now()) / 1000));
 
         // Tekrar Gönder butonu başlangıçta gizli
         if (elements.btnResend) {
@@ -92,7 +98,7 @@
         updateTimerDisplay();
 
         timerInterval = setInterval(() => {
-            remainingSeconds--;
+            remainingSeconds = Math.max(0, Math.ceil((expiry - Date.now()) / 1000));
 
             if (remainingSeconds <= 0) {
                 remainingSeconds = 0;
@@ -147,14 +153,15 @@
             try {
                 const sendResult = await window.TwoFactorEndpoint.sendCode();
                 showAlert((sendResult && sendResult.message) || "Yeni doğrulama kodu başarıyla e-posta adresinize gönderildi!", "success", 4000);
+                startCountdown(sendResult && sendResult.expiresAt);
             } catch (apiErr) {
                 console.warn("[Backend 2FA SendCode API]:", apiErr.message);
+                if (apiErr.expiresAt) startCountdown(apiErr.expiresAt);
                 showAlert(`Kod gönderilemedi: ${apiErr.message}`, "error", 5000);
                 return;
             }
 
-            // Yeniden gönderim başarılı -> Sayaç tekrar 5 dakikadan başlar, buton gizlenir
-            startCountdown();
+            // Sayaç, backend'in bildirdiği kesin son kullanma zamanını izler.
         } catch (err) {
             showAlert("Kod gönderilirken bir hata oluştu. Lütfen tekrar deneyiniz.", "error");
         } finally {
@@ -227,6 +234,7 @@
         }
 
         state.isVerified = true;
+        clearInterval(timerInterval);
         showAlert("E-posta adresiniz başarıyla doğrulandı! Giriş yapılıyor...", "success", 0);
         await performAutoLogin();
     }
@@ -403,7 +411,7 @@
             }
             // Geçici hata: sayfa kullanılabilir kalsın, doğrulama backend'de yapılacak.
             showAlert(err.message, "warning", 5000);
-            startCountdown();
+            if (elements.btnResend) elements.btnResend.classList.remove("hidden");
             return;
         }
 
@@ -440,7 +448,6 @@
             return;
         }
 
-        startCountdown();
         await sendInitialCode();
     }
 
@@ -452,11 +459,13 @@
         state.initialCodeSent = true;
         try {
             const sendResult = await window.TwoFactorEndpoint.sendCode();
+            startCountdown(sendResult && sendResult.expiresAt);
             showAlert((sendResult && sendResult.message) || "Doğrulama kodu e-posta adresinize gönderildi.", "success", 4000);
         } catch (err) {
             console.warn("[Backend 2FA SendCode API]:", err.message);
+            if (err.expiresAt) startCountdown(err.expiresAt);
             showAlert(`Doğrulama kodu gönderilemedi: ${err.message} 'Tekrar Gönder' ile yeniden deneyebilirsiniz.`, "error", 6000);
-            if (elements.btnResend) {
+            if (elements.btnResend && !err.expiresAt) {
                 elements.btnResend.classList.remove("hidden");
             }
         }
@@ -497,17 +506,6 @@
             elements.btnResend.addEventListener("click", handleResendCode);
         }
 
-        // Test Kolaylığı: Sayaç üzerine çift tıklandığında süreyi sıfıra indirerek Tekrar Gönder butonunu test edebilme
-        if (elements.timerDigits) {
-            elements.timerDigits.style.cursor = "pointer";
-            elements.timerDigits.title = "Test: Süreyi bitirip 'Tekrar Gönder' butonunu görmek için çift tıklayın";
-            elements.timerDigits.addEventListener("dblclick", () => {
-                remainingSeconds = 0;
-                clearInterval(timerInterval);
-                updateTimerDisplay();
-                handleTimerExpired();
-            });
-        }
     });
 
 })();

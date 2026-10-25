@@ -255,6 +255,28 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnClearSearch = document.getElementById("btnClearSearch");
     const workoutSortSelect = document.getElementById("workoutSortSelect");
     const workoutsResultCount = document.getElementById("workoutsResultCount");
+    const filterToggle = document.getElementById("workoutFilterToggle");
+    const filterPanel = document.getElementById("workoutFilterPanel");
+    const filterReset = document.getElementById("workoutFilterReset");
+
+    function closeFilterPanel() {
+        if (!filterPanel || !filterToggle) return;
+        filterPanel.hidden = true;
+        filterToggle.setAttribute("aria-expanded", "false");
+        filterToggle.setAttribute("aria-label", "Filtreleri aç");
+    }
+    filterToggle?.addEventListener("click", () => {
+        const opening = filterPanel.hidden;
+        filterPanel.hidden = !opening;
+        filterToggle.setAttribute("aria-expanded", String(opening));
+        filterToggle.setAttribute("aria-label", opening ? "Filtreleri kapat" : "Filtreleri aç");
+        if (opening) filterPanel.querySelector("button, input, select")?.focus();
+    });
+    document.addEventListener("click", event => {
+        if (filterPanel && !event.target.closest(".workout-filter-section")) closeFilterPanel();
+    });
+    document.addEventListener("keydown", event => { if (event.key === "Escape") closeFilterPanel(); });
+    filterReset?.addEventListener("click", () => btnResetFilters?.click());
 
     // Grid & Empty state
     const workoutsGrid = document.getElementById("workoutsGrid");

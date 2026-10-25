@@ -110,7 +110,8 @@ button, input, textarea, select {
     top: 24px;
     height: calc(100vh - 48px);
     z-index: 50;
-    position: relative;
+    position: sticky;
+    align-self: flex-start;
 }
 
 .msg-sidebar-close {
@@ -363,6 +364,9 @@ button, input, textarea, select {
 .msg-sidebar-bottom {
     margin-top: auto;
     padding-top: 10px;
+    position: sticky;
+    bottom: 0;
+    background: var(--msg-surface);
 }
 
 .msg-btn-back {
@@ -1510,7 +1514,8 @@ button, input, textarea, select {
         bottom: 0;
         width: 260px;
         max-width: 260px;
-        height: 100vh;
+        height: 100dvh;
+        max-height: 100dvh;
         background-color: var(--msg-surface);
         border-right: 1px solid var(--msg-border);
         border-radius: 0;

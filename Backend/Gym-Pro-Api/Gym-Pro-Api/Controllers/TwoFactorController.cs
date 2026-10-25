@@ -93,13 +93,26 @@ public class TwoFactorController : ControllerBase
             });
         }
 
-        await _twoFactorService.SendCodeAsync(
-            userId,
-            email);
+        DateTime expiresAt;
+        try
+        {
+            expiresAt = await _twoFactorService.SendCodeAsync(userId, email);
+        }
+        catch (TwoFactorResendCooldownException cooldown)
+        {
+            var remainingSeconds = Math.Max(0, (int)Math.Ceiling((cooldown.ExpiresAt - DateTime.UtcNow).TotalSeconds));
+            return StatusCode(StatusCodes.Status429TooManyRequests, new
+            {
+                message = cooldown.Message,
+                expiresAt = cooldown.ExpiresAt,
+                remainingSeconds
+            });
+        }
 
         return Ok(new
         {
-            message = "Doğrulama kodu e-posta adresinize gönderildi."
+            message = "Doğrulama kodu e-posta adresinize gönderildi.",
+            expiresAt
         });
     }
 

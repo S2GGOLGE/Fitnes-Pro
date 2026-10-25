@@ -17,7 +17,7 @@ public class TwoFactorService : ITwoFactorService
         _emailService = emailService;
     }
 
-    public async Task SendCodeAsync(int userId, string email)
+    public async Task<DateTime> SendCodeAsync(int userId, string email)
     {
         string connectionString =
             _configuration.GetConnectionString("DefaultConnection")
@@ -35,6 +35,20 @@ public class TwoFactorService : ITwoFactorService
         using var connection = new SqlConnection(connectionString);
         await connection.OpenAsync();
 
+        const string activeCodeSql = """
+            SELECT TOP 1 [ExpiresAt]
+            FROM [dbo].[TwoFactorCodes]
+            WHERE [UserId] = @UserId AND [IsUsed] = 0
+            ORDER BY [Id] DESC;
+            """;
+        using (var activeCodeCommand = new SqlCommand(activeCodeSql, connection))
+        {
+            activeCodeCommand.Parameters.AddWithValue("@UserId", userId);
+            var existingExpiry = await activeCodeCommand.ExecuteScalarAsync();
+            if (existingExpiry is DateTime expiry && expiry > DateTime.UtcNow)
+                throw new TwoFactorResendCooldownException(DateTime.SpecifyKind(expiry, DateTimeKind.Utc));
+        }
+
         // Eski aktif kodları geçersiz yap
         const string invalidateSql = """
             UPDATE [dbo].[TwoFactorCodes]
@@ -43,6 +57,7 @@ public class TwoFactorService : ITwoFactorService
               AND [IsUsed] = 0;
             """;
 
+        var expiresAt = DateTime.UtcNow.AddMinutes(5);
         using (var command = new SqlCommand(
             invalidateSql,
             connection))
@@ -82,7 +97,7 @@ public class TwoFactorService : ITwoFactorService
             command.Parameters.AddWithValue("@CodeHash", codeHash);
             command.Parameters.AddWithValue(
                 "@ExpiresAt",
-                DateTime.UtcNow.AddMinutes(5));
+                expiresAt);
 
             await command.ExecuteNonQueryAsync();
         }
@@ -96,6 +111,8 @@ public class TwoFactorService : ITwoFactorService
             "Fitness Pro - Güvenlik Doğrulama Kodu",
             emailBody,
             true);
+
+        return expiresAt;
     }
     public async Task<bool> VerifyCodeAsync(int userId, string code)
     {
@@ -244,4 +261,10 @@ public class TwoFactorService : ITwoFactorService
         await command.ExecuteNonQueryAsync();
     }
 
+}
+
+public sealed class TwoFactorResendCooldownException(DateTime expiresAt)
+    : Exception("Yeni kodu mevcut kodun süresi dolduktan sonra isteyebilirsiniz.")
+{
+    public DateTime ExpiresAt { get; } = expiresAt;
 }

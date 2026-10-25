@@ -51,7 +51,9 @@
                     : response.status === 401
                         ? "Oturum süresi dolmuş veya kimlik doğrulanamadı (401)."
                         : `İstek başarısız (HTTP ${response.status}).`;
-            throw new Error(backendMessage);
+            const error = new Error(backendMessage);
+            if (payload && payload.expiresAt) error.expiresAt = payload.expiresAt;
+            throw error;
         }
 
         return payload || {};
@@ -110,7 +112,9 @@
                 payload && typeof payload.message === "string" && payload.message.trim()
                     ? payload.message
                     : `İstek başarısız (HTTP ${response.status}).`;
-            throw new Error(backendMessage);
+            const error = new Error(backendMessage);
+            if (payload && payload.expiresAt) error.expiresAt = payload.expiresAt;
+            throw error;
         }
 
         return payload || {};

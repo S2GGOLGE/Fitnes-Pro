@@ -377,6 +377,8 @@ input:focus-visible {
 
 .profile-summary {
     min-height: 133px;
+    height: auto;
+    padding-block: 25px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -398,6 +400,9 @@ input:focus-visible {
     font-size: 20px;
     letter-spacing: -.55px
 }
+
+.profile-details { min-width: 0; }
+.profile-details h2 { line-height: 1.35; overflow-wrap: anywhere; }
 
 .profile-details p,
 .card-heading p,
@@ -1040,12 +1045,14 @@ input:focus-visible {
     }
 
     .profile-summary {
+        min-height: 0;
         align-items: flex-start;
         flex-direction: column
     }
 
     .progress-block {
-        width: 100%
+        width: 100%;
+        flex: 0 1 auto;
     }
 
     .setting-row {
