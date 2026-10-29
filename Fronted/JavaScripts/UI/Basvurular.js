@@ -17,7 +17,7 @@
  *   GET  /api/applications
  *   GET  /api/applications/{id}
  *   POST /api/applications
- * API erişilemediğinde dinamik mock veri ve yerel depolama kullanılır.
+ * API erişilemediğinde yerel depolama kullanılır.
  * =========================================================
  */
 
@@ -134,60 +134,6 @@
     };
 
     // =========================================================
-    // DEFAULT SEED DATA (Backend henüz hazır değilse kullanılır)
-    // =========================================================
-    const SEED_APPLICATIONS = [
-        {
-            id: 1024,
-            type: 'Koçluk Başvurusu',
-            createdAt: '29.09.2026',
-            updatedAt: '29.09.2026',
-            status: 'pending', // 'pending' | 'approved' | 'rejected'
-            statusText: 'Beklemede',
-            description: 'Fitness Pro platformunda uzaktan ve birebir koçluk hizmeti vermek üzere başvuruyorum. 5 yıllık personal trainer ve sertifikalı fitness antrenörüyüm.',
-            experience: '5 Yıl Birebir Antrenörlük, TVGFBF 2. Kademe',
-            adminResponse: 'Başvurunuz inceleme sırasına alınmıştır. Belgeleriniz kontrol edildikten sonra sistem üzerinden bilgilendirileceksiniz.',
-            rejectReason: null
-        },
-        {
-            id: 1023,
-            type: 'Antrenörlük Başvurusu',
-            createdAt: '15.09.2026',
-            updatedAt: '18.09.2026',
-            status: 'approved',
-            statusText: 'Onaylandı',
-            description: 'Fonksiyonel fitness ve hipertrofi odaklı özel antrenman programları için eğitmenlik başvurusu.',
-            experience: '3 Yıl Salon Eğitmenliği, EREPS Seviye 4',
-            adminResponse: 'Tebrikler! Belgeleriniz onaylanmış ve antrenör profiliniz aktif edilmiştir. Eğitmen panelinizden danışan kabul etmeye başlayabilirsiniz.',
-            rejectReason: null
-        },
-        {
-            id: 1019,
-            type: 'Diyetisyenlik Başvurusu',
-            createdAt: '02.08.2026',
-            updatedAt: '05.08.2026',
-            status: 'rejected',
-            statusText: 'Reddedildi',
-            description: 'Sporcu beslenmesi ve makro besin planlaması danışmanlığı vermek için başvuru.',
-            experience: 'Beslenme ve Diyetetik Lisans Mezunu',
-            adminResponse: 'Yüklenen mesleki faaliyet lisansı belgesinin son geçerlilik süresi dolmuş görünmektedir. Lütfen güncel belgenizi temin ederek yeni bir başvuru oluşturunuz.',
-            rejectReason: 'Belge geçerlilik süresi dolmuş veya okunamıyor.'
-        },
-        {
-            id: 1012,
-            type: 'Salon Eğitmenliği',
-            createdAt: '10.07.2026',
-            updatedAt: '12.07.2026',
-            status: 'approved',
-            statusText: 'Onaylandı',
-            description: 'Merkez şube bünyesinde grup dersleri ve serbest ağırlık salon eğitmenliği pozisyonu için başvuru.',
-            experience: 'Grup Egzersizleri ve Spinning Uzmanı',
-            adminResponse: 'Başvurunuz kabul edilmiştir. Şube insan kaynakları yetkilisi sözleşme işlemleri için sizinle iletişime geçecektir.',
-            rejectReason: null
-        }
-    ];
-
-    // =========================================================
     // STATE
     // =========================================================
     let applicationsState = [];
@@ -286,15 +232,10 @@
                 }
             }
 
-            // API yoksa veya başarısız olduysa localStorage veya Seed verisi kullanılır
+            // API yoksa veya başarısız olduysa localStorage verisi kullanılır
             if (!loadedData) {
                 const local = getStoredApplications();
-                if (local) {
-                    loadedData = local;
-                } else {
-                    loadedData = SEED_APPLICATIONS;
-                    saveApplications(loadedData);
-                }
+                loadedData = local || [];
             }
 
             applicationsState = loadedData;
@@ -794,7 +735,7 @@
                 `;
             }
 
-            // 4) URL yoksa salt okunur (eski/mock başvurular)
+            // 4) URL yoksa salt okunur (eski başvurular)
             return `
                 <div class="detail-attachment-item is-readonly">
                     ${innerContent}

@@ -68,21 +68,29 @@ namespace Apı.Helpers
 
                 // ADIM 13: TwoFactorCodes tablosu
                 await EnsureTwoFactorCodesTableAsync(connection);
+
                 // ADIM 14 Friends Tablosu
                 await EnsureFriendsTableAsync(connection);
+
                 //ADIMN 15: FriendRequests Tablosu
                 await EnsureFriendRequestsTableAsync(connection);
+
                 // ADIM 16: UserPrivacySettings tablosu
                 await EnsureUserPrivacySettingsTableAsync(connection);
+
                 await EnsureUserNotificationSettingsTableAsync(connection);
 
                 // ADIM 17: MessageRequests tablosu
                 await EnsureMessageRequestsTableAsync(connection);
+
                 // ADIM 18: Messages tablosu
                 await EnsureMessagesTableAsync(connection);
+
                 // ADIM 19: UserLocations tablosu
                 await EnsureUserLocationsTableAsync(connection);
+
                 // ADIM 20: UserThemeSettings tablosu
+                await EnsureUserThemeSettingsTableAsync(connection);
             }
         }
 
@@ -1907,7 +1915,7 @@ namespace Apı.Helpers
                     CONSTRAINT [DF_UserThemeSettings_Thema]
                     DEFAULT N'Dark',
 
-                CONSTRAINT [PK_UserThemeSettings]
+                CONSTRAINT [PK_UserThemeSettings]$
                     PRIMARY KEY CLUSTERED ([UserId] ASC),
 
                 CONSTRAINT [FK_UserThemeSettings_Users_UserId]

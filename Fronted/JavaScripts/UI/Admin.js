@@ -76,60 +76,6 @@
     };
 
     // =========================================================================
-    // ÖRNEK VE YEDEK VERİLER
-    // =========================================================================
-    const MOCK_APPEALS = [
-        {
-            id: 101,
-            username: "burak_fitness",
-            type: "Ban Kaldırma Talepleri",
-            date: "2026-09-09 14:32",
-            reason: "Hatalı şifre denemesi sonucu hesabım kilitlendi, şifremi sıfırladım lütfen kilidi açın.",
-            status: "Pending"
-        },
-        {
-            id: 102,
-            username: "caner_demir",
-            type: "Coach Başvurular",
-            date: "2026-09-09 11:20",
-            reason: "5 yıllık fitness antrenörlüğü sertifikam bulunmaktadır, platformda koçluk yapmak istiyorum.",
-            status: "Pending"
-        },
-        {
-            id: 103,
-            username: "selin_kaya",
-            type: "Ban Kaldırma Talepleri",
-            date: "2026-09-08 19:15",
-            reason: "Yurtdışı seyahatim sırasında VPN kullandığım için hesabım şüpheli işlemden banlandı.",
-            status: "Approved"
-        },
-        {
-            id: 104,
-            username: "mert_yildiz",
-            type: "Coach Başvurular",
-            date: "2026-09-08 16:45",
-            reason: "Pilates ve fonksiyonel antrenman uzmanıyım, sporcu yetiştirme programım mevcut.",
-            status: "Pending"
-        },
-        {
-            id: 105,
-            username: "ahmet_koc",
-            type: "Ban Kaldırma Talepleri",
-            date: "2026-09-07 10:04",
-            reason: "Topluluk kurallarını ihlal eden içerik iddiası asılsızdır, tekrar değerlendirilmesini talep ediyorum.",
-            status: "Rejected"
-        },
-        {
-            id: 106,
-            username: "zeynep_fit",
-            type: "Coach Başvurular",
-            date: "2026-09-06 22:30",
-            reason: "Beslenme ve diyetetik mezunuyum, üyelerin beslenme takibini yapmak istiyorum.",
-            status: "Approved"
-        }
-    ];
-
-    // =========================================================================
     // BAŞLANGIÇ & KULLANICI BİLGİSİ
     // =========================================================================
     async function init() {
@@ -608,17 +554,16 @@
                             reason: item.appealReason || "Gerekçe belirtilmedi",
                             status: item.status || "Pending"
                         }));
-                        state.appeals.push(...MOCK_APPEALS.filter(a => a.type === "Coach Başvurular"));
                         loadedFromApi = true;
                     }
                 }
             } catch (err) {
-                console.info("Backend API erişilemedi, zenginleştirilmiş yerel veri seti kullanılıyor.");
+                console.info("Backend API erişilemedi.");
             }
         }
 
         if (!loadedFromApi) {
-            state.appeals = [...MOCK_APPEALS];
+            state.appeals = [];
         }
 
         updateDashboardCounts();

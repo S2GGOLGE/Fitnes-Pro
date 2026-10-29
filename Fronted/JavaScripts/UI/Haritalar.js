@@ -7,7 +7,7 @@
  *
  * Önemli Kural (Madde 26):
  *   Backend yazılmamıştır, database/API çağrısı yapılmaz.
- *   Tüm kullanıcı ve mesafe verileri frontend mock mimarisi
+ *   Tüm kullanıcı ve mesafe verileri harita mimarisi
  *   üzerinden yönetilir.
  *
  * Fonksiyonlar (Madde 23):
@@ -16,7 +16,6 @@
  *   - requestUserLocation()
  *   - handleLocationSuccess(pos)
  *   - handleLocationError(err)
- *   - loadMockUsers()
  *   - renderUserMarkers()
  *   - renderNearbyUsers()
  *   - filterUsers(type)
@@ -49,96 +48,9 @@
     };
 
     // =========================================================
-    // MOCK DATA (Madde 24: En az 3 arkadaş, 3 antrenör)
-    // =========================================================
-    const MOCK_USERS_SEED = [
-        {
-            id: 1,
-            username: "fitness_master",
-            fullname: "Mert Yılmaz",
-            type: "friend", // friend | trainer
-            typeTitle: "Arkadaş",
-            roleDescription: "Crossfit & Fonksiyonel Antrenman",
-            avatarLetters: "MY",
-            profilePhoto: "",
-            latOffset: 0.0035,
-            lngOffset: 0.0028,
-            bio: "Haftada 4 gün sabah idmanı yapıyorum, koşu ve barfiks partneri arıyorum."
-        },
-        {
-            id: 2,
-            username: "sporcu_ali",
-            fullname: "Ali Demir",
-            type: "friend",
-            typeTitle: "Arkadaş",
-            roleDescription: "Powerlifting & Güç",
-            avatarLetters: "AD",
-            profilePhoto: "",
-            latOffset: -0.0042,
-            lngOffset: 0.0031,
-            bio: "Deadlift ve Bench press rekorları kırmaya devam. Akşam antrenmanlarındayım."
-        },
-        {
-            id: 3,
-            username: "demir_bilek",
-            fullname: "Bora Çelik",
-            type: "friend",
-            typeTitle: "Arkadaş",
-            roleDescription: "Vücut Geliştirme",
-            avatarLetters: "BÇ",
-            profilePhoto: "",
-            latOffset: 0.0055,
-            lngOffset: -0.0041,
-            bio: "Hipertrofi ve beslenme planı takip eden spor arkadaşları ekleyebilir."
-        },
-        {
-            id: 4,
-            username: "coach_ahmet",
-            fullname: "Ahmet Erdem",
-            type: "trainer",
-            typeTitle: "Antrenör",
-            roleDescription: "Kıdemli Personal Trainer",
-            avatarLetters: "AE",
-            profilePhoto: "",
-            latOffset: -0.0028,
-            lngOffset: -0.0036,
-            rating: 4.9,
-            bio: "10+ yıl tecrübe, TVGFBF 3. Kademe Baş Antrenör. Birebir ve grup koçluğu."
-        },
-        {
-            id: 5,
-            username: "coach_zeynep",
-            fullname: "Zeynep Kaya",
-            type: "trainer",
-            typeTitle: "Antrenör",
-            roleDescription: "Pilates & Diyetisyen Uzmanı",
-            avatarLetters: "ZK",
-            profilePhoto: "",
-            latOffset: 0.0021,
-            lngOffset: -0.0058,
-            rating: 5.0,
-            bio: "Postür düzeltme, omurga sağlığı, reformer pilates ve sporcu diyeti."
-        },
-        {
-            id: 6,
-            username: "coach_burak",
-            fullname: "Burak Taş",
-            type: "trainer",
-            typeTitle: "Antrenör",
-            roleDescription: "Kardiyo & Fonksiyonel Koç",
-            avatarLetters: "BT",
-            profilePhoto: "",
-            latOffset: -0.0059,
-            lngOffset: 0.0062,
-            rating: 4.8,
-            bio: "HIIT, maraton hazırlığı ve yağ yakım programları koçu."
-        }
-    ];
-
-    // =========================================================
     // STATE
     // =========================================================
-    let mockUsers = [];
+    let mapUsers = [];
     let currentFilter = "all"; // "all" | "friend" | "trainer"
     let mapInstance = null;
     let userMarkerInstance = null;
@@ -252,8 +164,12 @@
 
     async function fetchRegisteredLocations() {
         if (!window.MapEndpoint || typeof window.MapEndpoint.getLocations !== 'function') {
-            console.warn('[Haritalar] MapEndpoint.getLocations bulunamadı, varsayılan veriler yükleniyor.');
-            loadMockUsers();
+            console.warn('[Haritalar] MapEndpoint.getLocations bulunamadı.');
+            mapUsers = [];
+            updateCounters();
+            renderSidebarQuickUsers();
+            showEmptyState(false);
+            if (markersLayerGroup) markersLayerGroup.clearLayers();
             return;
         }
 
@@ -300,7 +216,7 @@
             const otherUsers = validLocations.filter(loc => loc.userId !== currentUserId);
 
             if (otherUsers.length > 0) {
-                mockUsers = otherUsers.map(loc => {
+                mapUsers = otherUsers.map(loc => {
                     const lat = Number(Number(loc.latitude).toFixed(6));
                     const lng = Number(Number(loc.longitude).toFixed(6));
                     const distance = calculateHaversineDistance(userLocation.lat, userLocation.lng, lat, lng);
@@ -339,7 +255,7 @@
                 });
 
                 // Mesafeye göre sırala
-                mockUsers.sort((a, b) => a.distanceMeters - b.distanceMeters);
+                mapUsers.sort((a, b) => a.distanceMeters - b.distanceMeters);
 
                 updateCounters();
                 renderSidebarQuickUsers();
@@ -347,14 +263,14 @@
                 renderUserMarkers();
             } else if (validLocations.length === 0) {
                 // Veritabanında hiç koordinatlı kullanıcı yoksa boş durum göster
-                mockUsers = [];
+                mapUsers = [];
                 updateCounters();
                 renderSidebarQuickUsers();
                 showEmptyState(false);
                 if (markersLayerGroup) markersLayerGroup.clearLayers();
             } else {
                 // Sadece kendisi varsa
-                mockUsers = [];
+                mapUsers = [];
                 updateCounters();
                 renderSidebarQuickUsers();
                 showEmptyState(false);
@@ -363,40 +279,17 @@
         } catch (err) {
             console.error('[Haritalar] Konumlar backendden alınırken hata oluştu:', err);
             showError(err.message || 'Konumlar sunucudan alınamadı.');
-            // API hatası durumunda mevcut tohum verileriyle devam et
-            loadMockUsers();
+            mapUsers = [];
+            updateCounters();
+            renderSidebarQuickUsers();
+            showEmptyState(false);
+            if (markersLayerGroup) markersLayerGroup.clearLayers();
         } finally {
             showLoading(false);
         }
     }
 
     // =========================================================
-    // 23. JAVASCRIPT MANTIĞI: loadMockUsers()
-    // =========================================================
-    function loadMockUsers() {
-        // Koordinatları kullanıcının mevcut konumuna göre hesapla
-        mockUsers = MOCK_USERS_SEED.map(seed => {
-            const lat = Number((userLocation.lat + seed.latOffset).toFixed(6));
-            const lng = Number((userLocation.lng + seed.lngOffset).toFixed(6));
-            const distance = calculateHaversineDistance(userLocation.lat, userLocation.lng, lat, lng);
-            const distNum = getDistanceNumeric(userLocation.lat, userLocation.lng, lat, lng);
-
-            return {
-                ...seed,
-                latitude: lat,
-                longitude: lng,
-                distance,
-                distanceMeters: distNum
-            };
-        });
-
-        // Mesafeye göre en yakından uzağa sırala
-        mockUsers.sort((a, b) => a.distanceMeters - b.distanceMeters);
-
-        updateCounters();
-        renderSidebarQuickUsers();
-        renderNearbyUsers();
-    }
 
     // =========================================================
     // 23. JAVASCRIPT MANTIĞI: initializeMap()
@@ -441,7 +334,7 @@
             // Kullanıcının kendi konum marker'ını çiz (Madde 6)
             renderUserLocationMarker();
 
-            // Mock kişilerin marker'larını çiz
+            // Kullanıcıların marker'larını çiz
             renderUserMarkers();
 
             showLoading(false);
@@ -498,7 +391,7 @@
 
         markersLayerGroup.clearLayers();
 
-        const filtered = mockUsers.filter(user => {
+        const filtered = mapUsers.filter(user => {
             if (currentFilter === 'all') return true;
             return user.type === currentFilter;
         });
@@ -587,7 +480,7 @@
     function renderNearbyUsers() {
         if (!nearbyUsersGrid) return;
 
-        const filtered = mockUsers.filter(user => {
+        const filtered = mapUsers.filter(user => {
             if (currentFilter === 'all') return true;
             return user.type === currentFilter;
         });
@@ -664,7 +557,7 @@
         if (!sidebarQuickUsers) return;
 
         // İlk 3 veya 4 kişiyi Haritalar.png'deki gibi göster
-        const quickSlice = mockUsers.slice(0, 4);
+        const quickSlice = mapUsers.slice(0, 4);
 
         sidebarQuickUsers.innerHTML = quickSlice.map(user => {
             return `
@@ -714,7 +607,7 @@
     // 23. JAVASCRIPT MANTIĞI: focusUser(userId) & centerOnUser()
     // =========================================================
     function focusUser(userId) {
-        const user = mockUsers.find(u => u.id === userId);
+        const user = mapUsers.find(u => u.id === userId);
         if (!user) return;
 
         if (isLeafletReady && mapInstance) {
@@ -832,11 +725,9 @@
             locationBanner.style.display = 'none';
         }
 
-        // Kayıtlı kullanıcılar varsa konumlarına göre mesafelerini güncelle, yoksa mock kullanıcıları hizala
+        // Kayıtlı kullanıcılar varsa konumlarına göre mesafelerini güncelle, 
         if (rawApiUsers && rawApiUsers.length > 0) {
             fetchRegisteredLocations();
-        } else {
-            loadMockUsers();
         }
 
         // Haritayı güncelle
@@ -895,7 +786,7 @@
     // 13. PROFİLİ GÖR BUTONU & MODAL (Madde 12, 13)
     // =========================================================
     function showUserInfo(userId) {
-        const user = mockUsers.find(u => u.id === userId);
+        const user = mapUsers.find(u => u.id === userId);
         if (!user) return;
 
         if (window.GlobalModal && typeof window.GlobalModal.open === 'function') {
@@ -1021,7 +912,7 @@
                 <div style="position: absolute; width: 18px; height: 18px; border-radius: 50%; background: var(--primary); border: 3px solid #fff; box-shadow: 0 0 16px var(--primary); z-index: 5;"></div>
                 <span style="position: absolute; margin-top: 36px; background: rgba(0,0,0,0.8); border: 1px solid var(--primary); border-radius: 99px; padding: 2px 8px; font-size: 11px; font-weight: 700; color: var(--primary);">Sen</span>
 
-                <!-- Mock Kişiler -->
+                <!-- Harita Kullanıcıları -->
                 <div style="position: absolute; transform: translate(60px, -50px); text-align: center; cursor: pointer;" onclick="window.__fitnessMapOpenProfile(1)">
                     <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--card); border: 2px solid var(--friend); color: var(--friend); font-size: 11px; font-weight: 800; display: grid; place-items: center; margin: 0 auto;">MY</div>
                     <span style="font-size: 10px; color: var(--text); background: rgba(0,0,0,0.7); padding: 1px 4px; border-radius: 4px;">@fitness_master</span>
@@ -1038,9 +929,9 @@
     // SAYAÇLAR VE KULLANICI BİLGİSİ
     // =========================================================
     function updateCounters() {
-        const total = mockUsers.length;
-        const friends = mockUsers.filter(u => u.type === 'friend').length;
-        const trainers = mockUsers.filter(u => u.type === 'trainer').length;
+        const total = mapUsers.length;
+        const friends = mapUsers.filter(u => u.type === 'friend').length;
+        const trainers = mapUsers.filter(u => u.type === 'trainer').length;
 
         if (filterCountAll) filterCountAll.textContent = total;
         if (filterCountFriend) filterCountFriend.textContent = friends;

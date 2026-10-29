@@ -47,83 +47,6 @@
         }
     }
 
-    // Default Seed Goals
-    const DEFAULT_GOALS = [
-        {
-            id: 'g-1',
-            title: 'Kilo Verme (Hedef 72 KG)',
-            category: 'Kilo',
-            startVal: 82.0,
-            currentVal: 76.5,
-            targetVal: 72.0,
-            unit: 'kg',
-            percent: 55,
-            status: 'Devam Ediyor',
-            deadline: '30 Ekim 2026',
-            notes: 'Haftalık 500 kcal kalori açığı ve haftada 2 seans HIIT kardiyo.',
-            milestones: [
-                { text: '79 kg altına in (İlk Ay Hedefi)', done: true },
-                { text: '75 kg kritik eşiğini geç', done: false },
-                { text: '72 kg nihai fit hedef kiloya ulaş', done: false }
-            ]
-        },
-        {
-            id: 'g-2',
-            title: 'Kas Kütlesini Artır (+3 KG)',
-            category: 'Hipertrofi',
-            startVal: 56.2,
-            currentVal: 57.8,
-            targetVal: 59.2,
-            unit: 'kg',
-            percent: 53,
-            status: 'Devam Ediyor',
-            deadline: '15 Aralık 2026',
-            notes: 'Günlük 140g protein ve progressive overload antrenman programı.',
-            milestones: [
-                { text: 'İlk 1 kg temiz kas kütlesi kazanımı', done: true },
-                { text: 'Bench Press 100 kg çalışma ağırlığı', done: false },
-                { text: 'Toplam +3 kg kas kütlesine ulaş', done: false }
-            ]
-        },
-        {
-            id: 'g-3',
-            title: 'Haftada 4 Gün Antrenman',
-            category: 'Alışkanlık',
-            startVal: 0,
-            currentVal: 4,
-            targetVal: 4,
-            unit: 'gün',
-            percent: 100,
-            status: 'Tamamlandı',
-            deadline: 'Haftalık Döngü',
-            notes: 'Pzt: Göğüs/Triceps, Salı: Sırt/Biceps, Per: Bacak, Cts: Omuz/Kardiyo.',
-            milestones: [
-                { text: 'Pazartesi İdmanı', done: true },
-                { text: 'Salı İdmanı', done: true },
-                { text: 'Perşembe İdmanı', done: true },
-                { text: 'Cumartesi İdmanı', done: true }
-            ]
-        },
-        {
-            id: 'g-4',
-            title: 'Günlük 3 Litre Su Tüketimi',
-            category: 'Sağlık',
-            startVal: 0,
-            currentVal: 2.1,
-            targetVal: 3.0,
-            unit: 'Litre',
-            percent: 70,
-            status: 'Devam Ediyor',
-            deadline: 'Günlük Rutin',
-            notes: 'Metabolizma ve kas hidrasyonunu korumak için su takibi.',
-            milestones: [
-                { text: 'Sabah 1 Litre Su', done: true },
-                { text: 'Öğle / İdman 1 Litre Su', done: true },
-                { text: 'Akşam 1 Litre Su', done: false }
-            ]
-        }
-    ];
-
     // State
     let goals = loadGoals();
     let activeGoalId = goals.length > 0 ? goals[0].id : null;
@@ -134,15 +57,14 @@
             const data = localStorage.getItem(STORAGE_KEY);
             if (data) {
                 const parsed = JSON.parse(data);
-                if (Array.isArray(parsed) && parsed.length > 0) {
+                if (Array.isArray(parsed)) {
                     return parsed;
                 }
             }
         } catch (e) {
             console.error('LocalStorage okuma hatası:', e);
         }
-        saveGoals(DEFAULT_GOALS);
-        return DEFAULT_GOALS;
+        return [];
     }
 
     // Save to LocalStorage

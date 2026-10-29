@@ -7,9 +7,10 @@
     let currentView = null;
 
     // =========================================================================
-    // RENK TEMA YÖNETİMİ (Dark / Light) — yalnızca UI/UX
-    // Backend'e yazılmaz; localStorage üzerinden sayfa içi kalıcı olur.
-    // Diğer sekmelerde de anında senkronize olur (storage event).
+    // RENK TEMA YÖNETİMİ (Dark / Light)
+    // - Uygulama: data-theme / .light-theme (mevcut CSS mekanizması korunur)
+    // - Kalıcılık: backend (POST/GET /api/profile/theme) + localStorage önbelleği
+    // - Diğer sekmelerde anında senkronizasyon: storage event
     // =========================================================================
     const THEME_STORAGE_KEY = "fitness_pro_theme";
     const THEME_OPTIONS = [
@@ -17,15 +18,17 @@
         { value: "light", title: "Açık Tema",  description: "Aydınlık arka plan, ferah görünüm sunar.", swatch: "#f8fafc" }
     ];
     let currentTheme = "dark";
+    // Backend ile senkronize olan son tema (hata durumunda geri dönüş için)
+    let syncedTheme = "dark";
+    // Aynı anda birden fazla kayıt isteğinin gönderilmesini engeller
+    let themeSaveInProgress = false;
 
     function getPreferredTheme() {
         try {
             const stored = localStorage.getItem(THEME_STORAGE_KEY);
             if (stored === "dark" || stored === "light") return stored;
         } catch (e) {}
-        if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
-            return "light";
-        }
+        // Kayıtlı tema yoksa varsayılan: Dark
         return "dark";
     }
 
@@ -59,8 +62,95 @@
         }
     }
 
+    function themeTitle(theme) {
+        const option = THEME_OPTIONS.find(o => o.value === theme);
+        return option ? option.title : theme;
+    }
+
+    // -----------------------------------------------------------------
+    // TEMA KAYDETME (backend)
+    // Kullanıcı seçimini backend'e yazar; hata durumunda tema eski
+    // değerine geri döndürülür (UI ile veritabanı uyumlu kalsın).
+    // -----------------------------------------------------------------
+    async function saveTheme(theme) {
+        if (!THEME_OPTIONS.some(o => o.value === theme)) return false;
+        if (themeSaveInProgress) return false;
+
+        if (!window.ThemeAPI) {
+            showToast("Tema servisi şu anda kullanılamıyor.", "error");
+            return false;
+        }
+
+        themeSaveInProgress = true;
+        try {
+            const response = await window.ThemeAPI.saveMyTheme(theme);
+
+            if (response && response.success) {
+                syncedTheme = theme;
+                showToast('Tema "' + themeTitle(theme) + '" olarak kaydedildi.', 'success');
+                return true;
+            }
+
+            const errorMessage = response && response.networkError
+                ? "Sunucuya bağlanılamadı. Tema kaydedilemedi."
+                : ((response && response.message) || "Tema kaydedilemedi. Lütfen tekrar deneyin.");
+            showToast(errorMessage, "error");
+
+            // Kayıt başarısız: seçim geri alınır
+            if (currentTheme !== syncedTheme) {
+                applyTheme(syncedTheme);
+                persistTheme(syncedTheme);
+                if (currentView === "appearance") {
+                    loadView("appearance");
+                }
+            }
+            return false;
+        } catch (error) {
+            console.warn("[Setting] Tema kaydedilemedi:", error);
+            showToast("Sunucuya bağlanılamadı. Tema kaydedilemedi.", "error");
+            if (currentTheme !== syncedTheme) {
+                applyTheme(syncedTheme);
+                persistTheme(syncedTheme);
+                if (currentView === "appearance") {
+                    loadView("appearance");
+                }
+            }
+            return false;
+        } finally {
+            themeSaveInProgress = false;
+        }
+    }
+
+    // -----------------------------------------------------------------
+    // KAYITLI TEMA YÜKLEME (backend)
+    // Sayfa açılışında kayıtlı tema backend'den alınır ve uygulanır.
+    // Kayıt yoksa backend "Dark" varsayılanını döner.
+    // -----------------------------------------------------------------
+    async function loadSavedTheme() {
+        if (!window.ThemeAPI) return;
+
+        try {
+            const response = await window.ThemeAPI.getMyTheme();
+
+            if (response && response.success && response.thema) {
+                syncedTheme = response.thema;
+                applyTheme(response.thema);
+                persistTheme(response.thema);
+                if (currentView === "appearance") {
+                    loadView("appearance");
+                }
+            }
+            // Backend'den tema alınamadıysa syncedTheme DEĞİŞTİRİLMEZ:
+            // aksi halde kayıtlı tema yanlışlıkla "dark" sayılır ve sonraki
+            // başarısız kayıtta kullanıcının seçimi geri alınır.
+        } catch (error) {
+            console.warn("[Setting] Tema bilgisi alınamadı:", error);
+        }
+    }
+
     // Sayfa ilk açılışında uygula ve diğer sekmelerden gelen değişimleri dinle
     applyTheme(getPreferredTheme());
+    syncedTheme = currentTheme;
     window.addEventListener("storage", (event) => {
         if (event.key === THEME_STORAGE_KEY && (event.newValue === "dark" || event.newValue === "light")) {
             applyTheme(event.newValue);
@@ -420,9 +510,9 @@
                 const value = btn.dataset.themeOption;
                 if (!value || !THEME_OPTIONS.some(o => o.value === value)) return;
                 if (value === currentTheme) return;
+                // Seçim anında uygulanır, ardından backend'e kaydedilir.
                 setTheme(value);
-                const selectedTitle = THEME_OPTIONS.find(o => o.value === value)?.title || value;
-                showToast('Tema "' + selectedTitle + '" olarak değiştirildi.', 'success');
+                saveTheme(value);
             };
             btn.addEventListener('click', apply);
             btn.addEventListener('keydown', event => {
@@ -552,4 +642,5 @@
     loadView('account');
     fetchInitialTwoFactorStatus();
     loadMessageRequestPref();
+    loadSavedTheme();
 })();

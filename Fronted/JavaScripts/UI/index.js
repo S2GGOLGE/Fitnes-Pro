@@ -252,7 +252,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* ==========================================
-       MOCK EXERCISE INTERACTION
+       EXERCISE INTERACTION
        ========================================== */
 
     const exerciseItems =

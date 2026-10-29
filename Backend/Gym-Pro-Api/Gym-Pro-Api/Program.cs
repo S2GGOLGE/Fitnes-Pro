@@ -133,6 +133,10 @@ builder.Services.AddScoped<IMapService, MapService>();
 // Send Code Ckeck SERVICE
 // =========================================================
 builder.Services.AddScoped<TwoCodeCkeck>();
+// =========================================================
+//Theame Save SERVICE
+// =========================================================
+builder.Services.AddScoped<ProfileService>();
 #endregion
 
 #region JWT Authentication

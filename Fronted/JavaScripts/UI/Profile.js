@@ -19,155 +19,73 @@ document.addEventListener("DOMContentLoaded", () => {
        1. CENTRAL DATA MODEL (API READY)
        ========================================================= */
 
+    function getStoredWorkouts() {
+        try {
+            const data = localStorage.getItem('fitness_pro_workouts');
+            return data ? JSON.parse(data) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function getStoredGoals() {
+        try {
+            const data = localStorage.getItem('fitness_pro_goals');
+            return data ? JSON.parse(data) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    const storedWorkouts = getStoredWorkouts();
+    const storedGoals = getStoredGoals();
+
     const profileState = {
         user: {
-            firstName: (authUser && authUser.username) ? authUser.username : "Mehmet Emre",
-            lastName: "",
-            username: (authUser && authUser.username) ? authUser.username : "mehmetemre",
-            email: (authUser && authUser.email) ? authUser.email : "user@fitnesspro.com",
-            bio: "Fitness tutkunu. Her gün bir adım daha ileriye. Kas kazanımı ve güç odaklı antrenman yapıyorum.",
-            level: (authUser && authUser.role === "Admin") ? "Admin" : "Orta",
-            levelNumber: 3,
+            firstName: (authUser && authUser.username) ? authUser.username : '',
+            lastName: '',
+            username: (authUser && authUser.username) ? authUser.username : '',
+            email: (authUser && authUser.email) ? authUser.email : '',
+            bio: '',
+            level: (authUser && authUser.role === 'Admin') ? 'Admin' : 'Başlangıç',
+            levelNumber: 1,
             maxLevel: 5,
-            levelProgressPercent: 68,
-            xpCurrent: 680,
+            levelProgressPercent: 0,
+            xpCurrent: 0,
             xpNext: 1000,
-            membershipDate: "Ocak 2026",
-            membershipStatus: "Aktif",
+            membershipDate: 'Aktif',
+            membershipStatus: 'Aktif',
             photoUrl: null
         },
         stats: {
-            totalWorkouts: 128,
-            streak: 12,
-            calories: "48.2K",
-            level: "Orta"
+            totalWorkouts: storedWorkouts.length,
+            streak: 0,
+            calories: '0',
+            level: (authUser && authUser.role === 'Admin') ? 'Admin' : 'Başlangıç'
         },
-        workouts: [
-            {
-                id: "w1",
-                name: "Push Day",
-                muscles: "Göğüs • Omuz • Triceps",
-                duration: "45 dakika",
-                sets: 12,
-                lastDate: "25 Ağustos",
-                status: "completed",
-                statusText: "Tamamlandı",
-                exercises: [
-                    { name: "Bench Press", sets: "4 × 10 (80kg)" },
-                    { name: "Incline Dumbbell Press", sets: "3 × 12 (24kg)" },
-                    { name: "Overhead Shoulder Press", sets: "3 × 10 (20kg)" },
-                    { name: "Triceps Rope Pushdown", sets: "3 × 15 (25kg)" }
-                ]
-            },
-            {
-                id: "w2",
-                name: "Pull Day",
-                muscles: "Sırt • Biceps • Arka Omuz",
-                duration: "50 dakika",
-                sets: 14,
-                lastDate: "24 Ağustos",
-                status: "completed",
-                statusText: "Tamamlandı",
-                exercises: [
-                    { name: "Lat Pulldown", sets: "4 × 12 (70kg)" },
-                    { name: "Barbell Row", sets: "4 × 10 (65kg)" },
-                    { name: "Face Pulls", sets: "3 × 15 (20kg)" },
-                    { name: "Biceps Barbell Curl", sets: "3 × 10 (30kg)" }
-                ]
-            },
-            {
-                id: "w3",
-                name: "Leg Day & Core",
-                muscles: "Quad • Hamstring • Karın",
-                duration: "55 dakika",
-                sets: 15,
-                lastDate: "22 Ağustos",
-                status: "completed",
-                statusText: "Tamamlandı",
-                exercises: [
-                    { name: "Barbell Squat", sets: "4 × 8 (100kg)" },
-                    { name: "Leg Press", sets: "3 × 12 (180kg)" },
-                    { name: "Romanian Deadlift", sets: "4 × 10 (80kg)" },
-                    { name: "Hanging Leg Raise", sets: "4 × 15" }
-                ]
-            },
-            {
-                id: "w4",
-                name: "Upper Body Hypertrophy",
-                muscles: "Üst Vücut Karışık",
-                duration: "40 dakika",
-                sets: 10,
-                lastDate: "20 Ağustos",
-                status: "in-progress",
-                statusText: "Devam Ediyor",
-                exercises: [
-                    { name: "Dumbbell Incline Bench", sets: "3 × 10 (26kg)" },
-                    { name: "Cable Row", sets: "3 × 12 (60kg)" },
-                    { name: "Lateral Raise", sets: "4 × 15 (12kg)" }
-                ]
-            },
-            {
-                id: "w5",
-                name: "Cardio & Mobility",
-                muscles: "Tüm Vücut Kondisyon",
-                duration: "30 dakika",
-                sets: 6,
-                lastDate: "Planlandı",
-                status: "planned",
-                statusText: "Planlandı",
-                exercises: [
-                    { name: "Treadmill Incline Walk", sets: "20 dk" },
-                    { name: "Dynamic Stretching", sets: "10 dk" }
-                ]
-            }
-        ],
+        workouts: storedWorkouts,
         coach: {
-            assigned: true,
-            name: "Ahmet Yılmaz",
-            specialty: "Fitness & Strength Coach",
-            experience: "8 Yıl",
-            level: "Uzman Eğitmen",
-            channel: "Fitness Pro Chat",
-            initials: "AY",
-            status: "Aktif"
+            assigned: false,
+            name: '',
+            specialty: '',
+            experience: '',
+            level: '',
+            channel: '',
+            initials: '',
+            status: 'Pasif'
         },
         progress: {
-            overall: 78,
-            weightGoal: 82,
-            strengthGoal: 74,
-            workoutGoal: 91,
-            monthlyGrowth: "+12.8%"
+            overall: 0,
+            weightGoal: 0,
+            strengthGoal: 0,
+            workoutGoal: 0,
+            monthlyGrowth: '0%'
         },
-        goals: [
-            {
-                id: "g1",
-                title: "Kas kütlesini artır (Hedef +3 KG)",
-                percent: 82,
-                status: "Devam Ediyor"
-            },
-            {
-                id: "g2",
-                title: "Haftada 4 gün antrenman yap",
-                percent: 100,
-                status: "Tamamlandı"
-            },
-            {
-                id: "g3",
-                title: "Bench Press 100 KG hedefine ulaş",
-                percent: 54,
-                status: "Devam Ediyor"
-            },
-            {
-                id: "g4",
-                title: "Günlük 3 Litre Su Tüketimi",
-                percent: 70,
-                status: "Devam Ediyor"
-            }
-        ]
+        goals: storedGoals
     };
 
     /* =========================================================
-       2. API INTEGRATION PREPARATION LAYER (MOCK CONTROLLER)
+       2. API INTEGRATION LAYER
        ========================================================= */
 
     const ProfileAPI = {

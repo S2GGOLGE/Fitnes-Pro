@@ -59,11 +59,11 @@
             <!-- USER PROFILE MINI CARD -->
             <div class="profile-card">
                 <div class="profile-avatar">
-                    E
+                    -
                 </div>
                 <div class="profile-info">
-                    <strong>Emre</strong>
-                    <span>Fitness Level: Pro</span>
+                    <strong>-</strong>
+                    <span>Fitness Pro</span>
                     <a href="Profile.html">
                         Profili Gör
                     </a>
@@ -193,10 +193,10 @@
 
                     <a href="Profile.html" class="topbar-profile" title="Profilim">
                         <span class="topbar-avatar">
-                            E
+                            -
                         </span>
                         <span class="topbar-username">
-                            Emre
+                            -
                         </span>
                     </a>
 
@@ -241,9 +241,9 @@
                         </div>
                         <div class="stat-content">
                             <span class="stat-label">Toplam İdman</span>
-                            <strong class="stat-number" id="statTotalWorkouts">24</strong>
+                            <strong class="stat-number" id="statTotalWorkouts">0</strong>
                         </div>
-                        <span class="stat-badge">+3 bu ay</span>
+                        <span class="stat-badge" id="statTotalBadge">0 bu ay</span>
                     </div>
 
                     <!-- Stat 2: Bu Hafta -->
@@ -258,9 +258,9 @@
                         </div>
                         <div class="stat-content">
                             <span class="stat-label">Bu Hafta</span>
-                            <strong class="stat-number" id="statWeeklyWorkouts">4</strong>
+                            <strong class="stat-number" id="statWeeklyWorkouts">0</strong>
                         </div>
-                        <span class="stat-badge active-tag">Aktif Hafta</span>
+                        <span class="stat-badge active-tag" id="statWeeklyBadge">0 idman</span>
                     </div>
 
                     <!-- Stat 3: Tamamlanan -->
@@ -273,9 +273,9 @@
                         </div>
                         <div class="stat-content">
                             <span class="stat-label">Tamamlanan</span>
-                            <strong class="stat-number" id="statCompletedWorkouts">18</strong>
+                            <strong class="stat-number" id="statCompletedWorkouts">0</strong>
                         </div>
-                        <span class="stat-badge">%75 Başarı</span>
+                        <span class="stat-badge" id="statCompletedBadge">%0 Başarı</span>
                     </div>
 
                     <!-- Stat 4: Toplam Süre -->
@@ -288,9 +288,9 @@
                         </div>
                         <div class="stat-content">
                             <span class="stat-label">Toplam Süre</span>
-                            <strong class="stat-number" id="statTotalDuration">16s 40dk</strong>
+                            <strong class="stat-number" id="statTotalDuration">0 dk</strong>
                         </div>
-                        <span class="stat-badge">Ort. 52 dk</span>
+                        <span class="stat-badge" id="statAvgBadge">Ort. 0 dk</span>
                     </div>
 
                 </section>
@@ -505,13 +505,6 @@
                 <div class="form-group">
                     <label for="inputNotes">İdman Notları</label>
                     <textarea id="inputNotes" rows="2" placeholder="Örn: Isınma 10 dk yapıldı, son set drop-set uygulandı..."></textarea>
-                </div>
-
-                <div class="modal-notice">
-                    <span class="notice-icon">ℹ</span>
-                    <p>
-                        Şu an ön yüzde (frontend) mock veri üzerinde çalışılmaktadır. Eklediğiniz idman sayfa oturumunuzda anında listeye eklenecektir.
-                    </p>
                 </div>
 
                 <div class="modal-footer form-footer">

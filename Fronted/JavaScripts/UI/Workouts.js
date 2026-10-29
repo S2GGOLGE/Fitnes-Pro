@@ -1,9 +1,9 @@
-/**
+﻿/**
  * =========================================================
  * FITNESS PRO - WORKOUTS (İDMANLAR) CONTROLLER
  * =========================================================
  * Frontend-only modular controller for workout dashboard:
- * - Mock data management (ready for API integration)
+ * - Data management (ready for API integration)
  * - Realtime filtering, search, and sorting
  * - Dynamic workout cards & empty state rendering
  * - Workout detail modal & new workout modal interactions
@@ -20,213 +20,23 @@ document.addEventListener("DOMContentLoaded", () => {
         window.Auth.syncAuthUI();
     }
 
-    const initialWorkouts = [
-        {
-            id: "w-1",
-            title: "Göğüs & Triceps",
-            category: "chest",
-            categoryLabel: "Göğüs",
-            date: "28 Ağustos 2026",
-            timestamp: new Date("2026-08-28T18:30:00").getTime(),
-            durationText: "58 dk",
-            durationMinutes: 58,
-            exercisesCount: 7,
-            setsCount: 24,
-            calories: 420,
-            level: "Orta",
-            status: "Tamamlandı",
-            notes: "Isınma 10 dakika eliptik ile yapıldı. Son sette drop-set uygulandı. Güç seviyesi çok iyiydi.",
-            exercises: [
-                { name: "Barbell Bench Press", sets: 4, reps: "10", weight: "80 kg" },
-                { name: "Incline Dumbbell Press", sets: 3, reps: "12", weight: "24 kg" },
-                { name: "Cable Chest Fly", sets: 3, reps: "15", weight: "18 kg" },
-                { name: "Dips (Chest Focus)", sets: 3, reps: "10", weight: "Vücut Ağırlığı" },
-                { name: "Skull Crushers (EZ Bar)", sets: 4, reps: "10", weight: "30 kg" },
-                { name: "Triceps Rope Pushdown", sets: 4, reps: "12", weight: "25 kg" },
-                { name: "Overhead Dumbbell Extension", sets: 3, reps: "12", weight: "22 kg" }
-            ]
-        },
-        {
-            id: "w-2",
-            title: "Sırt & Biceps",
-            category: "back",
-            categoryLabel: "Sırt",
-            date: "27 Ağustos 2026",
-            timestamp: new Date("2026-08-27T19:00:00").getTime(),
-            durationText: "52 dk",
-            durationMinutes: 52,
-            exercisesCount: 8,
-            setsCount: 26,
-            calories: 390,
-            level: "Orta",
-            status: "Tamamlandı",
-            notes: "Lat odaklı çekişler ve tepe sıkıştırmalara özen gösterildi. Negatif tekrarlar uygulandı.",
-            exercises: [
-                { name: "Lat Pulldown (Geniş Tutuş)", sets: 4, reps: "12", weight: "70 kg" },
-                { name: "Bent Over Barbell Row", sets: 4, reps: "10", weight: "65 kg" },
-                { name: "Seated Cable Row", sets: 3, reps: "12", weight: "60 kg" },
-                { name: "Face Pulls", sets: 3, reps: "15", weight: "20 kg" },
-                { name: "Hyperextension", sets: 3, reps: "15", weight: "10 kg" },
-                { name: "Standing Barbell Curl", sets: 3, reps: "10", weight: "30 kg" },
-                { name: "Incline Dumbbell Curl", sets: 3, reps: "12", weight: "14 kg" },
-                { name: "Hammer Curl", sets: 3, reps: "12", weight: "16 kg" }
-            ]
-        },
-        {
-            id: "w-3",
-            title: "Bacak & Karın",
-            category: "leg",
-            categoryLabel: "Bacak",
-            date: "25 Ağustos 2026",
-            timestamp: new Date("2026-08-25T18:00:00").getTime(),
-            durationText: "1s 05dk",
-            durationMinutes: 65,
-            exercisesCount: 9,
-            setsCount: 30,
-            calories: 510,
-            level: "İleri",
-            status: "Tamamlandı",
-            notes: "Ağır squat serisi tamamlandı. Bacak antrenmanı sonrası 15 dakika karın devresi yapıldı.",
-            exercises: [
-                { name: "Barbell Back Squat", sets: 4, reps: "8", weight: "105 kg" },
-                { name: "Leg Press 45°", sets: 4, reps: "12", weight: "190 kg" },
-                { name: "Romanian Deadlift", sets: 4, reps: "10", weight: "85 kg" },
-                { name: "Leg Extension", sets: 3, reps: "15", weight: "60 kg" },
-                { name: "Lying Leg Curl", sets: 3, reps: "12", weight: "45 kg" },
-                { name: "Standing Calf Raise", sets: 4, reps: "15", weight: "80 kg" },
-                { name: "Hanging Leg Raise", sets: 3, reps: "15", weight: "Vücut Ağırlığı" },
-                { name: "Cable Woodchopper", sets: 3, reps: "12", weight: "15 kg" },
-                { name: "Plank", sets: 2, reps: "60 sn", weight: "-" }
-            ]
-        },
-        {
-            id: "w-4",
-            title: "Omuz & Trapez",
-            category: "shoulder",
-            categoryLabel: "Omuz",
-            date: "23 Ağustos 2026",
-            timestamp: new Date("2026-08-23T17:45:00").getTime(),
-            durationText: "45 dk",
-            durationMinutes: 45,
-            exercisesCount: 6,
-            setsCount: 20,
-            calories: 330,
-            level: "Başlangıç",
-            status: "Tamamlandı",
-            notes: "Omuz manşetleri öncesinde dinamik lastikle ısıtıldı. Yan omuz hipertrofisi hedeflendi.",
-            exercises: [
-                { name: "Overhead Dumbbell Shoulder Press", sets: 4, reps: "10", weight: "22 kg" },
-                { name: "Dumbbell Lateral Raise", sets: 4, reps: "15", weight: "12 kg" },
-                { name: "Front Barbell Raise", sets: 3, reps: "12", weight: "20 kg" },
-                { name: "Reverse Pec Deck Fly", sets: 3, reps: "15", weight: "45 kg" },
-                { name: "Dumbbell Shrugs", sets: 3, reps: "15", weight: "28 kg" },
-                { name: "Cable Upright Row", sets: 3, reps: "12", weight: "35 kg" }
-            ]
-        },
-        {
-            id: "w-5",
-            title: "Kol Odaklı (Biceps & Triceps)",
-            category: "arm",
-            categoryLabel: "Kol",
-            date: "21 Ağustos 2026",
-            timestamp: new Date("2026-08-21T18:15:00").getTime(),
-            durationText: "48 dk",
-            durationMinutes: 48,
-            exercisesCount: 7,
-            setsCount: 22,
-            calories: 360,
-            level: "Orta",
-            status: "Tamamlandı",
-            notes: "Süperset metodolojisi uygulandı. Kol pompalanması maksimum seviyede tutuldu.",
-            exercises: [
-                { name: "Close-Grip Bench Press", sets: 4, reps: "10", weight: "60 kg" },
-                { name: "Preacher Curl (EZ Bar)", sets: 4, reps: "10", weight: "28 kg" },
-                { name: "Triceps V-Bar Pushdown", sets: 3, reps: "12", weight: "30 kg" },
-                { name: "Alternating Dumbbell Curl", sets: 3, reps: "12", weight: "16 kg" },
-                { name: "Triceps Overhead Extension", sets: 3, reps: "12", weight: "24 kg" },
-                { name: "Cable Concentration Curl", sets: 3, reps: "15", weight: "12 kg" },
-                { name: "Bench Dips", sets: 2, reps: "15", weight: "Vücut Ağırlığı" }
-            ]
-        },
-        {
-            id: "w-6",
-            title: "Tüm Vücut (Full Body)",
-            category: "full-body",
-            categoryLabel: "Tüm Vücut",
-            date: "19 Ağustos 2026",
-            timestamp: new Date("2026-08-19T19:30:00").getTime(),
-            durationText: "1s 00dk",
-            durationMinutes: 60,
-            exercisesCount: 8,
-            setsCount: 25,
-            calories: 480,
-            level: "İleri",
-            status: "Tamamlandı",
-            notes: "Temel bileşik hareketler uygulandı. Yüksek kalori yakımı ve metabolik kondisyon sağlandı.",
-            exercises: [
-                { name: "Barbell Deadlift", sets: 4, reps: "6", weight: "120 kg" },
-                { name: "Front Squat", sets: 3, reps: "8", weight: "75 kg" },
-                { name: "Overhead Barbell Press", sets: 3, reps: "10", weight: "45 kg" },
-                { name: "Pull-Ups (Barfiks)", sets: 3, reps: "8", weight: "Vücut Ağırlığı" },
-                { name: "Dumbbell Chest Press", sets: 3, reps: "10", weight: "26 kg" },
-                { name: "Walking Lunges", sets: 3, reps: "12 adım", weight: "16 kg Dumbbell" },
-                { name: "Hanging Leg Raise", sets: 3, reps: "12", weight: "-" },
-                { name: "Kettlebell Swing", sets: 3, reps: "20", weight: "20 kg" }
-            ]
-        },
-        {
-            id: "w-7",
-            title: "Core & Fonksiyonel Kardiyo",
-            category: "core",
-            categoryLabel: "Core & Kardiyo",
-            date: "17 Ağustos 2026",
-            timestamp: new Date("2026-08-17T17:00:00").getTime(),
-            durationText: "35 dk",
-            durationMinutes: 35,
-            exercisesCount: 6,
-            setsCount: 18,
-            calories: 290,
-            level: "Başlangıç",
-            status: "Tamamlandı",
-            notes: "Aktif dinlenme gününde yüksek yoğunluklu core ve esneklik çalışması yapıldı.",
-            exercises: [
-                { name: "Hanging Knee Raise", sets: 3, reps: "15", weight: "Vücut Ağırlığı" },
-                { name: "Abdominal Crunch Machine", sets: 3, reps: "15", weight: "40 kg" },
-                { name: "Russian Twist", sets: 3, reps: "20", weight: "8 kg Plaka" },
-                { name: "Mountain Climbers", sets: 3, reps: "30 sn", weight: "-" },
-                { name: "Side Plank", sets: 3, reps: "45 sn / taraf", weight: "-" },
-                { name: "Rowing Machine (Kondisyon)", sets: 3, reps: "500m", weight: "Level 8" }
-            ]
-        },
-        {
-            id: "w-8",
-            title: "Göğüs & Omuz Güç Günü",
-            category: "chest",
-            categoryLabel: "Göğüs",
-            date: "15 Ağustos 2026",
-            timestamp: new Date("2026-08-15T18:45:00").getTime(),
-            durationText: "55 dk",
-            durationMinutes: 55,
-            exercisesCount: 7,
-            setsCount: 21,
-            calories: 440,
-            level: "İleri",
-            status: "Tamamlandı",
-            notes: "Maksimal itiş kuvveti için dinlenme aralıkları 2.5 dakika tutuldu.",
-            exercises: [
-                { name: "Barbell Incline Bench Press", sets: 4, reps: "8", weight: "75 kg" },
-                { name: "Flat Dumbbell Press", sets: 3, reps: "10", weight: "28 kg" },
-                { name: "Standing Military Press", sets: 4, reps: "6", weight: "50 kg" },
-                { name: "Cable Crossover", sets: 3, reps: "12", weight: "20 kg" },
-                { name: "Side Lateral Raise", sets: 3, reps: "12", weight: "14 kg" },
-                { name: "Close-Grip Triceps Pushdown", sets: 2, reps: "12", weight: "28 kg" },
-                { name: "Push-ups to Failure", sets: 2, reps: "Max", weight: "Vücut Ağırlığı" }
-            ]
+    function getStoredWorkouts() {
+        try {
+            const data = localStorage.getItem('fitness_pro_workouts');
+            return data ? JSON.parse(data) : [];
+        } catch (e) {
+            return [];
         }
-    ];
+    }
+
+    function saveWorkouts(items) {
+        try {
+            localStorage.setItem('fitness_pro_workouts', JSON.stringify(items));
+        } catch (e) {}
+    }
 
     // Local mutable state
-    let workouts = [...initialWorkouts];
+    let workouts = getStoredWorkouts();
     let currentFilter = "all";
     let currentSort = "newest";
     let searchQuery = "";
@@ -248,6 +58,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const statWeeklyWorkouts = document.getElementById("statWeeklyWorkouts");
     const statCompletedWorkouts = document.getElementById("statCompletedWorkouts");
     const statTotalDuration = document.getElementById("statTotalDuration");
+        if (statTotalBadge) statTotalBadge.textContent = ``${monthly} bu ay`;
+        if (statWeeklyBadge) statWeeklyBadge.textContent = ``${weekly} idman`;
+        if (statCompletedBadge) statCompletedBadge.textContent = `%`${successRate} Başarı`;
+        if (statAvgBadge) statAvgBadge.textContent = `Ort. `${avgMinutes} dk`;
 
     // Filters, Search & Sort
     const filterPills = document.querySelectorAll(".filter-pill");
@@ -409,10 +223,28 @@ document.addEventListener("DOMContentLoaded", () => {
        ========================================================= */
 
     function updateStats() {
-        if (statTotalWorkouts) statTotalWorkouts.textContent = "24";
-        if (statWeeklyWorkouts) statWeeklyWorkouts.textContent = "4";
-        if (statCompletedWorkouts) statCompletedWorkouts.textContent = "18";
-        if (statTotalDuration) statTotalDuration.textContent = "16s 40dk";
+        const total = workouts.length;
+        const completed = workouts.filter(w => w.status === "Tamamlandı").length;
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+        const monthly = workouts.filter(w => (w.timestamp || 0) >= startOfMonth).length;
+        const sevenDaysAgo = now.getTime() - 7 * 24 * 60 * 60 * 1000;
+        const weekly = workouts.filter(w => (w.timestamp || 0) >= sevenDaysAgo).length;
+        const totalMinutes = workouts.reduce((sum, w) => sum + (Number(w.durationMinutes) || 0), 0);
+        const hours = Math.floor(totalMinutes / 60);
+        const mins = totalMinutes % 60;
+        const durationText = hours > 0 ? (hours + "s " + mins + "dk") : (mins + "dk");
+        const successRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+        const avgMinutes = total > 0 ? Math.round(totalMinutes / total) : 0;
+
+        if (statTotalWorkouts) statTotalWorkouts.textContent = String(total);
+        if (statTotalBadge) statTotalBadge.textContent = monthly + " bu ay";
+        if (statWeeklyWorkouts) statWeeklyWorkouts.textContent = String(weekly);
+        if (statWeeklyBadge) statWeeklyBadge.textContent = weekly + " idman";
+        if (statCompletedWorkouts) statCompletedWorkouts.textContent = String(completed);
+        if (statCompletedBadge) statCompletedBadge.textContent = "%" + successRate + " Başarı";
+        if (statTotalDuration) statTotalDuration.textContent = durationText;
+        if (statAvgBadge) statAvgBadge.textContent = "Ort. " + avgMinutes + " dk";
     }
 
     updateStats();
@@ -428,12 +260,12 @@ document.addEventListener("DOMContentLoaded", () => {
             if (currentFilter === "all") {
                 matchCategory = true;
             } else if (currentFilter === "this-week") {
-                // Mock week: workouts from August 22 onwards
-                const weekThreshold = new Date("2026-08-22T00:00:00").getTime();
+                const now = new Date();
+                const weekThreshold = now.getTime() - 7 * 24 * 60 * 60 * 1000;
                 matchCategory = item.timestamp >= weekThreshold;
             } else if (currentFilter === "this-month") {
-                // Mock month: August 2026
-                const monthThreshold = new Date("2026-08-01T00:00:00").getTime();
+                const now = new Date();
+                const monthThreshold = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
                 matchCategory = item.timestamp >= monthThreshold;
             } else {
                 matchCategory = item.category === currentFilter;
@@ -847,6 +679,8 @@ document.addEventListener("DOMContentLoaded", () => {
             };
 
             workouts.unshift(newWorkoutItem);
+            saveWorkouts(workouts);
+            updateStats();
             closeNewWorkoutModal();
             renderWorkouts();
             showToast(`"${name}" başarıyla eklendi!`, "success");

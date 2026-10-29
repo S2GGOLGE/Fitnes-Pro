@@ -3,7 +3,7 @@
  * FITNESS PRO — PROGRESS (İLERLEMEM) PAGE CONTROLLER
  * =========================================================
  * Frontend-only controller:
- * - Mock progress data (API-ready structure)
+ * - Progress data management (API-ready structure)
  * - Sidebar / mobile menu (same logic as index.js)
  * - Date period filter (30d / 3m / 6m / all)
  * - Body hotspot tooltip interaction
@@ -21,172 +21,54 @@ document.addEventListener("DOMContentLoaded", () => {
         window.Auth.syncAuthUI();
     }
 
-    const progressData = {
+    function getStoredProgress() {
+        try {
+            const raw = localStorage.getItem('fitness_pro_progress');
+            if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        return null;
+    }
 
-        /** Measurement snapshots keyed by period filter */
-        periods: {
-            /** Son 30 Gün — July 30 → Aug 28 */
-            "30d": {
-                initial: {
-                    date: "30 Temmuz 2026",
-                    weight: 75.8,
-                    fat: 21,
-                    muscle: 57.0,
-                    measurements: { chest: 100, waist: 87, arm: 34, leg: 56, shoulder: 114 }
-                },
-                current: {
-                    date: "28 Ağustos 2026",
-                    weight: 74.2,
-                    fat: 19,
-                    muscle: 57.8,
-                    measurements: { chest: 103, waist: 84, arm: 36, leg: 58, shoulder: 116 }
-                },
-                bodyStatus: { label: "Hızlı İlerleme", percent: 72,
-                    desc: "Son 30 günde yağ kaybı ve kas gelişimi açısından iyi bir ivme yakaladın." }
-            },
-            /** Son 3 Ay — June 1 → Aug 28  (using earliest data as proxy) */
-            "3m": {
-                initial: {
-                    date: "01 Haziran 2026",
-                    weight: 80.2,
-                    fat: 26,
-                    muscle: 55.4,
-                    measurements: { chest: 96, waist: 94, arm: 31, leg: 53, shoulder: 110 }
-                },
-                current: {
-                    date: "28 Ağustos 2026",
-                    weight: 74.2,
-                    fat: 19,
-                    muscle: 57.8,
-                    measurements: { chest: 103, waist: 84, arm: 36, leg: 58, shoulder: 116 }
-                },
-                bodyStatus: { label: "Çok İyi Gelişim", percent: 88,
-                    desc: "3 aylık süreçte belirgin fiziksel dönüşüm gerçekleşti." }
-            },
-            /** Son 6 Ay — March 1 → Aug 28 */
-            "6m": {
-                initial: {
-                    date: "01 Mart 2026",
-                    weight: 84.0,
-                    fat: 29,
-                    muscle: 54.0,
-                    measurements: { chest: 94, waist: 98, arm: 30, leg: 52, shoulder: 108 }
-                },
-                current: {
-                    date: "28 Ağustos 2026",
-                    weight: 74.2,
-                    fat: 19,
-                    muscle: 57.8,
-                    measurements: { chest: 103, waist: 84, arm: 36, leg: 58, shoulder: 116 }
-                },
-                bodyStatus: { label: "Mükemmel Dönüşüm", percent: 96,
-                    desc: "6 aylık süreçte hedefine büyük oranda ulaştın. Harika bir performans!" }
-            },
-            /** Tümü — July 1 → Aug 28 */
-            "all": {
-                initial: {
-                    date: "01 Temmuz 2026",
-                    weight: 78.5,
-                    fat: 24,
-                    muscle: 56.2,
-                    measurements: { chest: 98, waist: 91, arm: 32, leg: 54, shoulder: 112 }
-                },
-                current: {
-                    date: "28 Ağustos 2026",
-                    weight: 74.2,
-                    fat: 19,
-                    muscle: 57.8,
-                    measurements: { chest: 103, waist: 84, arm: 36, leg: 58, shoulder: 116 }
-                },
-                bodyStatus: { label: "İyi Gelişim", percent: 84,
-                    desc: "Başlangıç ölçümüne göre fiziksel gelişimin hedeflerine doğru ilerliyor." }
-            }
+    const savedProgress = getStoredProgress();
+
+    const emptyPeriod = {
+        initial: {
+            date: '-',
+            weight: 0,
+            fat: 0,
+            muscle: 0,
+            measurements: { chest: 0, waist: 0, arm: 0, leg: 0, shoulder: 0 }
         },
-
-        /** Timeline snapshots (for "all" period — July 1 to Aug 28) */
-        timeline: [
-            {
-                id: 0,
-                label: "01 Tem",
-                fullDate: "01 Temmuz 2026",
-                weight: 78.5,
-                fat: 24,
-                waist: 91,
-                muscle: 56.2
-            },
-            {
-                id: 1,
-                label: "15 Tem",
-                fullDate: "15 Temmuz 2026",
-                weight: 77.1,
-                fat: 23,
-                waist: 89,
-                muscle: 56.5
-            },
-            {
-                id: 2,
-                label: "01 Ağu",
-                fullDate: "01 Ağustos 2026",
-                weight: 75.8,
-                fat: 21,
-                waist: 87,
-                muscle: 57.0
-            },
-            {
-                id: 3,
-                label: "15 Ağu",
-                fullDate: "15 Ağustos 2026",
-                weight: 74.8,
-                fat: 20,
-                waist: 85,
-                muscle: 57.5
-            },
-            {
-                id: 4,
-                label: "28 Ağu",
-                fullDate: "28 Ağustos 2026",
-                weight: 74.2,
-                fat: 19,
-                waist: 84,
-                muscle: 57.8
-            }
-        ],
-
-        /** Hotspot region definitions */
-        hotspots: {
-            chest: {
-                label: "Göğüs",
-                field: "chest",
-                unit: "cm",
-                positiveIsGain: true   // bigger chest = improvement
-            },
-            waist: {
-                label: "Bel",
-                field: "waist",
-                unit: "cm",
-                positiveIsGain: false  // smaller waist = improvement
-            },
-            arm: {
-                label: "Kol",
-                field: "arm",
-                unit: "cm",
-                positiveIsGain: true
-            },
-            leg: {
-                label: "Bacak",
-                field: "leg",
-                unit: "cm",
-                positiveIsGain: true
-            },
-            shoulder: {
-                label: "Omuz",
-                field: "shoulder",
-                unit: "cm",
-                positiveIsGain: true
-            }
+        current: {
+            date: '-',
+            weight: 0,
+            fat: 0,
+            muscle: 0,
+            measurements: { chest: 0, waist: 0, arm: 0, leg: 0, shoulder: 0 }
+        },
+        bodyStatus: {
+            label: 'Ölçüm Bekleniyor',
+            percent: 0,
+            desc: 'Henüz vücut ölçümü kaydedilmedi. İlerlemenizi görmek için ilk ölçümünüzü girin.'
         }
     };
 
+    const progressData = savedProgress || {
+        periods: {
+            '30d': emptyPeriod,
+            '3m': emptyPeriod,
+            '6m': emptyPeriod,
+            'all': emptyPeriod
+        },
+        timeline: [],
+        hotspots: {
+            chest: { label: 'Göğüs', field: 'chest', unit: 'cm', positiveIsGain: true },
+            waist: { label: 'Bel', field: 'waist', unit: 'cm', positiveIsGain: false },
+            arm: { label: 'Kol', field: 'arm', unit: 'cm', positiveIsGain: true },
+            leg: { label: 'Bacak', field: 'leg', unit: 'cm', positiveIsGain: true },
+            shoulder: { label: 'Omuz', field: 'shoulder', unit: 'cm', positiveIsGain: true }
+        }
+    };
     /* =========================================================
        2.  DOM REFERENCES
        ========================================================= */
@@ -362,68 +244,84 @@ document.addEventListener("DOMContentLoaded", () => {
         const { initial, current, bodyStatus } = data;
 
         // Left panel
-        if (panelInitialDate)   panelInitialDate.textContent   = initial.date;
-        if (panelInitialWeight) panelInitialWeight.textContent = initial.weight;
-        if (initFat)            initFat.textContent            = `%${initial.fat}`;
-        if (initMuscle)         initMuscle.textContent         = `${initial.muscle} kg`;
-        if (initChest)          initChest.textContent          = `${initial.measurements.chest} cm`;
-        if (initWaist)          initWaist.textContent          = `${initial.measurements.waist} cm`;
-        if (initArm)            initArm.textContent            = `${initial.measurements.arm} cm`;
-        if (initLeg)            initLeg.textContent            = `${initial.measurements.leg} cm`;
-        if (initShoulder)       initShoulder.textContent       = `${initial.measurements.shoulder} cm`;
+        if (panelInitialDate)   panelInitialDate.textContent   = initial.date || '-';
+        if (panelInitialWeight) panelInitialWeight.textContent = initial.weight ? ${initial.weight} : '-';
+        if (initFat)            initFat.textContent            = initial.fat ? % : '-';
+        if (initMuscle)         initMuscle.textContent         = initial.muscle ? ${initial.muscle} kg : '-';
+        if (initChest)          initChest.textContent          = initial.measurements?.chest ? ${initial.measurements.chest} cm : '-';
+        if (initWaist)          initWaist.textContent          = initial.measurements?.waist ? ${initial.measurements.waist} cm : '-';
+        if (initArm)            initArm.textContent            = initial.measurements?.arm ? ${initial.measurements.arm} cm : '-';
+        if (initLeg)            initLeg.textContent            = initial.measurements?.leg ? ${initial.measurements.leg} cm : '-';
+        if (initShoulder)       initShoulder.textContent       = initial.measurements?.shoulder ? ${initial.measurements.shoulder} cm : '-';
 
         // Right panel
-        if (panelCurrentDate)   panelCurrentDate.textContent   = current.date;
-        if (panelCurrentWeight) panelCurrentWeight.textContent = current.weight;
-        if (curFat)             curFat.textContent             = `%${current.fat}`;
-        if (curMuscle)          curMuscle.textContent          = `${current.muscle} kg`;
-        if (curChest)           curChest.textContent           = `${current.measurements.chest} cm`;
-        if (curWaist)           curWaist.textContent           = `${current.measurements.waist} cm`;
-        if (curArm)             curArm.textContent             = `${current.measurements.arm} cm`;
-        if (curLeg)             curLeg.textContent             = `${current.measurements.leg} cm`;
-        if (curShoulder)        curShoulder.textContent        = `${current.measurements.shoulder} cm`;
+        if (panelCurrentDate)   panelCurrentDate.textContent   = current.date || '-';
+        if (panelCurrentWeight) panelCurrentWeight.textContent = current.weight ? ${current.weight} : '-';
+        if (curFat)             curFat.textContent             = current.fat ? % : '-';
+        if (curMuscle)          curMuscle.textContent          = current.muscle ? ${current.muscle} kg : '-';
+        if (curChest)           curChest.textContent           = current.measurements?.chest ? ${current.measurements.chest} cm : '-';
+        if (curWaist)           curWaist.textContent           = current.measurements?.waist ? ${current.measurements.waist} cm : '-';
+        if (curArm)             curArm.textContent             = current.measurements?.arm ? ${current.measurements.arm} cm : '-';
+        if (curLeg)             curLeg.textContent             = current.measurements?.leg ? ${current.measurements.leg} cm : '-';
+        if (curShoulder)        curShoulder.textContent        = current.measurements?.shoulder ? ${current.measurements.shoulder} cm : '-';
 
-        // Weight delta banner
-        const wDiff = (current.weight - initial.weight).toFixed(1);
-        const wSign = wDiff < 0 ? "−" : "+";
-        if (deltaFrom)  deltaFrom.textContent  = `${initial.weight} kg`;
-        if (deltaTo)    deltaTo.textContent    = `${current.weight} kg`;
-        if (deltaValue) {
-            deltaValue.textContent = `${wSign}${Math.abs(wDiff)} kg`;
-            deltaValue.className = `weight-delta-value ${wDiff < 0 ? "negative" : "positive"}`;
-        }
+        // Weight delta banner & summary
+        if (!initial.weight && !current.weight) {
+            if (deltaFrom)  deltaFrom.textContent  = '-';
+            if (deltaTo)    deltaTo.textContent    = '-';
+            if (deltaValue) {
+                deltaValue.textContent = '0 kg';
+                deltaValue.className = 'weight-delta-value';
+            }
+            if (summaryWeight)      summaryWeight.textContent      = '-';
+            if (summaryWeightDelta) summaryWeightDelta.textContent = '0 kg';
+            if (summaryFat)         summaryFat.textContent         = '-';
+            if (summaryFatDelta)    summaryFatDelta.textContent    = '0 puan';
+            if (summaryWaist)       summaryWaist.textContent       = '-';
+            if (summaryWaistDelta)  summaryWaistDelta.textContent  = '0 cm';
+            if (summaryMuscle)      summaryMuscle.textContent      = '-';
+            if (summaryMuscleDelta) summaryMuscleDelta.textContent = '0 kg';
+        } else {
+            const wDiff = (current.weight - initial.weight).toFixed(1);
+            const wSign = wDiff < 0 ? '−' : '+';
+            if (deltaFrom)  deltaFrom.textContent  = ${initial.weight} kg;
+            if (deltaTo)    deltaTo.textContent    = ${current.weight} kg;
+            if (deltaValue) {
+                deltaValue.textContent = ${wSign} kg;
+                deltaValue.className = weight-delta-value ;
+            }
 
-        // Change summary cards
-        if (summaryWeight)      summaryWeight.textContent      = `${initial.weight} kg → ${current.weight} kg`;
-        if (summaryWeightDelta) summaryWeightDelta.textContent = `${wSign}${Math.abs(wDiff)} kg`;
-        if (summaryWeightDelta) summaryWeightDelta.className   = `change-delta ${wDiff < 0 ? "negative-delta" : "positive-delta"}`;
+            if (summaryWeight)      summaryWeight.textContent      = ${initial.weight} kg →  kg;
+            if (summaryWeightDelta) summaryWeightDelta.textContent = ${wSign} kg;
+            if (summaryWeightDelta) summaryWeightDelta.className   = change-delta ;
 
-        const fDiff = current.fat - initial.fat;
-        if (summaryFat)         summaryFat.textContent         = `%${initial.fat} → %${current.fat}`;
-        if (summaryFatDelta) {
-            summaryFatDelta.textContent = `${fDiff < 0 ? "−" : "+"}${Math.abs(fDiff)} puan`;
-            summaryFatDelta.className   = `change-delta ${fDiff < 0 ? "negative-delta" : "positive-delta"}`;
-        }
+            const fDiff = current.fat - initial.fat;
+            if (summaryFat)         summaryFat.textContent         = % → %;
+            if (summaryFatDelta) {
+                summaryFatDelta.textContent = ${fDiff < 0 ? '−' : '+'} puan;
+                summaryFatDelta.className   = change-delta ;
+            }
 
-        const bDiff = current.measurements.waist - initial.measurements.waist;
-        if (summaryWaist)       summaryWaist.textContent       = `${initial.measurements.waist} cm → ${current.measurements.waist} cm`;
-        if (summaryWaistDelta) {
-            summaryWaistDelta.textContent = `${bDiff < 0 ? "−" : "+"}${Math.abs(bDiff)} cm`;
-            summaryWaistDelta.className   = `change-delta ${bDiff < 0 ? "negative-delta" : "positive-delta"}`;
-        }
+            const bDiff = current.measurements.waist - initial.measurements.waist;
+            if (summaryWaist)       summaryWaist.textContent       = ${initial.measurements.waist} cm →  cm;
+            if (summaryWaistDelta) {
+                summaryWaistDelta.textContent = ${bDiff < 0 ? '−' : '+'} cm;
+                summaryWaistDelta.className   = change-delta ;
+            }
 
-        const mDiff = (current.muscle - initial.muscle).toFixed(1);
-        if (summaryMuscle)      summaryMuscle.textContent      = `${initial.muscle} kg → ${current.muscle} kg`;
-        if (summaryMuscleDelta) {
-            summaryMuscleDelta.textContent = `${mDiff > 0 ? "+" : "−"}${Math.abs(mDiff)} kg`;
-            summaryMuscleDelta.className   = `change-delta ${mDiff > 0 ? "positive-delta" : "negative-delta"}`;
+            const mDiff = (current.muscle - initial.muscle).toFixed(1);
+            if (summaryMuscle)      summaryMuscle.textContent      = ${initial.muscle} kg →  kg;
+            if (summaryMuscleDelta) {
+                summaryMuscleDelta.textContent = ${mDiff > 0 ? '+' : '−'} kg;
+                summaryMuscleDelta.className   = change-delta ;
+            }
         }
 
         // Body status bar
         if (statusLabel)   statusLabel.textContent        = bodyStatus.label;
         if (statusDesc)    statusDesc.textContent         = bodyStatus.desc;
-        if (statusPercent) statusPercent.textContent      = `${bodyStatus.percent}%`;
-        if (statusBarFill) statusBarFill.style.width      = `${bodyStatus.percent}%`;
+        if (statusPercent) statusPercent.textContent      = ${bodyStatus.percent}%;
+        if (statusBarFill) statusBarFill.style.width      = ${bodyStatus.percent}%;
     }
 
     // Initial render
@@ -452,7 +350,17 @@ document.addEventListener("DOMContentLoaded", () => {
        ========================================================= */
 
     function renderTimelinePoint(pointIndex) {
+        if (!progressData.timeline || progressData.timeline.length === 0) {
+            if (tlDetailDate)   tlDetailDate.textContent   = '-';
+            if (tlDetailWeight) tlDetailWeight.textContent = '- kg';
+            if (tlDetailFat)    tlDetailFat.textContent    = '-';
+            if (tlDetailWaist)  tlDetailWaist.textContent  = '- cm';
+            if (tlDetailMuscle) tlDetailMuscle.textContent = '- kg';
+            return;
+        }
+
         const point = progressData.timeline[pointIndex];
+        if (!point) return;
         if (!point) return;
 
         // Update detail card
@@ -498,8 +406,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!region) return null;
 
         const data     = progressData.periods[activePeriod];
-        const initVal  = data.initial.measurements[region.field];
-        const curVal   = data.current.measurements[region.field];
+        if (!data || !data.initial || !data.current || !data.initial.measurements) return null;
+        const initVal  = data.initial.measurements[region.field] || 0;
+        const curVal   = data.current.measurements[region.field] || 0;
+        if (initVal === 0 && curVal === 0) return null;
         const diff     = curVal - initVal;
         const sign     = diff > 0 ? "+" : "−";
         const isPositive = region.positiveIsGain ? diff > 0 : diff < 0;
