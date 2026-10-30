@@ -38,6 +38,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const storedWorkouts = getStoredWorkouts();
+    function getStoredBio() {
+        try {
+            const b = localStorage.getItem('fitness_pro_bio');
+            if (b) return b;
+            const u = (window.Auth && window.Auth.getUser()) || {};
+            return u.bio || '';
+        } catch (e) {
+            return '';
+        }
+    }
+
     const storedGoals = getStoredGoals();
 
     const profileState = {
@@ -46,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
             lastName: '',
             username: (authUser && authUser.username) ? authUser.username : '',
             email: (authUser && authUser.email) ? authUser.email : '',
-            bio: '',
+            bio: getStoredBio(),
             level: (authUser && authUser.role === 'Admin') ? 'Admin' : 'Başlangıç',
             levelNumber: 1,
             maxLevel: 5,
@@ -95,6 +106,45 @@ document.addEventListener("DOMContentLoaded", () => {
         async updateProfile(payload) {
             Object.assign(profileState.user, payload);
             return Promise.resolve({ success: true, message: "Profil başarıyla güncellendi." });
+        },
+        async saveBiography(bio) {
+            if (!window.Auth || typeof window.Auth.authFetch !== "function") {
+                return {
+                    success: false,
+                    message: "Oturum bilgisi bulunamadı. Lütfen tekrar giriş yapınız."
+                };
+            }
+            try {
+                const response = await window.Auth.authFetch("/api/profile/biography", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        Context: bio
+                    })
+                });
+
+                let result = null;
+                try {
+                    result = await response.json();
+                } catch {
+                    result = null;
+                }
+
+                const success = response.ok && result && result.success === true;
+                const message = (result && result.message) || (success ? "Kayıt Başarılı" : "Biyografi kaydedilemedi.");
+                return {
+                    success,
+                    message
+                };
+            } catch (err) {
+                console.error("[ProfileAPI] saveBiography hatası:", err);
+                return {
+                    success: false,
+                    message: "Sunucuya bağlanılamadı. Lütfen backend servisinin çalıştığından emin olunuz."
+                };
+            }
         },
         async uploadPhoto(fileDataUrl) {
             profileState.user.photoUrl = fileDataUrl;
@@ -182,6 +232,44 @@ document.addEventListener("DOMContentLoaded", () => {
     const inputUsername = document.getElementById("inputUsername");
     const inputEmail = document.getElementById("inputEmail");
     const inputBio = document.getElementById("inputBio");
+    const bioWordCounter = document.getElementById("bioWordCounter");
+
+    function countWords(text) {
+        if (!text || !text.trim()) return 0;
+        const matches = text.trim().match(/\S+/g);
+        return matches ? matches.length : 0;
+    }
+
+    function truncateToWordLimit(text, maxWords = 100) {
+        if (!text) return "";
+        const matches = text.trim().match(/\S+/g);
+        if (!matches || matches.length <= maxWords) {
+            return text;
+        }
+        let count = 0;
+        let cutoff = text.length;
+        const regex = /\S+/g;
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+            count++;
+            if (count === maxWords) {
+                cutoff = match.index + match[0].length;
+                break;
+            }
+        }
+        return text.slice(0, cutoff);
+    }
+
+    function updateBioWordCount() {
+        if (!bioWordCounter || !inputBio) return;
+        const words = countWords(inputBio.value);
+        bioWordCounter.textContent = `${words} / 100 kelime`;
+        if (words >= 100) {
+            bioWordCounter.classList.add("limit-reached");
+        } else {
+            bioWordCounter.classList.remove("limit-reached");
+        }
+    }
     const modalAlertBox = document.getElementById("modalAlertBox");
 
     // Workout Detail Modal
@@ -346,7 +434,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (displayFullName) displayFullName.textContent = fullName;
         if (displayUsername) displayUsername.textContent = `@${u.username}`;
-        if (displayBio) displayBio.textContent = u.bio;
+        if (displayBio) displayBio.textContent = u.bio || 'Henüz bir biyografi eklenmedi.';
         
         if (displayLevelBadge) {
             displayLevelBadge.innerHTML = `
@@ -621,7 +709,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (inputLastName) inputLastName.value = u.lastName;
         if (inputUsername) inputUsername.value = u.username;
         if (inputEmail) inputEmail.value = u.email;
-        if (inputBio) inputBio.value = u.bio;
+        if (inputBio) {
+            inputBio.value = u.bio || "";
+            updateBioWordCount();
+        }
 
         clearModalAlert();
 
@@ -639,6 +730,61 @@ document.addEventListener("DOMContentLoaded", () => {
         editProfileModal.setAttribute("aria-hidden", "true");
         document.body.style.overflow = "";
         clearModalAlert();
+    }
+
+        // Hakkımda / Bio Kelime Sınırı ve Sayacı Dinleyicileri
+    if (inputBio) {
+        inputBio.addEventListener("input", () => {
+            if (countWords(inputBio.value) > 100) {
+                inputBio.value = truncateToWordLimit(inputBio.value, 100);
+            }
+            updateBioWordCount();
+        });
+
+        inputBio.addEventListener("keydown", (e) => {
+            if (
+                e.key === "Backspace" ||
+                e.key === "Delete" ||
+                e.key === "ArrowLeft" ||
+                e.key === "ArrowRight" ||
+                e.key === "ArrowUp" ||
+                e.key === "ArrowDown" ||
+                e.key === "Tab" ||
+                e.ctrlKey ||
+                e.metaKey
+            ) {
+                return;
+            }
+
+            const currentWords = countWords(inputBio.value);
+            if (currentWords >= 100) {
+                const hasSelection = inputBio.selectionStart !== inputBio.selectionEnd;
+                if (hasSelection) {
+                    return;
+                }
+
+                if (e.key === " " || e.key === "Enter") {
+                    e.preventDefault();
+                    return;
+                }
+
+                const val = inputBio.value;
+                const pos = inputBio.selectionStart;
+                const simulated = val.slice(0, pos) + e.key + val.slice(pos);
+                if (countWords(simulated) > 100) {
+                    e.preventDefault();
+                }
+            }
+        });
+
+        inputBio.addEventListener("paste", () => {
+            setTimeout(() => {
+                if (countWords(inputBio.value) > 100) {
+                    inputBio.value = truncateToWordLimit(inputBio.value, 100);
+                }
+                updateBioWordCount();
+            }, 0);
+        });
     }
 
     if (btnOpenEditModal) {
@@ -709,10 +855,36 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             try {
+                // 100 Kelime Sınırı Kontrolü
+                const wordCount = countWords(bio);
+                if (wordCount > 100) {
+                    showModalAlert("Hakkımda / Bio en fazla 100 kelime olabilir.", "error");
+                    return;
+                }
+
+                // 1. Backend Biyografi Kaydı
+                const bioRes = await ProfileAPI.saveBiography(bio);
+                if (!bioRes.success) {
+                    showModalAlert(bioRes.message || "Biyografi kaydedilemedi.", "error");
+                    // Hata durumunda modal açık kalır, metin kaybolmaz!
+                    return;
+                }
+                const bioSaveMessage = bioRes.message;
+
+                // 2. Diğer profil bilgilerini güncelle
                 const res = await ProfileAPI.updateProfile(payload);
                 if (res.success) {
+                    profileState.user.bio = bio;
+                    try {
+                        localStorage.setItem('fitness_pro_bio', bio);
+                        const authUser = window.Auth ? window.Auth.getUser() : null;
+                        if (authUser) {
+                            authUser.bio = bio;
+                            localStorage.setItem('fitness_pro_user', JSON.stringify(authUser));
+                        }
+                    } catch (e) {}
                     renderProfileHeader();
-                    showToast("Profil bilgileriniz başarıyla güncellendi!");
+                    showToast(bioSaveMessage || "Profil bilgileriniz başarıyla güncellendi!");
                     closeEditModal();
                 } else {
                     showModalAlert(res.message || "Güncelleme başarısız oldu.", "error");

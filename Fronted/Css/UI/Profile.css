@@ -1,4 +1,4 @@
-﻿/* =========================================================
+/* =========================================================
    FITNESS PRO - PROFILE PAGE SPECIFIC STYLESHEET
    ========================================================= */
 
@@ -1215,6 +1215,22 @@
     border-color: var(--primary);
     box-shadow: 0 0 0 3px var(--primary-glow);
     background: var(--card-hover);
+}
+
+.bio-word-counter {
+    display: flex;
+    justify-content: flex-end;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-top: 4px;
+    letter-spacing: 0.2px;
+    transition: color var(--transition);
+}
+
+.bio-word-counter.limit-reached {
+    color: var(--primary);
+    font-weight: 600;
 }
 
 .input-prefix-wrapper {
