@@ -55,6 +55,12 @@
     --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.1);
 }
 
+[data-theme="light"] .topbar,
+.light-theme .topbar {
+    background: rgba(255, 255, 255, 0.88);
+    border-bottom: 1px solid var(--border);
+}
+
 [data-theme="light"] .change-card,
 .light-theme .change-card,
 [data-theme="light"] .body-status-card,
@@ -1049,4 +1055,156 @@
     .tl-detail-metrics { gap: 14px; }
     .prog-page-header h1 { font-size: 24px; }
     .weight-delta-value { font-size: 30px; }
+}
+
+
+/* =========================================================
+   PROGRESS HEADER ACTIONS & MODAL STYLES
+   ========================================================= */
+.prog-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+}
+
+.prog-header-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--primary);
+    color: #061e0f;
+    border: none;
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 16px var(--primary-glow);
+    transition: all 0.2s ease;
+}
+
+.prog-header-actions .btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+/* Örnek İnsan Görseli Light Theme Uyum */
+[data-theme="light"] .body-silhouette ellipse,
+[data-theme="light"] .body-silhouette path,
+.light-theme .body-silhouette ellipse,
+.light-theme .body-silhouette path {
+    fill: #E2ECE5;
+    stroke: #A3BDAE;
+}
+
+[data-theme="light"] .body-svg-wrap,
+.light-theme .body-svg-wrap {
+    filter: drop-shadow(0 4px 12px rgba(22, 163, 74, 0.08));
+}
+
+/* İki Aşamalı Boy Kilo Yaş Form Stilleri */
+.measure-modal-step {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.measure-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.measure-input-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.measure-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.measure-input-wrapper input {
+    width: 100%;
+    padding: 11px 44px 11px 14px;
+    background: var(--surface, #121815);
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+    border-radius: var(--radius-md, 12px);
+    color: var(--text, #F5F7F6);
+    font-size: 14px;
+    font-weight: 500;
+    transition: border-color 0.2s ease;
+}
+
+.measure-input-wrapper input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-subtle);
+}
+
+.measure-unit {
+    position: absolute;
+    right: 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.measure-error-msg {
+    font-size: 11px;
+    color: #EF4444;
+    display: none;
+}
+
+.measure-error-msg.visible {
+    display: block;
+}
+
+.measure-summary-card {
+    background: var(--surface, #121815);
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+    border-radius: var(--radius-md, 12px);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.measure-summary-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.05));
+}
+
+.measure-summary-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.measure-summary-label {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.measure-summary-val {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.measure-step-nav {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 8px;
 }

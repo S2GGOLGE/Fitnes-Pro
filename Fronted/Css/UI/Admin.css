@@ -57,6 +57,42 @@
     --admin-error: #DC2626;
     --admin-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
 
+    
+/* Hızlı Sistem Anahtarları Light Tema (Renk Tema.pdf) */
+[data-theme="light"] .admin-toggle-label,
+.light-theme .admin-toggle-label {
+    border-bottom: 1px solid var(--admin-border);
+}
+
+[data-theme="light"] .admin-slider,
+.light-theme .admin-slider {
+    background-color: #DCE3DE;
+    border: 1px solid var(--admin-border);
+}
+
+[data-theme="light"] .admin-slider:before,
+.light-theme .admin-slider:before {
+    background-color: #FFFFFF;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] input:checked + .admin-slider,
+.light-theme input:checked + .admin-slider {
+    background-color: var(--admin-primary);
+    border-color: var(--admin-primary);
+}
+
+[data-theme="light"] input:checked + .admin-slider:before,
+.light-theme input:checked + .admin-slider:before {
+    background-color: #FFFFFF;
+}
+
+[data-theme="light"] input:focus-visible + .admin-slider,
+.light-theme input:focus-visible + .admin-slider {
+    outline: 2px solid var(--admin-primary);
+    outline-offset: 2px;
+}
+
     /* Aliases for Core Components (GlobalModal) */
     --bg: var(--admin-bg);
     --surface: var(--admin-surface);

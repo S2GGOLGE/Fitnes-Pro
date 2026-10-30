@@ -20,12 +20,198 @@ document.addEventListener("DOMContentLoaded", () => {
         window.Auth.syncAuthUI();
     }
 
+    const DEFAULT_WORKOUTS = [
+        {
+            id: "w-1",
+            title: "Göğüs & Triceps Güç Odaklı",
+            category: "chest",
+            categoryLabel: "Göğüs",
+            date: "28 Ağustos 2026",
+            timestamp: new Date(2026, 7, 28).getTime(),
+            durationText: "55 dk",
+            durationMinutes: 55,
+            exercisesCount: 6,
+            setsCount: 18,
+            calories: 420,
+            level: "Orta",
+            status: "Tamamlandı",
+            notes: "Bench press ve dips hareketlerinde ağırlık artışı sağlandı.",
+            exercises: [
+                { name: "Barbell Bench Press", sets: 4, reps: "8-10", weight: "85 kg" },
+                { name: "Incline Dumbbell Press", sets: 4, reps: "10-12", weight: "28 kg" },
+                { name: "Dips (Ağırlıklı)", sets: 3, reps: "10", weight: "+15 kg" },
+                { name: "Cable Fly", sets: 3, reps: "15", weight: "20 kg" },
+                { name: "Triceps Pushdown", sets: 4, reps: "12", weight: "35 kg" }
+            ]
+        },
+        {
+            id: "w-2",
+            title: "Sırt & Biceps Çekiş Seansı",
+            category: "back",
+            categoryLabel: "Sırt",
+            date: "26 Ağustos 2026",
+            timestamp: new Date(2026, 7, 26).getTime(),
+            durationText: "60 dk",
+            durationMinutes: 60,
+            exercisesCount: 5,
+            setsCount: 17,
+            calories: 450,
+            level: "İleri",
+            status: "Tamamlandı",
+            notes: "Deadlift formu korundu, lat pull-down kontrollü negatif.",
+            exercises: [
+                { name: "Conventional Deadlift", sets: 4, reps: "6", weight: "140 kg" },
+                { name: "Pull-ups (Barfiks)", sets: 4, reps: "10", weight: "Vücut Ağırlığı" },
+                { name: "Barbell Row", sets: 3, reps: "10", weight: "70 kg" },
+                { name: "Barbell Curl", sets: 3, reps: "10-12", weight: "35 kg" },
+                { name: "Hammer Curl", sets: 3, reps: "12", weight: "16 kg" }
+            ]
+        },
+        {
+            id: "w-3",
+            title: "Bacak & Kalf Hipertrofi",
+            category: "leg",
+            categoryLabel: "Bacak",
+            date: "24 Ağustos 2026",
+            timestamp: new Date(2026, 7, 24).getTime(),
+            durationText: "65 dk",
+            durationMinutes: 65,
+            exercisesCount: 6,
+            setsCount: 20,
+            calories: 520,
+            level: "İleri",
+            status: "Tamamlandı",
+            notes: "Squat derinliği tam paralel, son sette drop set.",
+            exercises: [
+                { name: "Barbell Back Squat", sets: 4, reps: "8", weight: "110 kg" },
+                { name: "Romanian Deadlift", sets: 4, reps: "10", weight: "90 kg" },
+                { name: "Leg Press", sets: 4, reps: "12", weight: "200 kg" },
+                { name: "Leg Extension", sets: 3, reps: "15", weight: "60 kg" },
+                { name: "Standing Calf Raise", sets: 5, reps: "15", weight: "80 kg" }
+            ]
+        },
+        {
+            id: "w-4",
+            title: "Omuz & Trapez Gelişimi",
+            category: "shoulder",
+            categoryLabel: "Omuz",
+            date: "22 Ağustos 2026",
+            timestamp: new Date(2026, 7, 22).getTime(),
+            durationText: "50 dk",
+            durationMinutes: 50,
+            exercisesCount: 5,
+            setsCount: 16,
+            calories: 380,
+            level: "Orta",
+            status: "Tamamlandı",
+            notes: "Lateral raise kontrollü tempo, omuz başları iyi izole edildi.",
+            exercises: [
+                { name: "Overhead Military Press", sets: 4, reps: "8-10", weight: "55 kg" },
+                { name: "Dumbbell Lateral Raise", sets: 4, reps: "15", weight: "12 kg" },
+                { name: "Face Pull", sets: 4, reps: "15", weight: "30 kg" },
+                { name: "Reverse Pec Deck", sets: 4, reps: "12", weight: "40 kg" }
+            ]
+        },
+        {
+            id: "w-5",
+            title: "Tüm Vücut Fonksiyonel Kuvvet",
+            category: "full-body",
+            categoryLabel: "Tüm Vücut",
+            date: "20 Ağustos 2026",
+            timestamp: new Date(2026, 7, 20).getTime(),
+            durationText: "55 dk",
+            durationMinutes: 55,
+            exercisesCount: 6,
+            setsCount: 18,
+            calories: 460,
+            level: "Orta",
+            status: "Tamamlandı",
+            notes: "Kombine hareketler ile yüksek kalp ritmi sağlandı.",
+            exercises: [
+                { name: "Kettlebell Swing", sets: 4, reps: "20", weight: "24 kg" },
+                { name: "Front Squat", sets: 4, reps: "8", weight: "75 kg" },
+                { name: "Push Press", sets: 3, reps: "10", weight: "50 kg" },
+                { name: "Farmer's Walk", sets: 4, reps: "40m", weight: "32 kg x 2" }
+            ]
+        },
+        {
+            id: "w-6",
+            title: "Core & Kardiyo Dayanıklılık",
+            category: "core",
+            categoryLabel: "Core & Kardiyo",
+            date: "18 Ağustos 2026",
+            timestamp: new Date(2026, 7, 18).getTime(),
+            durationText: "45 dk",
+            durationMinutes: 45,
+            exercisesCount: 5,
+            setsCount: 15,
+            calories: 390,
+            level: "Başlangıç",
+            status: "Tamamlandı",
+            notes: "HIIT aralıkları 40 sn çalışma, 20 sn dinlenme.",
+            exercises: [
+                { name: "Hanging Leg Raise", sets: 4, reps: "15", weight: "Vücut Ağırlığı" },
+                { name: "Plank", sets: 4, reps: "60 sn", weight: "-" },
+                { name: "Ab Wheel Rollout", sets: 3, reps: "12", weight: "-" },
+                { name: "Rowing Machine HIIT", sets: 5, reps: "250m", weight: "Direnç 8" }
+            ]
+        },
+        {
+            id: "w-7",
+            title: "Kollar Süperset Seansı",
+            category: "arm",
+            categoryLabel: "Kol",
+            date: "16 Ağustos 2026",
+            timestamp: new Date(2026, 7, 16).getTime(),
+            durationText: "48 dk",
+            durationMinutes: 48,
+            exercisesCount: 6,
+            setsCount: 18,
+            calories: 360,
+            level: "Orta",
+            status: "Tamamlandı",
+            notes: "Biceps/Triceps antagonist süpersetler uygulandı.",
+            exercises: [
+                { name: "Incline DB Curl + Skull Crusher", sets: 4, reps: "12", weight: "14 kg / 30 kg" },
+                { name: "Preacher Curl + Rope Extension", sets: 4, reps: "12", weight: "25 kg / 25 kg" },
+                { name: "Concentration Curl", sets: 3, reps: "12", weight: "12 kg" }
+            ]
+        },
+        {
+            id: "w-8",
+            title: "Üst Vücut Patlayıcı Güç",
+            category: "chest",
+            categoryLabel: "Göğüs",
+            date: "14 Ağustos 2026",
+            timestamp: new Date(2026, 7, 14).getTime(),
+            durationText: "50 dk",
+            durationMinutes: 50,
+            exercisesCount: 5,
+            setsCount: 16,
+            calories: 410,
+            level: "İleri",
+            status: "Tamamlandı",
+            notes: "Patlayıcı itiş gücü ve hız antrenmanı.",
+            exercises: [
+                { name: "Speed Bench Press", sets: 5, reps: "3", weight: "65 kg" },
+                { name: "Plyometric Push-ups", sets: 4, reps: "8", weight: "Vücut Ağırlığı" },
+                { name: "Overhead Medball Slam", sets: 4, reps: "12", weight: "10 kg" }
+            ]
+        }
+    ];
+
     function getStoredWorkouts() {
         try {
             const data = localStorage.getItem('fitness_pro_workouts');
-            return data ? JSON.parse(data) : [];
+            if (data) {
+                const parsed = JSON.parse(data);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            }
+            // Initialize with default 8 workouts
+            saveWorkouts(DEFAULT_WORKOUTS);
+            return DEFAULT_WORKOUTS.slice();
         } catch (e) {
-            return [];
+            return DEFAULT_WORKOUTS.slice();
         }
     }
 
@@ -58,10 +244,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const statWeeklyWorkouts = document.getElementById("statWeeklyWorkouts");
     const statCompletedWorkouts = document.getElementById("statCompletedWorkouts");
     const statTotalDuration = document.getElementById("statTotalDuration");
-        if (statTotalBadge) statTotalBadge.textContent = ``${monthly} bu ay`;
-        if (statWeeklyBadge) statWeeklyBadge.textContent = ``${weekly} idman`;
-        if (statCompletedBadge) statCompletedBadge.textContent = `%`${successRate} Başarı`;
-        if (statAvgBadge) statAvgBadge.textContent = `Ort. `${avgMinutes} dk`;
+    const statTotalBadge = document.getElementById("statTotalBadge");
+    const statWeeklyBadge = document.getElementById("statWeeklyBadge");
+    const statCompletedBadge = document.getElementById("statCompletedBadge");
+    const statAvgBadge = document.getElementById("statAvgBadge");
 
     // Filters, Search & Sort
     const filterPills = document.querySelectorAll(".filter-pill");
@@ -334,15 +520,40 @@ document.addEventListener("DOMContentLoaded", () => {
             return `
                 <article class="workout-card-item" data-workout-id="${workout.id}" tabindex="0" role="button" aria-label="${escapeHTML(workout.title)} detaylarını görüntüle">
                     <div>
-                        <!-- Top Badges -->
+                        <!-- Top Badges & Three-dot Menu -->
                         <div class="card-top">
                             <span class="card-category-badge ${badgeClass}">
                                 ${escapeHTML(workout.categoryLabel || workout.category)}
                             </span>
-                            <span class="card-status-badge">
-                                <span class="card-status-dot"></span>
-                                ${escapeHTML(workout.status)}
-                            </span>
+                            <div class="card-top-right">
+                                <span class="card-status-badge">
+                                    <span class="card-status-dot"></span>
+                                    ${escapeHTML(workout.status)}
+                                </span>
+                                <div class="workout-card-menu-wrap">
+                                    <button type="button" class="workout-card-menu-btn" data-workout-id="${workout.id}" aria-label="İşlem menüsü" title="İşlemler">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="12" cy="12" r="1.5"></circle>
+                                            <circle cx="19" cy="12" r="1.5"></circle>
+                                            <circle cx="5" cy="12" r="1.5"></circle>
+                                        </svg>
+                                    </button>
+                                    <div class="workout-card-dropdown" id="dropdown-${workout.id}" role="menu" hidden>
+                                        <button type="button" class="workout-dropdown-item btn-action-view" data-workout-id="${workout.id}" role="menuitem">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                            <span>Detayları Görüntüle</span>
+                                        </button>
+                                        <button type="button" class="workout-dropdown-item btn-action-repeat" data-workout-id="${workout.id}" role="menuitem">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 2v6h6"/><path d="M21 12A9 9 0 0 0 6 5.3L3 8"/><path d="M21 22v-6h-6"/><path d="M3 12a9 9 0 0 0 15 6.7l3-2.7"/></svg>
+                                            <span>Tekrar Başlat</span>
+                                        </button>
+                                        <button type="button" class="workout-dropdown-item btn-action-delete" data-workout-id="${workout.id}" role="menuitem">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                            <span>İdmanı Sil</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Title & Date -->
@@ -400,7 +611,95 @@ document.addEventListener("DOMContentLoaded", () => {
         workoutsGrid.innerHTML = cardsHTML;
 
         // Attach click listeners to cards
-        document.querySelectorAll(".workout-card-item").forEach(card => {
+
+        // Close all card dropdowns
+        function closeAllDropdowns() {
+            document.querySelectorAll(".workout-card-dropdown").forEach(d => d.hidden = true);
+        }
+
+        // Three-dot button toggles
+        document.querySelectorAll(".workout-card-menu-btn").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const id = btn.dataset.workoutId;
+                const dropdown = document.getElementById(`dropdown-${id}`);
+                const isCurrentlyOpen = dropdown && !dropdown.hidden;
+                closeAllDropdowns();
+                if (dropdown && !isCurrentlyOpen) {
+                    dropdown.hidden = false;
+                }
+            });
+        });
+
+        // Dropdown actions: Detay
+        document.querySelectorAll(".workout-dropdown-item.btn-action-view").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                closeAllDropdowns();
+                const id = btn.dataset.workoutId;
+                openDetailModal(id);
+            });
+        });
+
+        // Dropdown actions: Tekrar Başlat
+        document.querySelectorAll(".workout-dropdown-item.btn-action-repeat").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                closeAllDropdowns();
+                const id = btn.dataset.workoutId;
+                const item = workouts.find(w => w.id === id);
+                if (item) {
+                    showToast(`"${item.title}" idmanı aktif seansa yüklendi!`, "success");
+                }
+            });
+        });
+
+        // Dropdown actions: Sil
+        document.querySelectorAll(".workout-dropdown-item.btn-action-delete").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                closeAllDropdowns();
+                const id = btn.dataset.workoutId;
+                const item = workouts.find(w => w.id === id);
+                if (!item) return;
+
+                if (window.GlobalModal && typeof window.GlobalModal.confirm === "function") {
+                    window.GlobalModal.confirm({
+                        title: "İdmanı Sil",
+                        description: `"${item.title}" idmanını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`,
+                        buttons: [
+                            { text: "Vazgeç", variant: "secondary" },
+                            {
+                                text: "Sil",
+                                variant: "danger",
+                                callback: () => {
+                                    workouts = workouts.filter(w => w.id !== id);
+                                    saveWorkouts(workouts);
+                                    updateStats();
+                                    renderWorkouts();
+                                    showToast(`"${item.title}" silindi.`, "success");
+                                }
+                            }
+                        ]
+                    });
+                } else if (confirm(`"${item.title}" silinsin mi?`)) {
+                    workouts = workouts.filter(w => w.id !== id);
+                    saveWorkouts(workouts);
+                    updateStats();
+                    renderWorkouts();
+                    showToast(`"${item.title}" silindi.`, "success");
+                }
+            });
+        });
+
+        // Close dropdowns on click outside
+        document.addEventListener("click", (e) => {
+            if (!e.target.closest(".workout-card-menu-wrap")) {
+                closeAllDropdowns();
+            }
+        });
+
+                document.querySelectorAll(".workout-card-item").forEach(card => {
             const id = card.getAttribute("data-workout-id");
             card.addEventListener("click", () => openDetailModal(id));
             card.addEventListener("keydown", (e) => {

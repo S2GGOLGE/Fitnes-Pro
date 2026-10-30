@@ -603,4 +603,277 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.querySelectorAll(".ba-photo-input").forEach(bindPhotoUpload);
 
+
+    /* =========================================================
+       BOY, KİLO VE YAŞ GÜNCELLEME İKİ AŞAMALI MODAL
+       ========================================================= */
+    const btnOpenMeasureModal = document.getElementById("btnOpenMeasureModal");
+
+    function getPhysicalStatsKey() {
+        const user = window.Auth && typeof window.Auth.getUser === "function" ? window.Auth.getUser() : null;
+        const uid = user && (user.id || user.userId || user.username) ? (user.id || user.userId || user.username) : "default";
+        return `fitness_pro_physical_stats_${uid}`;
+    }
+
+    function loadSavedPhysicalStats() {
+        try {
+            const raw = localStorage.getItem(getPhysicalStatsKey());
+            if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        return null;
+    }
+
+    function savePhysicalStats(stats) {
+        try {
+            localStorage.setItem(getPhysicalStatsKey(), JSON.stringify(stats));
+        } catch (e) {}
+    }
+
+    let tempPhysicalStats = loadSavedPhysicalStats() || {
+        height: 178,
+        weight: 75.0,
+        age: 26,
+        updatedAt: new Date().toISOString()
+    };
+
+    function applyPhysicalStatsToUI(stats) {
+        if (!stats) return;
+        const formattedDate = new Date(stats.updatedAt || new Date()).toLocaleDateString("tr-TR", {
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        });
+
+        if (panelCurrentWeight) panelCurrentWeight.textContent = String(stats.weight || "-");
+        if (panelCurrentDate) panelCurrentDate.textContent = formattedDate;
+        if (deltaTo) deltaTo.textContent = `${stats.weight} kg`;
+        if (summaryWeight) summaryWeight.textContent = `${stats.weight} kg`;
+        
+        // Initial vs Current diff
+        const initW = parseFloat(panelInitialWeight?.textContent) || (stats.weight - 2.5);
+        if (panelInitialWeight && (!panelInitialWeight.textContent || panelInitialWeight.textContent === "-")) {
+            panelInitialWeight.textContent = String(initW.toFixed(1));
+        }
+        if (panelInitialDate && (!panelInitialDate.textContent || panelInitialDate.textContent === "-")) {
+            const initDateObj = new Date();
+            initDateObj.setDate(initDateObj.getDate() - 30);
+            panelInitialDate.textContent = initDateObj.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
+        }
+        const diff = (stats.weight - initW).toFixed(1);
+        if (deltaValue) {
+            deltaValue.textContent = `${diff > 0 ? "+" : ""}${diff} kg`;
+            deltaValue.className = `weight-delta-value ${diff < 0 ? "loss" : "gain"}`;
+        }
+        if (summaryWeightDelta) {
+            summaryWeightDelta.textContent = `${diff > 0 ? "+" : ""}${diff} kg`;
+        }
+    }
+
+    // Apply saved stats on init
+    applyPhysicalStatsToUI(tempPhysicalStats);
+
+    // Open Two-Step Measure Modal
+    function openMeasureModal() {
+        if (!window.GlobalModal) return;
+
+        let step1Data = {
+            height: tempPhysicalStats.height || 178,
+            weight: tempPhysicalStats.weight || 75.0,
+            age: tempPhysicalStats.age || 26
+        };
+
+        function renderStep1() {
+            const content = document.createElement("div");
+            content.className = "measure-modal-step";
+            content.innerHTML = `
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">
+                    Adım 1/2: Güncel fiziksel değerlerinizi girin.
+                </p>
+                <div class="measure-input-group">
+                    <label for="inputMeasureHeight">Boy</label>
+                    <div class="measure-input-wrapper">
+                        <input type="number" id="inputMeasureHeight" min="100" max="250" step="1" value="${step1Data.height}" placeholder="178" required>
+                        <span class="measure-unit">cm</span>
+                    </div>
+                    <span class="measure-error-msg" id="errMeasureHeight">Lütfen 100 - 250 cm arası geçerli bir boy girin.</span>
+                </div>
+
+                <div class="measure-input-group">
+                    <label for="inputMeasureWeight">Kilo</label>
+                    <div class="measure-input-wrapper">
+                        <input type="number" id="inputMeasureWeight" min="30" max="300" step="0.1" value="${step1Data.weight}" placeholder="75.0" required>
+                        <span class="measure-unit">kg</span>
+                    </div>
+                    <span class="measure-error-msg" id="errMeasureWeight">Lütfen 30 - 300 kg arası geçerli bir kilo girin.</span>
+                </div>
+
+                <div class="measure-input-group">
+                    <label for="inputMeasureAge">Yaş</label>
+                    <div class="measure-input-wrapper">
+                        <input type="number" id="inputMeasureAge" min="10" max="120" step="1" value="${step1Data.age}" placeholder="26" required>
+                        <span class="measure-unit">yaş</span>
+                    </div>
+                    <span class="measure-error-msg" id="errMeasureAge">Lütfen 10 - 120 arası geçerli bir yaş girin.</span>
+                </div>
+            `;
+
+            window.GlobalModal.open({
+                type: "info",
+                title: "Fiziksel Değerleri Güncelle",
+                description: "Vücut gelişiminizi takip etmek için mevcut boy, kilo ve yaşınızı girin.",
+                content,
+                buttons: [
+                    {
+                        text: "İptal",
+                        variant: "secondary",
+                        closeOnClick: true
+                    },
+                    {
+                        text: "İleri →",
+                        variant: "primary",
+                        closeOnClick: false,
+                        callback: () => {
+                            const hInput = document.getElementById("inputMeasureHeight");
+                            const wInput = document.getElementById("inputMeasureWeight");
+                            const aInput = document.getElementById("inputMeasureAge");
+
+                            const errH = document.getElementById("errMeasureHeight");
+                            const errW = document.getElementById("errMeasureWeight");
+                            const errA = document.getElementById("errMeasureAge");
+
+                            let isValid = true;
+
+                            const heightVal = parseFloat(hInput?.value);
+                            if (isNaN(heightVal) || heightVal < 100 || heightVal > 250) {
+                                if (errH) errH.classList.add("visible");
+                                isValid = false;
+                            } else {
+                                if (errH) errH.classList.remove("visible");
+                            }
+
+                            const weightVal = parseFloat(wInput?.value);
+                            if (isNaN(weightVal) || weightVal < 30 || weightVal > 300) {
+                                if (errW) errW.classList.add("visible");
+                                isValid = false;
+                            } else {
+                                if (errW) errW.classList.remove("visible");
+                            }
+
+                            const ageVal = parseInt(aInput?.value, 10);
+                            if (isNaN(ageVal) || ageVal < 10 || ageVal > 120) {
+                                if (errA) errA.classList.add("visible");
+                                isValid = false;
+                            } else {
+                                if (errA) errA.classList.remove("visible");
+                            }
+
+                            if (!isValid) return false;
+
+                            step1Data = { height: heightVal, weight: weightVal, age: ageVal };
+                            renderStep2(step1Data);
+                            return false;
+                        }
+                    }
+                ]
+            });
+        }
+
+        function renderStep2(data) {
+            const bmi = (data.weight / Math.pow(data.height / 100, 2)).toFixed(1);
+            let bmiCategory = "Normal Kilolu";
+            if (bmi < 18.5) bmiCategory = "Zayıf";
+            else if (bmi >= 25 && bmi < 30) bmiCategory = "Fazla Kilolu";
+            else if (bmi >= 30) bmiCategory = "Obez";
+
+            const content = document.createElement("div");
+            content.className = "measure-modal-step";
+            content.innerHTML = `
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">
+                    Adım 2/2: Bilgilerinizi kontrol edin ve onaylayın.
+                </p>
+                <div class="measure-summary-card">
+                    <div class="measure-summary-item">
+                        <span class="measure-summary-label">Boy:</span>
+                        <strong class="measure-summary-val">${data.height} cm</strong>
+                    </div>
+                    <div class="measure-summary-item">
+                        <span class="measure-summary-label">Kilo:</span>
+                        <strong class="measure-summary-val">${data.weight} kg</strong>
+                    </div>
+                    <div class="measure-summary-item">
+                        <span class="measure-summary-label">Yaş:</span>
+                        <strong class="measure-summary-val">${data.age}</strong>
+                    </div>
+                    <div class="measure-summary-item">
+                        <span class="measure-summary-label">Hesaplanan VKİ (BMI):</span>
+                        <strong class="measure-summary-val" style="color: var(--primary);">${bmi} (${bmiCategory})</strong>
+                    </div>
+                </div>
+                <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">
+                    Değerleri onayladığınızda fiziksel gelişim göstergeleriniz güncellenecektir.
+                </p>
+            `;
+
+            window.GlobalModal.open({
+                type: "confirmation",
+                title: "Bilgileri Onayla",
+                description: "Girilen fiziksel değerleri kontrol edin.",
+                content,
+                buttons: [
+                    {
+                        text: "← Geri Dön",
+                        variant: "secondary",
+                        closeOnClick: false,
+                        callback: () => {
+                            renderStep1();
+                            return false;
+                        }
+                    },
+                    {
+                        text: "Onayla ve Kaydet",
+                        variant: "primary",
+                        closeOnClick: false,
+                        callback: async ({ setLoading, close }) => {
+                            setLoading(true);
+                            try {
+                                // Simulate API / persist user stats
+                                await new Promise(r => setTimeout(r, 600));
+
+                                tempPhysicalStats = {
+                                    height: data.height,
+                                    weight: data.weight,
+                                    age: data.age,
+                                    updatedAt: new Date().toISOString()
+                                };
+                                savePhysicalStats(tempPhysicalStats);
+                                applyPhysicalStatsToUI(tempPhysicalStats);
+
+                                close("action");
+
+                                window.GlobalModal.alert({
+                                    type: "success",
+                                    title: "Başarılı",
+                                    message: "Fiziksel değerleriniz başarıyla kaydedildi ve gelişim ekranı güncellendi."
+                                });
+                            } catch (err) {
+                                setLoading(false);
+                                window.GlobalModal.alert({
+                                    type: "error",
+                                    title: "Hata",
+                                    message: "Değerler kaydedilirken bir hata oluştu. Lütfen tekrar deneyin."
+                                });
+                            }
+                        }
+                    }
+                ]
+            });
+        }
+
+        renderStep1();
+    }
+
+    if (btnOpenMeasureModal) {
+        btnOpenMeasureModal.addEventListener("click", openMeasureModal);
+    }
+
 });

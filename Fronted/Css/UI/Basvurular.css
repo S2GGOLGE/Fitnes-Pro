@@ -62,6 +62,7 @@
     --secondary: #475569;
     --muted: #94A3B8;
     --shadow: 0 16px 38px rgba(15, 23, 42, 0.08);
+    --sidebar-bg: #FFFFFF;
 }
 
 [data-theme="light"] body,
@@ -69,10 +70,97 @@
     background: radial-gradient(circle at 100% 0, rgba(22, 163, 74, 0.05), transparent 30rem), var(--bg);
 }
 
+[data-theme="light"] .basvurular-sidebar,
+.light-theme .basvurular-sidebar {
+    background: #FFFFFF;
+    border-right-color: var(--border);
+    box-shadow: 2px 0 16px rgba(15, 23, 42, 0.06);
+}
+
+[data-theme="light"] .mobile-topbar,
+.light-theme .mobile-topbar {
+    background: #FFFFFF;
+    border-bottom-color: var(--border);
+}
+
+[data-theme="light"] .sidebar-profile,
+.light-theme .sidebar-profile {
+    background: var(--surface-soft);
+    border-color: var(--border);
+}
+
+[data-theme="light"] .profile-avatar,
+.light-theme .profile-avatar {
+    color: var(--primary);
+}
+
+[data-theme="light"] .sidebar-close-btn,
+.light-theme .sidebar-close-btn {
+    background: var(--surface-soft);
+    border-color: var(--border);
+    color: var(--secondary);
+}
+
+[data-theme="light"] .sidebar-close-btn:hover,
+.light-theme .sidebar-close-btn:hover {
+    background: var(--card-hover);
+    color: var(--text);
+}
+
+[data-theme="light"] .sidebar-app-item,
+.light-theme .sidebar-app-item {
+    background: var(--card);
+    border-color: var(--border);
+    color: var(--text);
+}
+
+[data-theme="light"] .sidebar-app-item:hover,
+.light-theme .sidebar-app-item:hover {
+    background: var(--card-hover);
+    border-color: var(--border-green);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+[data-theme="light"] .sidebar-app-item.active,
+.light-theme .sidebar-app-item.active {
+    background: rgba(22, 163, 74, 0.08);
+    border-color: var(--primary);
+}
+
+[data-theme="light"] .sidebar-app-status.status-pending,
+.light-theme .sidebar-app-status.status-pending {
+    background: rgba(217, 119, 6, 0.12);
+    color: #b45309;
+}
+
+[data-theme="light"] .sidebar-app-status.status-approved,
+.light-theme .sidebar-app-status.status-approved {
+    background: rgba(22, 163, 74, 0.12);
+    color: #15803d;
+}
+
+[data-theme="light"] .sidebar-app-status.status-rejected,
+.light-theme .sidebar-app-status.status-rejected {
+    background: rgba(220, 38, 38, 0.12);
+    color: #b91c1c;
+}
+
+[data-theme="light"] .sidebar-applications-list::-webkit-scrollbar-thumb,
+.light-theme .sidebar-applications-list::-webkit-scrollbar-thumb {
+    background: rgba(15, 23, 42, 0.15);
+}
+
+[data-theme="light"] .sidebar-apps-empty,
+.light-theme .sidebar-apps-empty {
+    background: rgba(22, 163, 74, 0.05);
+    border-color: rgba(22, 163, 74, 0.25);
+    color: var(--muted);
+}
+
 [data-theme="light"] .application-card,
 .light-theme .application-card,
-[data-theme="light"] .basvuru-sidebar,
-.light-theme .basvuru-sidebar,
+[data-theme="light"] .basvurular-sidebar,
+.light-theme .basvurular-sidebar,
 [data-theme="light"] .metric-card,
 .light-theme .metric-card {
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
@@ -141,7 +229,7 @@ a {
     align-self: flex-start;
     padding: 20px 14px;
     border-right: 1px solid var(--border);
-    background: rgba(18, 24, 21, 0.96);
+    background: var(--sidebar-bg, rgba(18, 24, 21, 0.96));
     backdrop-filter: blur(12px);
     display: flex;
     flex-direction: column;
@@ -585,7 +673,7 @@ a {
     height: 64px;
     padding: 0 18px;
     border-bottom: 1px solid var(--border);
-    background: rgba(18, 24, 21, 0.95);
+    background: var(--sidebar-bg, rgba(18, 24, 21, 0.95));
     backdrop-filter: blur(10px);
     position: sticky;
     top: 0;

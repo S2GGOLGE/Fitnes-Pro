@@ -70,6 +70,52 @@
         statSystemHealth: document.getElementById("statSystemHealth"),
 
         // Sistem Ayarları
+        // Sistem Ayarları Toggle Yönetimi ve Kalıcılık
+        function loadSystemSwitches() {
+            try {
+                const stored = localStorage.getItem("fitness_pro_system_switches");
+                if (stored) {
+                    const settings = JSON.parse(stored);
+                    if (dom.toggleAuditLog && typeof settings.auditLog === "boolean") {
+                        dom.toggleAuditLog.checked = settings.auditLog;
+                    }
+                    if (dom.toggleUserRegistration && typeof settings.userRegistration === "boolean") {
+                        dom.toggleUserRegistration.checked = settings.userRegistration;
+                    }
+                    if (dom.toggleMaintenanceMode && typeof settings.maintenanceMode === "boolean") {
+                        dom.toggleMaintenanceMode.checked = settings.maintenanceMode;
+                    }
+                }
+            } catch (e) {
+                console.warn("[Admin] Sistem anahtarları okunamadı:", e);
+            }
+        }
+
+        function saveSystemSwitches() {
+            try {
+                const settings = {
+                    auditLog: Boolean(dom.toggleAuditLog?.checked),
+                    userRegistration: Boolean(dom.toggleUserRegistration?.checked),
+                    maintenanceMode: Boolean(dom.toggleMaintenanceMode?.checked)
+                };
+                localStorage.setItem("fitness_pro_system_switches", JSON.stringify(settings));
+            } catch (e) {}
+        }
+
+        loadSystemSwitches();
+
+        if (dom.toggleAuditLog) {
+            dom.toggleAuditLog.addEventListener("change", () => {
+                saveSystemSwitches();
+            });
+        }
+
+        if (dom.toggleUserRegistration) {
+            dom.toggleUserRegistration.addEventListener("change", () => {
+                saveSystemSwitches();
+            });
+        }
+
         toggleMaintenanceMode: document.getElementById("toggleMaintenanceMode"),
         toggleUserRegistration: document.getElementById("toggleUserRegistration"),
         toggleAuditLog: document.getElementById("toggleAuditLog")
@@ -516,6 +562,7 @@
                             description: "Bakım modu etkinleştirildiğinde yöneticiler haricindeki tüm kullanıcıların platform erişimi geçici olarak durdurulur.",
                             onConfirm: () => {
                                 dom.toggleMaintenanceMode.checked = true;
+                                saveSystemSwitches();
                                 window.GlobalModal.alert({
                                     type: "warning",
                                     title: "Bakım Modu Aktif",

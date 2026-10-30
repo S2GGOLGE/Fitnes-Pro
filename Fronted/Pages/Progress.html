@@ -43,7 +43,7 @@
             </div>
 
             <div class="profile-card">
-                <div class="profile-avatar">-</div>
+                <div class="profile-avatar" id="sidebarAvatar">E</div>
                 <div class="profile-info">
                     <strong>-</strong>
                     <span>Fitness Pro</span>
@@ -149,9 +149,9 @@
                         </svg>
                         <span class="notification-dot"></span>
                     </a>
-                    <a href="Profile.html" class="topbar-profile" title="Profilim">
-                        <span class="topbar-avatar">-</span>
-                        <span class="topbar-username">-</span>
+                    <a href="Profile.html" class="topbar-profile" id="topbarProfileLink" title="Profilim">
+                        <span class="topbar-avatar" id="topbarAvatar">E</span>
+                        <span class="topbar-username" id="topbarUsername">Emre</span>
                     </a>
                 </div>
             </header>
@@ -159,17 +159,18 @@
             <div class="page-content">
 
                 <!-- ==================== PAGE HEADER ==================== -->
-                <section class="prog-page-header">
+                                <section class="prog-page-header">
                     <div class="prog-header-text">
                         <span class="section-label">FİZİKSEL GELİŞİM</span>
                         <h1>İlerlemem</h1>
-                        <p>İlk ölçümünden bugüne fiziksel gelişimini takip et.</p>
                     </div>
-                    <div class="prog-date-filter" role="tablist" aria-label="Dönem filtresi">
-                        <button type="button" class="date-filter-btn" data-period="30d" role="tab" aria-selected="false">Son 30 Gün</button>
-                        <button type="button" class="date-filter-btn" data-period="3m" role="tab" aria-selected="false">Son 3 Ay</button>
-                        <button type="button" class="date-filter-btn" data-period="6m" role="tab" aria-selected="false">Son 6 Ay</button>
-                        <button type="button" class="date-filter-btn active" data-period="all" role="tab" aria-selected="true">Tümü</button>
+                    <div class="prog-header-actions">
+                        <button type="button" class="btn btn-primary" id="btnOpenMeasureModal" aria-label="Boy, Kilo ve Yaş Güncelle">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M12 5v14M5 12h14"/>
+                            </svg>
+                            <span>Ölçümleri Güncelle</span>
+                        </button>
                     </div>
                 </section>
 

@@ -4,4 +4,4 @@
  * Backend API adresi merkezi olarak burada tanımlanır.
  */
 
-window.API_BASE_URL = "https://seas-view-bathrooms-valves.trycloudflare.com";
+window.API_BASE_URL = "https://mothers-impression-cancellation-lambda.trycloudflare.com";

@@ -1,4 +1,4 @@
-﻿:root {
+:root {
     --bg: #0B0F0D;
     --surface: #121815;
     --card: #18201B;
@@ -39,6 +39,13 @@
 
     --border: rgba(15, 23, 42, 0.08);
     --border-green: rgba(22, 163, 74, 0.25);
+    --topbar-bg: rgba(255, 255, 255, 0.88);
+}
+
+[data-theme="light"] .topbar,
+.light-theme .topbar {
+    background: rgba(255, 255, 255, 0.88);
+    border-bottom: 1px solid var(--border);
 }
 
 [data-theme="light"] .sidebar,
@@ -507,7 +514,7 @@ a {
 
     border-bottom: 1px solid var(--border);
 
-    background: rgba(11, 15, 13, 0.82);
+    background: var(--topbar-bg, rgba(11, 15, 13, 0.82));
 
     backdrop-filter: blur(16px);
 

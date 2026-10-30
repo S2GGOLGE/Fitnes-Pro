@@ -143,25 +143,43 @@
         }
     }
 
-    function showToast(message, type) {
-        if (window.GlobalModal && typeof window.GlobalModal.alert === "function") {
-            const safeType = ["success", "error", "warning", "info"].includes(type) ? type : "info";
-            const title = safeType === "success" ? "Başarılı"
-                : safeType === "error" ? "Hata"
-                    : safeType === "warning" ? "Uyarı" : "Bilgi";
-            window.GlobalModal.alert({
-                type: safeType,
-                title,
-                message: message || "İşlem tamamlandı."
-            });
-            return;
+    function showToast(message, type = "info") {
+        const safeType = ["success", "error", "warning", "info"].includes(type) ? type : "info";
+        let container = document.getElementById("msgToastContainer");
+        if (!container) {
+            container = document.createElement("div");
+            container.id = "msgToastContainer";
+            container.className = "msg-toast-container";
+            container.setAttribute("aria-live", "polite");
+            document.body.appendChild(container);
         }
-        // Fallback
-        if (type === "error") {
-            console.error("[Mesajlar]", message);
-        } else {
-            console.log("[Mesajlar]", message);
-        }
+
+        const toast = document.createElement("div");
+        toast.className = `msg-toast msg-toast-${safeType}`;
+
+        const icons = {
+            success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>',
+            error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+            warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+            info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+        };
+
+        toast.innerHTML = `
+            <span class="msg-toast-icon">${icons[safeType]}</span>
+            <span class="msg-toast-text">${escapeHtml(message || "İşlem tamamlandı.")}</span>
+            <button type="button" class="msg-toast-close" aria-label="Bildirimi kapat">×</button>
+        `;
+
+        let timer = null;
+        const removeToast = () => {
+            if (timer) clearTimeout(timer);
+            toast.classList.add("msg-toast-hide");
+            setTimeout(() => toast.remove(), 250);
+        };
+
+        toast.querySelector(".msg-toast-close").addEventListener("click", removeToast);
+        container.appendChild(toast);
+        timer = setTimeout(removeToast, 3500);
     }
 
     function showConfirm(options) {
@@ -1118,7 +1136,12 @@
                 </div>
                 <div class="msg-bubble-meta">
                     <span>${escapeHtml(msg.time || "Şimdi")}</span>
-                    ${msg.sender === "outgoing" ? '<i data-lucide="check-check" style="width:14px; height:14px;"></i>' : ''}
+                    ${msg.sender === "outgoing" ? `
+                        <span class="msg-read-status ${msg.read ? 'is-read' : 'is-sent'}" title="${msg.read ? 'Okundu' : 'İletildi (Okunmadı)'}">
+                            <i data-lucide="${msg.read ? 'check-check' : 'check'}"></i>
+                            <span>${msg.read ? 'Okundu' : 'İletildi'}</span>
+                        </span>
+                    ` : ''}
                 </div>
             `;
 
@@ -1316,7 +1339,7 @@
         const tempText = text;
         if (dom.chatInputText) dom.chatInputText.value = "";
 
-        showToast("Mesaj gönderiliyor...", "info");
+        // sending message...
 
         window.MessagesAPI.sendMessage({
             receiverId: activeChat.partnerId,
