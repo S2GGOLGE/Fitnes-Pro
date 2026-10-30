@@ -17,7 +17,11 @@ set "BACKEND_DIR=%PROJECT_ROOT%\Backend\Gym-Pro-Api\Gym-Pro-Api"
 set "FRONTEND_DIR=%PROJECT_ROOT%\Fronted"
 set "COMPOSE_FILE=%BACKEND_DIR%\docker-compose.yml"
 set "ENV_FILE=%BACKEND_DIR%\.env"
-set "DOCKER_EXE=C:\Program Files\Docker\Docker\Docker Desktop.exe"
+set "DOCKER_EXE="
+if exist "%LOCALAPPDATA%\Programs\DockerDesktop\Docker Desktop.exe" set "DOCKER_EXE=%LOCALAPPDATA%\Programs\DockerDesktop\Docker Desktop.exe"
+if not defined DOCKER_EXE if exist "%ProgramFiles%\Docker\Docker\Docker Desktop.exe" set "DOCKER_EXE=%ProgramFiles%\Docker\Docker\Docker Desktop.exe"
+if not defined DOCKER_EXE if exist "C:\Program Files\Docker\Docker\Docker Desktop.exe" set "DOCKER_EXE=C:\Program Files\Docker\Docker\Docker Desktop.exe"
+if not defined DOCKER_EXE if exist "%ProgramW6432%\Docker\Docker\Docker Desktop.exe" set "DOCKER_EXE=%ProgramW6432%\Docker\Docker\Docker Desktop.exe"
 
 set "DB_CONTAINER=fitnesspro-db"
 set "API_CONTAINER=fitness-pro-api"
@@ -31,7 +35,7 @@ set "DOCKER_TIMEOUT=180"
 
 echo.
 echo ===========================================================
-echo   FITNESS PRO  -  SYSTEM START & CLOUDFLARE AUTOMATION
+echo   FITNESS PRO  -  SYSTEM START ^& CLOUDFLARE AUTOMATION
 echo ===========================================================
 echo.
 
@@ -58,6 +62,13 @@ if not errorlevel 1 (
 )
 
 echo   Engine not running. Trying to start Docker Desktop...
+if not defined DOCKER_EXE (
+    echo   [ERROR] Docker Desktop executable not found in standard paths:
+    echo            - %LOCALAPPDATA%\Programs\DockerDesktop\Docker Desktop.exe
+    echo            - %ProgramFiles%\Docker\Docker\Docker Desktop.exe
+    echo            Start Docker Desktop manually and retry.
+    goto :fatal
+)
 if not exist "%DOCKER_EXE%" (
     echo   [ERROR] Docker Desktop not found at:
     echo            %DOCKER_EXE%
@@ -276,19 +287,26 @@ echo   OK
 echo.
 
 rem ============================================================
-rem  [10] Cloudflare Quick Tunnels and Frontend Config Update
+rem  [10] Cloudflare Quick Tunnels (Ayri Konsol)
 rem ============================================================
-echo [10] Starting Cloudflare Quick Tunnels...
-powershell -NoProfile -ExecutionPolicy Bypass -File "%PROJECT_ROOT%\start-cloudflare.ps1"
-if errorlevel 1 (
-    echo   [ERROR] Cloudflare tunnel automation encountered an error.
-    echo   Local services are running. You can check:
-    echo     Backend  : http://localhost:%BACKEND_PORT%
-    echo     Frontend : http://127.0.0.1:%FRONTEND_PORT%/
-    goto :fatal
-)
+echo [10] Starting Cloudflare Quick Tunnels in separate console...
+start "Fitness Pro - Cloudflare Tunnels" "%PROJECT_ROOT%\start-cloudflare.bat"
+echo   OK - Cloudflare console launched in separate window.
+echo.
 
-timeout /t 3 /nobreak >nul 2>&1
+echo ===========================================================
+echo   SYSTEM READY
+echo   Backend API  : http://localhost:%BACKEND_PORT%
+echo   Swagger UI   : http://localhost:%BACKEND_PORT%/swagger
+echo   Health Check : %HEALTH_URL%
+echo   Frontend UI  : http://127.0.0.1:%FRONTEND_PORT%/
+echo.
+echo   Cloudflare tunelleri ayri bir konsol penceresinde acildi.
+echo   Tunel adreslerini acilan yeni pencereden takip edebilirsiniz.
+echo.
+echo   Durdurmak icin : Sistemi Kapat.bat veya stop-cloudflare.bat
+echo ===========================================================
+timeout /t 5 /nobreak >nul 2>&1
 exit /b 0
 
 rem ============================================================

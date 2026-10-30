@@ -1,410 +1,695 @@
-# FITNESS PRO — UI/UX DÜZELTMELERİ VE FONKSİYONEL HATA ANALİZİ
+# FITNESS PRO
+# FRONTEND DÜZELTME VE GELİŞTİRME TALİMATLARI
+
+Proje: Fitness Pro
+Kapsam: Frontend, global tema sistemi, kullanıcı arayüzü, modal işlemleri ve mevcut API entegrasyonları.
+
+============================================================
+1. GENEL KURALLAR VE GELİŞTİRME STANDARTLARI
+============================================================
+
+Geliştirmeye başlamadan önce mevcut proje yapısını, global JavaScript dosyalarını, CSS dosyalarını, tema yönetim sistemini ve ilgili HTML sayfalarını incele.
+
+TEMEL KURALLAR:
+
+1. Mevcut proje mimarisini koru.
+2. Çalışan özellikleri bozma veya gereksiz yere yeniden yazma.
+3. Yeni bir tema sistemi oluşturma. Mevcut global Light/Dark tema sistemini kullan.
+4. Ortak bileşenler mevcutsa bunları yeniden kullan.
+5. Aynı işlevi gerçekleştiren gereksiz CSS sınıfları, JavaScript fonksiyonları veya bileşenler oluşturma.
+6. HTML, CSS ve JavaScript dosyalarının mevcut organizasyonuna uygun hareket et.
+7. Mevcut API bağlantılarını, JWT kimlik doğrulamasını ve kullanıcıya özel veri işlemlerini koru.
+8. Backend tarafından desteklenmeyen bir özelliği çalışıyormuş gibi gösterme.
+9. Veritabanı işlemlerini mevcut backend API'leri üzerinden gerçekleştir.
+10. Gerektiğinde backend kodunu incele; ancak görev kapsamı dışında kalan sistemleri değiştirme.
+11. Yeni modal, bildirim, buton, açılır menü ve formları hem Light hem Dark temayla uyumlu hâle getir.
+12. Sayfalar arasında ortak tasarım ve kullanım tutarlılığını koru.
+13. Responsive tasarımı koru.
+14. Kullanıcı verilerini, mevcut veritabanı kayıtlarını ve kimlik doğrulama mekanizmasını koru.
+15. Değişikliklerden sonra ilgili sayfaları test et ve yeni hatalar oluşturmadığını doğrula.
+
+TASARIM REFERANSI:
+
+Raporlar\Tasarım\Renk Tema.pdf
+
+Bu PDF dosyasını mutlaka incele. Light tema renklerini, arka planları, metin renklerini, kenarlıkları ve diğer tasarım standartlarını bu dosyaya göre belirle.
+
+Renk değerlerini tahmin ederek yeni bir tasarım oluşturma. Önce PDF dosyasını ve projedeki global tema değişkenlerini kontrol et.
+
+GLOBAL TEMA KURALLARI:
+
+- Light tema açık renkli bir arayüz kullanmalıdır.
+- Dark tema mevcut koyu renk tasarımını korumalıdır.
+- Menülerin, butonların, ikonların, modalların ve bildirimlerin renkleri aktif temaya göre değişmelidir.
+- Light temada siyah kalan sabit arka planlar düzeltilmelidir.
+- Dark temada açık kalan sabit arka planlar varsa mevcut tasarım standartlarına göre düzeltilmelidir.
+- Tema değiştirildiğinde bileşenler eski temanın renklerinde kalmamalıdır.
+- Tema tercihleri mevcut sistemin kullandığı yöntemle yönetilmelidir.
+- Her HTML sayfasına ayrı ve gereksiz tema sistemi eklenmemelidir.
 
-## 1. GENEL GÖREV TANIMI
+============================================================
+2. INDEX.HTML
+REFERANS GÖRSEL: 1.png
+============================================================
+
+SORUN:
+
+Light tema etkinleştirildiğinde üst menü siyah kalıyor. Üst menünün beyaz veya tasarım PDF'sinde belirtilen uygun açık renkte olması gerekiyor.
+
+YAPILACAKLAR:
+
+1. Index.html dosyasını incele.
+2. Üst menünün HTML ve CSS yapısını belirle.
+3. Menüde kullanılan arka plan, metin, ikon ve hover renklerini kontrol et.
+4. Menü renginin neden Light temaya geçmediğini tespit et.
+5. Sabit renkler yerine mevcut global tema değişkenlerini kullan.
+6. Light temada üst menüyü tasarım PDF'sine uygun açık renge dönüştür.
+7. Menü metinlerinin ve ikonlarının yeterli kontrasta sahip olmasını sağla.
+8. Hover ve aktif menü durumlarını her iki temada kontrol et.
+9. Dark tema görünümünü koru.
+10. Tema değiştirildiğinde üst menünün doğru renge geçmesini sağla.
 
-Fitness Pro projesinde aşağıda belirtilen sayfalardaki UI/UX problemlerini, çalışmayan butonları, modal hatalarını, responsive tasarım sorunlarını ve bildirim ayarları eksikliklerini incele ve düzelt.
+KABUL KRİTERLERİ:
 
-**Temel kurallar:**
+- Light temada üst menü siyah kalmamalıdır.
+- Üst menü tasarım dokümanındaki renk standartlarına uymalıdır.
+- Dark tema görünümü bozulmamalıdır.
+- Tema yönetimi global sistem üzerinden yapılmalıdır.
+
+============================================================
+3. GOALS.HTML — HEDEFLERİM
+REFERANS GÖRSEL: 2.png
+============================================================
+
+SORUN:
+
+Hamburger menü Light tema açıkken Dark tema görünümünde kalıyor.
+
+YAPILACAKLAR:
+
+1. Goals.html dosyasını incele.
+2. Hamburger menünün HTML, CSS ve JavaScript yapısını belirle.
+3. Menü arka planında ve bileşenlerinde kullanılan sabit renkleri tespit et.
+4. Mevcut global tema değişkenlerini kullanarak renk sorununu düzelt.
+5. Light temada menünün arka planını tasarım standartlarına uygun açık renge dönüştür.
+6. Menü metinlerinin ve ikonlarının okunabilirliğini sağla.
+7. Hover, focus ve aktif bağlantı renklerini düzenle.
+8. Menü açma ve kapatma işlevlerini koru.
+9. Menü dışına tıklama ve Escape tuşuyla kapatma davranışlarını mevcut sistemle uyumlu hâle getir.
+10. Dark tema görünümünü koru.
+11. Menü bağlantılarının doğru sayfalara yönlendirdiğini doğrula.
+12. Mobil ve masaüstü görünümünü kontrol et.
 
-1. Öncelikle mevcut frontend ve backend kodlarını analiz et. Sorunun kaynağını belirlemeden rastgele kod değişikliği yapma.
-2. Mevcut sayfa tasarımını, renk paletini, bileşen yapısını ve kullanıcı deneyimini koru. İstenen değişiklikler dışında kapsamlı tasarım değişikliği yapma.
-3. Projede zaten bulunan CSS, JavaScript, API servisleri, DTO'lar, modeller ve endpoint'leri incele. Mevcut işlevleri yeniden yazmak yerine gerektiğinde bunları iyileştir.
-4. Yeni bir UI kütüphanesi veya gereksiz bağımlılık ekleme.
-5. Masaüstü, tablet ve mobil ekranlarda test et.
-6. Gerçek backend verisi yerine kalıcı olacak sahte veriler veya yalnızca arayüzde çalışan butonlar kullanma.
-7. Backend değişikliği gerekiyorsa veritabanı, API sözleşmeleri, kimlik doğrulama ve kullanıcı bazlı veri izolasyonunu birlikte değerlendir.
-8. Kullanıcıya ait bildirim tercihleri gibi kişisel ayarları kullanıcı kimliği üzerinden sakla. Kullanıcılar birbirlerinin ayarlarını görüntüleyememeli veya değiştirememeli.
-9. Referans görsellerini kullanarak mevcut sorunları belirle. Görsellerin hangi bileşene ait olduğunu doğrulamadan tahminde bulunma.
-10. Her değişiklikten sonra ilgili fonksiyonları test et. Build hatalarını, konsol hatalarını ve Network hatalarını kontrol et.
-11. İlgisiz dosyaları değiştirme. Mevcut çalışan fonksiyonları bozma.
-12. Bir özellik tamamlanamıyorsa tamamlanmış gibi gösterme; eksikliği, nedenini ve gereken işlemi raporla.
+KABUL KRİTERLERİ:
 
----
+- Light temada hamburger menü uygun açık renklerde görünmelidir.
+- Dark temanın mevcut görünümü korunmalıdır.
+- Menü işlevleri ve sayfa yönlendirmeleri çalışmalıdır.
 
-## 2. BİLDİRİMLER.HTML — BİLDİRİM AYARLARI VE DETAY MODALI
+============================================================
+4. BASVURULAR.HTML — BAŞVURULARIM
+REFERANS GÖRSELLER: 3.png VE 4.png
+============================================================
 
-### 2.1. Bildirim ayarları butonu çalışmıyor
+SORUN:
 
-**Mevcut sorun:** `Bildirimler.html` sayfasındaki bildirim ayarları butonu çalışmıyor.
+Light tema açıkken hamburger menü Dark tema görünümünde kalıyor.
 
-Yapılacaklar:
+YAPILACAKLAR:
 
-- Butonun HTML, CSS ve JavaScript bağlantılarını incele.
-- Butona event listener bağlanıp bağlanmadığını kontrol et.
-- Tıklama olayında JavaScript hatası, yanlış element seçicisi, eksik modal veya yanlış fonksiyon çağrısı olup olmadığını belirle.
-- Sorunun kaynağını düzelt ve butonun gerçekten çalıştığını doğrula.
-- Bildirim ayarları için mevcut projede bir modal, panel veya ayar bölümü varsa onu kullan; gereksiz yeni bileşen oluşturma.
+1. Basvurular.html dosyasını incele.
+2. Hamburger menünün HTML, CSS ve JavaScript yapısını kontrol et.
+3. Menü arka planı, metinler, ikonlar ve kenarlıklar için kullanılan renkleri belirle.
+4. Sabit Dark tema renklerini global tema değişkenleriyle değiştir.
+5. Light temada uygun açık renkleri uygula.
+6. Dark tema görünümünü koru.
+7. Hover ve aktif bağlantı renklerini düzenle.
+8. Menü açma ve kapatma işlevlerini test et.
+9. Mevcut sayfa yönlendirmelerini koru.
+10. Mobil ve masaüstü ekranlarda görünümü kontrol et.
 
-### 2.2. Kullanıcının bildirim tercihleri
+KABUL KRİTERLERİ:
 
-Kullanıcının bildirim tercihlerini yönetebileceği bir alan oluştur.
+- Light temada hamburger menü koyu kalmamalıdır.
+- Dark tema görünümü bozulmamalıdır.
+- Menü bağlantıları ve açma/kapatma işlevleri çalışmalıdır.
+- Aynı tema hatası farklı bileşenlerde varsa ortak kaynak belirlenmelidir.
 
-#### A. Bildirim kanalı seçimi
+============================================================
+5. MESAJLAR.HTML
+REFERANS GÖRSEL: 5.png
+============================================================
 
-Kullanıcı aşağıdaki seçeneklerden birini seçebilmeli:
+A) MESAJ OKUNDU BİLGİSİ
 
-- **E-posta bildirimi:** Desteklenen bildirimlerin kullanıcının kayıtlı ve doğrulanmış e-posta adresine gönderilmesi.
-- **Anlık bildirim:** Desteklenen bildirimlerin uygulama içerisinde anlık olarak gösterilmesi.
+SORUN:
 
-Kullanıcı seçimini değiştirdiğinde tercih kalıcı olarak saklanmalı ve sayfa yenilendiğinde korunmalı.
+Mesajların okundu bilgisinde kullanılan renkler uygun değil.
 
-Önemli teknik ayrım:
+YAPILACAKLAR:
 
-- Uygulama içi bildirimler ile Web Push bildirimleri aynı şey değildir.
-- Projede SignalR, Web Push veya benzeri bir gerçek zamanlı bildirim altyapısı varsa mevcut mimariyi incele.
-- Böyle bir altyapı yoksa yalnızca mevcut uygulama içi bildirim sisteminin gerçekten desteklediği davranışı uygula. Web Push özelliğini çalışıyormuş gibi gösterme.
-- E-posta gönderimi için mevcut e-posta servisinden yararlan. Bildirim gönderimi için yeni bir e-posta servisi oluşturma gerekliliği yoksa mevcut servisi kullan.
+1. Mesaj okundu bilgisinin HTML ve CSS yapısını incele.
+2. Okundu ve okunmadı durumlarını belirle.
+3. Her iki durumun da kolayca ayırt edilebilmesini sağla.
+4. Metin ve ikonların arka planla yeterli kontrasta sahip olmasını sağla.
+5. Light ve Dark temalar için uygun renkleri belirle.
+6. Renkleri global tema sistemine bağla.
+7. Mesaj balonlarının ve metinlerinin okunabilirliğini koru.
+8. Mevcut mesajlaşma işlevlerini değiştirme.
 
-#### B. Bildirim önceliği
+B) MESAJ GÖNDERİLDİKTEN SONRA AÇILAN MODAL
 
-Kullanıcı bildirimlerin önceliğini seçebilmeli.
+SORUN:
 
-Önerilen seçenekler:
+Mesaj gönderildikten sonra bir modal açılıyor. Bu modal kaldırılarak yerine bildirim gösterilmesi gerekiyor.
 
-- **Tüm bildirimler:** Desteklenen tüm bildirimleri al.
-- **Önemli bildirimler:** Yalnızca önemli veya yüksek öncelikli bildirimleri al.
-- **Kritik bildirimler:** Yalnızca kritik olarak sınıflandırılmış bildirimleri al.
+YAPILACAKLAR:
 
-Bu sınıflandırmanın mevcut backend bildirim modeliyle uyumunu kontrol et. Öncelik bilgisi mevcut değilse uygun bir model ve API tasarla; ancak bildirim türlerinin hangi önceliğe sahip olacağına dair varsayımları kod içinde belirsiz bırakma.
+1. Mesaj gönderimi sonrasında açılan modalı tespit et.
+2. Başarılı gönderim sonrasında açılan gereksiz modalı kaldır.
+3. Mevcut global bildirim sistemini kullan.
+4. Mesaj başarıyla gönderildiğinde kısa ve anlaşılır bir başarı bildirimi göster.
+5. Bildirimin belirli bir süre sonra otomatik kapanmasını sağla.
+6. Bildirimin kullanıcı tarafından kapatılmasını destekle.
+7. Mesaj gönderimi başarısız olursa uygun bir hata bildirimi göster.
+8. Ağ veya API hatalarında kullanıcıya gerçek hata durumunu bildir.
+9. Bildirimleri Light/Dark temaya uyumlu hâle getir.
+10. Başarılı mesaj gönderiminden sonra mesaj listesinin doğru güncellendiğini kontrol et.
+11. Mesaj gönderme butonunun yüklenme durumunu gerektiğinde göster.
+12. Aynı mesajın yanlışlıkla birden fazla gönderilmesini engellemek için mevcut form davranışını kontrol et.
 
-Güvenlik, hesap erişimi ve zorunlu doğrulama bildirimleri gibi kritik sistem bildirimlerini kullanıcı tercihlerinden bağımsız ele al. Tercih filtresi bu bildirimleri sessizce engellememeli.
+KABUL KRİTERLERİ:
 
-#### C. Tercihlerin kalıcı saklanması
+- Başarılı mesaj gönderiminde gereksiz modal açılmamalıdır.
+- Kullanıcı işlem sonucunu bildirim üzerinden görebilmelidir.
+- Başarısız işlemler doğru şekilde bildirilmelidir.
+- Mesaj gönderme ve liste güncelleme işlevleri korunmalıdır.
 
-- Öncelikle mevcut bildirim tercihleri tablosu, kullanıcı ayarları ve API endpoint'leri olup olmadığını araştır.
-- Mevcut altyapı yeterliyse onu genişlet.
-- Yeterli değilse kullanıcı kimliğiyle ilişkili bir veri modeli oluştur.
-- Tercihler giriş yapan kullanıcıya özel olmalı.
-- Backend tarafında JWT üzerinden doğrulanan kullanıcı kimliğini kullan. İstemciden gelen bir `userId` değerine tek başına güvenme.
-- Kaydetme sırasında başarılı/başarısız durum mesajı göster.
-- Sayfa yenilendiğinde backend'den kayıtlı tercihler yüklenmeli.
-- API hatasında kayıt başarılıymış gibi davranılmamalı.
+============================================================
+6. ADMIN.HTML — YÖNETİM PANELİ
+REFERANS GÖRSELLER: 6.png VE 7.png
+============================================================
 
-### 2.3. Bildirim detay modalı — ikon eksikliği
+BÖLÜM:
 
-**Mevcut sorun:** Bildirim detay modalında ikon eksik.
+Sistem Ayarları → Hızlı Sistem Anahtarı
 
-Yapılacaklar:
+SORUN:
 
-- Mevcut ikon kütüphanesini ve projedeki ikon kullanımını incele.
-- Bildirim türüne uygun bir ikon ekle.
-- Başarı, bilgi, uyarı ve hata bildirimleri birbirinden ayırt edilebilmeli.
-- İkonun boyutu, rengi ve konumu mevcut Fitness Pro tasarımıyla uyumlu olmalı.
-- İkon dekoratifse erişilebilirlik özelliklerini doğru kullan; anlam taşıyorsa uygun bir erişilebilir isim sağla.
-- Modalın başlık, içerik, tarih ve kapatma kontrollerinin düzenini bozma.
+Açma ve kapatma işlemi için kullanılan butonun renkleri Light temada uygun değil.
 
-### 2.4. Responsive menü varsayılan durumu
+ÖNEMLİ:
 
-**Mevcut sorun:** Responsive menü beklenenden açık geliyor.
+Bu görevde yalnızca Light tema görünümü düzenlenecektir. Dark tema görünümüne gereksiz değişiklik yapılmamalıdır.
 
-Beklenen davranış:
+YAPILACAKLAR:
 
-- Mobil/tablet görünümünde menü varsayılan olarak **kapalı** başlamalı.
-- Menü, `index.html` sayfasındaki mevcut responsive menü davranışıyla aynı olmalı.
-- Menü yalnızca kullanıcı menü butonuna bastığında açılmalı.
-- Açık menüde kapatma butonu ve gerekiyorsa arka plan tıklamasıyla kapatma çalışmalı.
-- Sayfa yüklenirken menü açık kalmasına neden olan CSS sınıfı, inline stil, kalıcı durum veya JavaScript başlangıç değerini araştır.
-- Masaüstü menüsünün mevcut davranışını bozma.
-- Klavye ve erişilebilirlik davranışlarını koru.
+1. Admin.html dosyasını incele.
+2. Sistem Ayarları bölümündeki Hızlı Sistem Anahtarı bileşenini belirle.
+3. Anahtarın HTML, CSS ve JavaScript yapısını kontrol et.
+4. Açık ve kapalı durumlarını incele.
+5. Light tema renklerini tasarım PDF'sine göre düzenle.
+6. Buton arka planını, metin rengini, kenarlığını ve varsa anahtar göstergesini kontrol et.
+7. Hover, focus ve disabled durumlarını düzenle.
+8. Global tema değişkenlerini kullan.
+9. Dark tema renklerini ve mevcut görünümünü koru.
+10. Anahtarın gerçek sistem ayarını değiştirip değiştirmediğini kontrol et.
+11. Butonun görsel durumu ile gerçek sistem durumunun tutarlı olmasını sağla.
+12. Yetkilendirme ve yönetici kontrol mekanizmalarını koru.
 
-**Referans:** Görsel 1 ve Görsel 4.
+KABUL KRİTERLERİ:
 
----
+- Light temada Hızlı Sistem Anahtarı uygun renklerde görünmelidir.
+- Dark tema görünümü değişmemelidir.
+- Açma ve kapatma işlevleri çalışmalıdır.
+- Gerçek sistem durumu ile ekrandaki durum birbiriyle tutarlı olmalıdır.
 
-## 3. LOGIN.HTML — E-POSTA DOĞRULAMA KODU SÜRESİ
+============================================================
+7. PROGRESS.HTML — İLERLEME
+REFERANS GÖRSEL: 8.png
+============================================================
 
-**Mevcut sorun:** `Login.html` sayfasında e-posta doğrulama kodunun kalan süresi gösterilmiyor.
+A) ÜST MENÜ TEMA SORUNU
 
-Görev yalnızca arayüzü düzeltmek değil; sorunun frontend kaynaklı mı, backend kaynaklı mı olduğunu kanıtlarla belirlemektir.
+SORUN:
 
-### 3.1. Frontend analizi
+Light tema açıkken üst menü siyah kalıyor.
 
-Şunları kontrol et:
+YAPILACAKLAR:
 
-- Geri sayım JavaScript'i mevcut mu?
-- Sayaç doğru DOM elementine bağlanmış mı?
-- Kod gönderildikten sonra sayaç başlatılıyor mu?
-- Sayfa veya modal açılışında zamanlayıcı başlatılıyor mu?
-- Sayaç yalnızca e-posta gönderme başarılı olduğunda mı başlıyor?
-- Yeniden gönderme sırasında önceki zamanlayıcı temizleniyor mu?
-- Kod doğrulama ekranına geçiş sırasında zamanlayıcı kayboluyor mu?
-- `setInterval`, `clearInterval` veya eşdeğer zamanlayıcı yönetiminde hata var mı?
-- Backend yanıtındaki süre alanı doğru okunuyor mu?
+1. Progress.html dosyasını incele.
+2. Üst menünün HTML ve CSS yapısını belirle.
+3. Menüdeki sabit renkleri tespit et.
+4. Raporlar\Tasarım\Renk Tema.pdf dosyasını incele.
+5. Global tema değişkenlerini kullan.
+6. Light temada üst menüyü tasarım standartlarına uygun açık renge dönüştür.
+7. Metin, ikon, hover ve aktif bağlantı renklerini kontrol et.
+8. Dark tema görünümünü koru.
 
-### 3.2. Backend analizi
+B) PROFİL İKONU
 
-Mevcut e-posta doğrulama ve iki faktörlü doğrulama akışını incele.
+SORUN:
 
-Özellikle:
+Profil ikonu görünmüyor.
 
-- Kodun geçerlilik süresi nerede tanımlanıyor?
-- Backend yanıtı kalan süreyi, son kullanma zamanını veya geçerlilik süresini döndürüyor mu?
-- Kodun son kullanma zamanı veritabanında saklanıyor mu?
-- Sunucu UTC zamanı ile frontend yerel zamanı arasında hesaplama hatası var mı?
-- Kod yeniden gönderildiğinde önceki kodun süresi ve yeni kodun süresi doğru yönetiliyor mu?
-- Frontend yanlış JSON alanını mı okuyor?
-- Süre alanı backend'de mevcut değilse mevcut API sözleşmesini ve güvenlik gereksinimlerini inceleyerek uygun çözümü belirle.
+YAPILACAKLAR:
 
-### 3.3. Beklenen davranış
+1. Profil ikonunun neden görünmediğini tespit et.
+2. HTML içindeki ikon veya bileşen tanımını kontrol et.
+3. İkonun CSS kurallarını ve görünürlük özelliklerini incele.
+4. İkon için kullanılan dosyanın veya ikon kütüphanesinin doğru yüklendiğini doğrula.
+5. Mevcut global profil bileşeni varsa onu kullan.
+6. İkonu görünür ve tıklanabilir hâle getir.
+7. Tıklama sonucunda doğru profil sayfasına yönlendirme yap.
+8. Mevcut kimlik doğrulama ve kullanıcı yönlendirme mekanizmasını koru.
+9. İkonun Light/Dark tema uyumluluğunu sağla.
 
-- Kod başarıyla gönderildiğinde geri sayım başlasın.
-- Kalan süre anlaşılır biçimde gösterilsin; örneğin `04:59`.
-- Sayaç saniyede bir güncellensin.
-- Süre dolduğunda `00:00` gösterilsin.
-- Süre dolmadan yeniden gönderme butonu etkinleşmesin.
-- Süre dolduğunda yeniden gönderme davranışı mevcut güvenlik ve rate limit kurallarına uygun çalışsın.
-- Kod başarıyla doğrulandığında gereksiz zamanlayıcı temizlensin.
-- Kullanıcı sayfayı yenilerse sayaç doğru şekilde yeniden hesaplanmalı. Backend kesin son kullanma zamanını döndürüyorsa onu esas al.
-- İstemci tarafındaki sayaç hiçbir koşulda kodun backend'de geçerli olduğunu tek başına belirlememeli.
+C) BOY, KİLO VE YAŞ GÜNCELLEME MODALI
 
-### 3.4. Sonuç raporu
+AMAÇ:
 
-Kod değişikliğinden önce veya analiz sonucunda şu soruya net cevap ver:
+Kullanıcının mevcut fiziksel değerlerini girebileceği ve daha sonra güncelleyebileceği iki aşamalı bir modal oluştur.
 
-**Sorun frontend'de mi, backend'de mi, yoksa ikisinde birden mi?**
+Modal, mevcut global modal, form, buton ve bildirim sistemini kullanmalıdır.
 
-Kanıt olarak ilgili JavaScript fonksiyonunu, API yanıtını, DTO alanını veya backend süre hesaplama kodunu belirt. Tahmin yürütme.
+MODALIN AÇILMASI:
 
-**Referans:** Görsel 2.
+- İlerleme sayfasına uygun bir buton ekle.
+- Butona basıldığında modal açılmalıdır.
+- Modalın açılması ve kapatılması sorunsuz çalışmalıdır.
+- Modal Light/Dark temaya uyumlu olmalıdır.
+- Mobil ve masaüstü ekranlarda kullanılabilir olmalıdır.
 
----
+SAYFA 1 — MEVCUT DEĞERLER
 
-## 4. RESPONSIVE MODAL BUTONLARI — GENİŞLİK VE YÜKSEKLİK
+Kullanıcı aşağıdaki bilgileri girebilmelidir:
 
-**Mevcut sorun:** Responsive görünümde modal içerisindeki butonlar çok küçük kalıyor.
+1. Boy
+2. Kilo
+3. Yaş
 
-İlgili modal ve butonların ortak CSS sınıflarını incele.
+GEREKSİNİMLER:
 
-Yapılacaklar:
+- Her alanın anlaşılır bir etiketi olmalıdır.
+- Boy ve kilo için uygun birimler gösterilmelidir.
+- Sayısal girişler doğrulanmalıdır.
+- Boş bırakılmaması gereken alanlar kontrol edilmelidir.
+- Mantıksız veya geçersiz değerler reddedilmelidir.
+- Alanlara uygun min/max sınırları belirlenmelidir.
+- Doğrulama hataları ilgili alanın yanında gösterilmelidir.
+- Kullanıcı sonraki adıma geçebilmelidir.
+- Girilen veriler sonraki adıma aktarılmalıdır.
 
-- Mobil ekranda butonların dokunma alanını büyüt.
-- Butonların genişlik ve yüksekliğini orta seviyede, dengeli bir değere getir.
-- Tüm butonları gereksiz yere ekranın tamamına yayma; modal içeriği ve buton sayısına göre uygun düzen seç.
-- İki veya daha fazla buton varsa dar ekranlarda alt alta dizilme davranışını değerlendir.
-- Buton metinlerinin kesilmesini, taşmasını veya satır aralığının bozulmasını önle.
-- Modalın iç boşluklarını, butonlar arasındaki mesafeyi ve dikey hizalamayı düzelt.
-- Masaüstündeki buton ölçülerini gereksiz yere büyütme.
+SAYFA 2 — DEĞERLERİ KONTROL ETME VE GÜNCELLEME
 
-Başlangıç için değerlendirilebilecek CSS değerleri:
+Kullanıcı bu adımda:
 
-```css
-/* Örnek başlangıç değerleri; mevcut tasarıma göre doğrula. */
-.modal-actions button {
-    min-height: 44px;
-    padding: 10px 18px;
-    font-size: 14px;
-}
+- Girdiği boy değerini görebilmelidir.
+- Girdiği kilo değerini görebilmelidir.
+- Girdiği yaş değerini görebilmelidir.
+- Önceki adıma dönebilmelidir.
+- Bilgilerini değiştirebilmelidir.
+- Değerleri onaylayarak güncelleme işlemini başlatabilmelidir.
 
-@media (max-width: 480px) {
-    .modal-actions {
-        gap: 10px;
-    }
+GÜNCELLEME İŞLEMİ:
 
-    .modal-actions button {
-        min-height: 44px;
-        padding: 11px 16px;
-    }
-}
-```
+1. Mevcut backend API'lerini ve veri modelini incele.
+2. Bu bilgileri güncellemek için kullanılabilecek mevcut bir API varsa onu kullan.
+3. API yoksa gerçek güncelleme için gereken backend desteğini belirle.
+4. Verileri doğru kullanıcı hesabıyla ilişkilendir.
+5. Kullanıcıya ait verilerin başka hesaplarla karışmasını engelle.
+6. İşlem sırasında yüklenme durumu göster.
+7. Butona art arda basılarak aynı işlemin tekrarlanmasını engelle.
+8. Başarılı işlemde kullanıcıya bildirim göster.
+9. Başarılı işlemden sonra ekrandaki ilgili değerleri yenile.
+10. Hata durumunda girilen değerleri koru.
+11. Kullanıcıya anlaşılır bir hata bildirimi göster.
+12. Modalın her iki adımını da Light/Dark temaya uyumlu hâle getir.
 
-Bu değerleri doğrudan her modalın üzerine zorla uygulama. Projedeki gerçek sınıfları ve modal düzenini inceleyerek doğru bileşene uygula. Mevcut CSS mimarisi uygunsa ortak responsive modal sınıfını iyileştir.
+ÖNEMLİ:
 
-**Referans:** Görsel 3, Görsel 11 ve Görsel 12.
+Yalnızca frontend üzerinde değerleri değiştirerek işlemi başarılıymış gibi gösterme. Veriler gerçekten kaydedilmiyorsa bunu raporla ve gerekli backend desteğini belirle.
 
----
+D) TARİH DEĞERLERİ GÖRÜNMÜYOR
 
-## 5. İDMANLAR.HTML — FİLTRE UI/UX DÜZENLEMESİ
+SORUN:
 
-**Mevcut sorun:** İdmanlar sayfasındaki filtre alanı mevcut yerleşimiyle kullanıcı deneyimini olumsuz etkiliyor.
+İlerleme sayfasındaki tarih değerleri ekranda görünmüyor.
 
-### 5.1. Filtreyi üç nokta menüsüne taşı
+YAPILACAKLAR:
 
-- Filtre alanını uygun bir üç nokta (`...`) menüsü veya filtre açılır paneli içerisine al.
-- Üç nokta butonuna basıldığında filtre alanı görünür hâle gelsin.
-- Aynı butona tekrar basıldığında filtre alanı gizlensin.
-- Menü ilk sayfa yüklenişinde kapalı olsun.
-- Açık menünün diğer içeriklerin üzerine binmesi veya ekran dışına taşması sorunlarını gider.
-- Menü dışına tıklama ve `Escape` ile kapatma davranışlarını değerlendir.
-- Klavye ile kullanılabilirlik ve odak yönetimini koru.
+1. Tarihlerin hangi API veya veri kaynağından geldiğini belirle.
+2. API yanıtında ilgili tarih alanlarının bulunup bulunmadığını kontrol et.
+3. Frontend tarafındaki veri eşlemesini incele.
+4. Tarih alanlarının doğru isimlerle okunduğunu doğrula.
+5. Tarih biçimlendirme fonksiyonlarını kontrol et.
+6. ISO tarih formatı ve saat dilimi kaynaklı hataları araştır.
+7. Tarih değerlerini tutarlı ve okunabilir bir formatta göster.
+8. Geçersiz veya boş tarihler için güvenli davranış uygula.
+9. Tarihlerin Light/Dark temada okunabilir olmasını sağla.
+10. Gerçek veri bulunmuyorsa sahte tarih üretme.
 
-### 5.2. Filtrelerin işlevselliği
+KABUL KRİTERLERİ:
 
-- Mevcut filtre kriterlerini koru.
-- Filtre seçeneklerinin gerçekten idman listesini etkilediğini doğrula.
-- Filtre temizleme ve sıfırlama davranışlarını koru veya mevcut değilse ekle.
-- Filtre uygulandığında liste, boş durum mesajı ve sonuç sayısı tutarlı olmalı.
-- Filtre panelinin açılması veya kapanması mevcut filtre değerlerini yanlışlıkla sıfırlamamalı.
-- Mobil ve masaüstü yerleşimini test et.
+- Mevcut tarih değerleri doğru şekilde gösterilmelidir.
+- Tarih formatı tutarlı olmalıdır.
+- Eksik veya geçersiz veriler sayfanın bozulmasına neden olmamalıdır.
 
-**Referans:** Görsel 5.
+E) ÖRNEK İNSAN GÖRSELİ
 
----
+SORUN:
 
-## 6. PROFİL.HTML — ÜST ÜSTE BİNEN BİLEŞENLER VE HAKKIMDA MODALI
+Örnek insan görselinin Light ve Dark temalarda doğru görünmesi gerekiyor.
 
-### 6.1. Sayfa yerleşimi
+YAPILACAKLAR:
 
-**Mevcut sorun:** Profil sayfasında bazı bileşenler üst üste geliyor.
+1. İlerleme sayfasındaki örnek insan görselini belirle.
+2. Görselin mevcut dosya yolunu ve nasıl yüklendiğini kontrol et.
+3. Light ve Dark temalarda görselin arka planla uyumunu değerlendir.
+4. Projede ayrı Light/Dark görseller bulunuyorsa mevcut global tema sistemini kullanarak doğru görseli seç.
+5. Tek görsel kullanılıyorsa gereksiz veya görseli bozan filtreler uygulama.
+6. Görselin oranlarını, konumunu ve boyutlarını koru.
+7. Görselin yüklenememesi durumunda mevcut tasarıma uygun güvenli bir yedek davranış belirle.
 
-İncelenecekler:
+KABUL KRİTERLERİ:
 
-- Profil başlığı ve kullanıcı bilgileri.
-- Profil kartları ve istatistik alanları.
-- İçerik genişliği ve yatay taşma.
-- `position: absolute` veya sabit yükseklik nedeniyle oluşan çakışmalar.
-- Grid/flex düzeni, `gap`, margin ve padding değerleri.
-- Farklı ekran genişliklerindeki breakpoint kuralları.
-- Modal açıkken sayfa kaydırma davranışı.
+- Light temada görsel açık tema tasarımıyla uyumlu olmalıdır.
+- Dark temada görsel koyu tema tasarımıyla uyumlu olmalıdır.
+- Görsel bozulmamalıdır.
+- Tema değiştiğinde görselin arka planı veya görünümü hatalı kalmamalıdır.
 
-Sorunu yalnızca `z-index` değerlerini artırarak geçiştirme. Önce çakışmanın temel nedenini belirle.
+============================================================
+8. WORKOUTS.HTML — İDMANLARIM
+REFERANS GÖRSEL: 9.png
+============================================================
 
-### 6.2. Modal içerisindeki Hakkımda bölümü
+A) ÜST MENÜ TEMA SORUNU
 
-- Hakkımda alanının başlık, açıklama ve düzenleme kontrollerini düzenle.
-- Uzun metinlerin modal dışına taşmasını önle.
-- Metin alanının yüksekliğini ve kaydırma davranışını iyileştir.
-- Düzenleme ve kaydetme butonlarının görünür kalmasını sağla.
-- Mobil ekranlarda modal genişliğini ve dikey yüksekliğini ekran boyutuna göre sınırla.
-- Form alanları, hata mesajları ve boş durumlar için tutarlı aralıklar kullan.
-- Kullanıcının mevcut profil metnini ve kayıt işlevini koru.
+SORUN:
 
-**Referans:** Görsel 6, Görsel 7 ve Görsel 8.
+Light tema açıkken üst menü siyah kalıyor.
 
----
+YAPILACAKLAR:
 
-## 7. AYARLAR.HTML — NAME / SURNAME ALANLARININ YÜKSEKLİĞİ
+1. Workouts.html dosyasını incele.
+2. Üst menünün HTML ve CSS yapısını belirle.
+3. Sabit Dark tema renklerini tespit et.
+4. Global tema değişkenlerini kullan.
+5. Light temada üst menüyü tasarım PDF'sine uygun açık renge dönüştür.
+6. Metin, ikon, hover ve aktif bağlantı renklerini kontrol et.
+7. Dark tema görünümünü koru.
 
-**Mevcut sorun:** Name ve Surname alanlarının bulunduğu bölümün yüksekliği uygun değil.
+B) YENİ İDMAN EKLE BUTONU
 
-Yapılacaklar:
+SORUN:
 
-- İlgili HTML elementini ve CSS seçicilerini belirle.
-- Alanların yükseklik, iç boşluk, satır yüksekliği ve dikey hizalamasını incele.
-- Label, input ve açıklama metinlerinin birbirine girmesini önle.
-- Diğer form alanlarıyla görsel tutarlılığı koru.
-- Mobilde gereksiz boşluk veya kesilme oluşmasını önle.
-- Sadece gerekli bileşeni düzelt; tüm formun yüksekliğini rastgele değiştirme.
-- Mevcut kayıt/güncelleme davranışının çalıştığını doğrula.
+Yeni İdman Ekle butonu çalışmıyor.
 
-**Referans:** Görsel 9.
+YAPILACAKLAR:
 
----
+1. Butonun mevcut HTML ve JavaScript bağlantılarını kontrol et.
+2. Butona tıklandığında yeni idman ekleme modalını aç.
+3. Modalın mevcut global modal sistemiyle uyumlu olmasını sağla.
+4. Gerekli form alanlarını mevcut idman veri modeline göre belirle.
+5. Zorunlu alanları doğrula.
+6. Uygun alanlarda sayısal ve metinsel doğrulamalar yap.
+7. Form gönderilirken yüklenme durumu göster.
+8. Form gönderimi sırasında tekrar gönderimi engelle.
+9. Mevcut backend API'sini kullanarak idmanı kaydet.
+10. Başarılı işlemde modalı kapat.
+11. İdman listesini güncelle.
+12. Başarı bildirimini göster.
+13. Hata durumunda kullanıcıya anlaşılır bir bildirim göster.
+14. Girilen verileri mümkün olduğunca koru.
+15. Modalı Light/Dark temaya uyumlu hâle getir.
 
-## 8. MESAJLAR.HTML — INDEX.HTML'E DÖNÜŞ BUTONU
+ÖNEMLİ:
 
-**Mevcut sorun:** `index.html` sayfasına döndüren buton sayfanın altında kalıyor ve kullanıcı arayüzünü bozuyor.
+Gerekli alanları tahmin ederek mevcut veri modelinden bağımsız bir form oluşturma. Önce backend DTO'larını, API uç noktalarını ve mevcut idman modelini incele.
 
-Yapılacaklar:
+C) ÜÇ NOKTA BUTONU
 
-- Butonun HTML yerleşimini ve bağlı CSS sınıflarını incele.
-- Butonun neden sayfanın altına kaydığını belirle: yanlış DOM hiyerarşisi, `position`, flex/grid yerleşimi, margin, sabit yükseklik veya overflow.
-- Butonu kullanıcı tarafından kolayca erişilebilir, mantıklı bir konuma yerleştir.
-- Mesaj listesinin, sohbet alanının ve alt mesaj yazma alanının kullanılabilirliğini koru.
-- Mesaj yazma alanı veya gönderme butonuyla çakışma oluşturma.
-- Mobilde alt gezinme, klavye açılması ve dikey kaydırma durumlarını test et.
-- Butonun hedefinin gerçekten `index.html` olduğunu ve doğru şekilde çalıştığını doğrula.
-- Gereksiz sabit konumlandırma ile ekranın başka elemanlarını örtme.
+SORUN:
 
-**Beklenen sonuç:** Ana sayfaya dönüş butonu kolayca bulunmalı; sayfa içeriğinin altında kaybolmamalı ve mesaj gönderme alanına engel oluşturmamalı.
+İdman kartlarındaki üç nokta butonu çalışmıyor.
 
----
+YAPILACAKLAR:
 
-## 9. TEST VE DOĞRULAMA PLANI
+1. Üç nokta butonunun mevcut amacını belirle.
+2. İlgili açılır menüyü çalışır hâle getir.
+3. Mevcut düzenleme, silme veya diğer işlemler varsa bunları kontrol et.
+4. İşlemleri yalnızca backend veya mevcut sistem gerçekten destekliyorsa etkinleştir.
+5. Menü dışına tıklandığında menüyü kapat.
+6. Escape tuşuyla menünün kapatılmasını destekle.
+7. Menüdeki seçeneklerin tıklanabilir olmasını sağla.
+8. Butonun ve menünün Light/Dark tema uyumluluğunu sağla.
+9. Kullanıcı yetkilerini ve mevcut veri güvenliğini koru.
 
-Değişikliklerden sonra aşağıdaki kontrolleri gerçekleştir.
+D) İDMAN GEÇMİŞİ
 
-### A. Bildirimler
+SORUN:
 
-- [ ] Bildirim ayarları butonu çalışıyor.
-- [ ] Bildirim kanalı seçilebiliyor.
-- [ ] Bildirim önceliği değiştirilebiliyor.
-- [ ] Tercihler backend'e kaydediliyor.
-- [ ] Sayfa yenilendiğinde tercihler korunuyor.
-- [ ] Bildirim detay modalında uygun ikon görünüyor.
-- [ ] Responsive menü varsayılan olarak kapalı.
-- [ ] Menü açma ve kapatma işlemleri çalışıyor.
+İdman Geçmişi bölümünde 8 sayısı görünüyor. Bu sayının doğru şekilde hesaplanması ve gösterilmesi gerekiyor.
 
-### B. Login ve e-posta kodu
+YAPILACAKLAR:
 
-- [ ] Kod gönderimi başarılı olduğunda sayaç başlıyor.
-- [ ] Sayaç doğru süreyi gösteriyor.
-- [ ] Sayaç süresi dolduğunda yeniden gönderme kuralı çalışıyor.
-- [ ] Yeniden gönderme sonrası sayaç doğru şekilde sıfırlanıyor.
-- [ ] Kod doğrulaması backend tarafından gerçekleştiriliyor.
-- [ ] Frontend/backend kaynak analizi raporlandı.
+1. İlgili HTML bileşenini incele.
+2. Sayının nereden geldiğini belirle.
+3. Sabit yazılmış bir değer olup olmadığını kontrol et.
+4. Backend API yanıtını incele.
+5. İdman geçmişi kayıtlarının doğru şekilde getirildiğini doğrula.
+6. Gerekliyse gerçek kayıt sayısını hesapla.
+7. Toplam idman sayısı ile tamamlanan idman sayısının birbirine karıştırılmasını önle.
+8. Sayının hangi istatistiği ifade ettiğini belirle.
+9. Boş geçmiş durumunda uygun bir mesaj göster.
+10. Yüklenme ve hata durumlarını yönet.
+11. Veriler değiştiğinde ilgili sayıyı güncelle.
 
-### C. Responsive modallar
+ÖNEMLİ:
 
-- [ ] Butonların genişliği ve yüksekliği iyileştirildi.
-- [ ] Buton metinleri taşmıyor.
-- [ ] Modal ekran dışına çıkmıyor.
-- [ ] Dar ekranda butonlar uygun şekilde yerleşiyor.
+Mevcut 8 değerini yalnızca başka bir sabit sayıyla değiştirme. Değerin anlamını ve gerçek veri kaynağını belirle.
 
-### D. İdmanlar
+E) PROFİL İKONU VE YÖNLENDİRME
 
-- [ ] Filtre menüsü üç nokta butonundan açılıyor.
-- [ ] Menü tekrar tıklamayla kapanıyor.
-- [ ] Filtreler sonuçları doğru şekilde etkiliyor.
-- [ ] Filtre temizleme işlevi çalışıyor.
+SORUN:
 
-### E. Profil
+Profil ikonu görünmüyor.
 
-- [ ] Profil bileşenleri üst üste binmiyor.
-- [ ] Hakkımda modalı düzgün görünüyor.
-- [ ] Uzun metinler modal dışına taşmıyor.
-- [ ] Kaydetme işlevi çalışıyor.
+YAPILACAKLAR:
 
-### F. Ayarlar
+1. Profil ikonunun neden görünmediğini belirle.
+2. İkonun HTML, CSS ve JavaScript bağlantılarını incele.
+3. İkon kütüphanesinin veya görsel dosyasının doğru yüklendiğini doğrula.
+4. Mevcut global profil bileşenini kullan.
+5. İkonu görünür ve tıklanabilir hâle getir.
+6. Tıklama sonucunda doğru profil sayfasına yönlendirme yap.
+7. Mevcut kimlik doğrulama ve kullanıcı yönlendirme sistemini koru.
+8. Light/Dark tema uyumluluğunu sağla.
+9. Mobil görünümde ikonun kaybolmadığını doğrula.
 
-- [ ] Name/Surname alanlarının yüksekliği düzeltildi.
-- [ ] Label ve input alanları doğru hizalandı.
-- [ ] Profil bilgisi güncellemesi çalışıyor.
+KABUL KRİTERLERİ:
 
-### G. Mesajlar
+- Üst menü Light/Dark temada doğru görünmelidir.
+- Yeni idman ekleme modalı çalışmalıdır.
+- İdman formu gerçek veri modeline uygun olmalıdır.
+- Üç nokta menüsü işlevsel olmalıdır.
+- İdman geçmişi gerçek verilere göre gösterilmelidir.
+- Profil ikonu görünmeli ve doğru sayfaya yönlendirmelidir.
+- Tüm bileşenler iki temayla uyumlu olmalıdır.
 
-- [ ] Ana sayfaya dönüş butonu erişilebilir konumda.
-- [ ] Mesaj yazma ve gönderme alanı butonla çakışmıyor.
-- [ ] Mesaj gönderme işlevi bozulmadı.
-- [ ] Mobil görünümde dikey kaydırma düzgün çalışıyor.
+============================================================
+9. REFERANS GÖRSELLERİNİN KESİN LİSTESİ
+============================================================
 
-### H. Genel teknik kontroller
+1.png
+Sayfa: Index.html
+Konu: Üst menünün Light temada siyah kalması.
 
-- [ ] Tarayıcı konsolunda yeni JavaScript hatası yok.
-- [ ] Network sekmesinde beklenmeyen 4xx/5xx yanıtı yok.
-- [ ] Backend build başarılı.
-- [ ] Değiştirilen frontend dosyaları doğru şekilde yükleniyor.
-- [ ] Mevcut kimlik doğrulama ve yetkilendirme akışları çalışıyor.
-- [ ] Başka sayfaların responsive düzeni bozulmadı.
+2.png
+Sayfa: Goals.html — Hedeflerim
+Konu: Hamburger menünün Light temada Dark görünümünde kalması.
 
----
+3.png
+Sayfa: Basvurular.html — Başvurularım
+Konu: Hamburger menünün Light tema sorunu.
 
-## 10. UYGULAMA SIRASI
+4.png
+Sayfa: Basvurular.html — Başvurularım
+Konu: Hamburger menü sorununun ek referansı.
 
-Çalışmayı şu sırayla yürüt:
+5.png
+Sayfa: Mesajlar.html
+Konu: Mesaj okundu bilgisi renkleri ve mesaj gönderiminden sonra açılan modal.
 
-1. İlgili sayfaların HTML, CSS ve JavaScript dosyalarını tespit et.
-2. İlgili backend endpoint, DTO, model ve servislerini incele.
-3. Her sorunun kök nedenini belirle.
-4. Önce en kritik işlevsel hataları düzelt.
-5. Ardından responsive ve modal düzenlemelerini uygula.
-6. Bildirim tercihleri için backend/veritabanı gereksinimlerini belirle ve tamamla.
-7. E-posta kodu geri sayımının kaynağını kanıtla.
-8. Tüm testleri uygula.
-9. Build ve konsol sonuçlarını kontrol et.
-10. Sonuç raporunu oluştur.
+6.png
+Sayfa: Admin.html
+Konu: Sistem Ayarları bölümündeki Hızlı Sistem Anahtarı.
 
-Birden fazla sayfayı aynı anda değiştirmek yerine değişiklikleri kontrollü ve doğrulanabilir parçalara ayır. Her parçanın sonunda ilgili testleri tamamla.
+7.png
+Sayfa: Admin.html
+Konu: Hızlı Sistem Anahtarı butonunun ek referansı.
 
-## 11. SONUÇ RAPORU
+8.png
+Sayfa: Progress.html — İlerleme
+Konu: Üst menü, profil ikonu, boy-kilo-yaş modalı, tarih değerleri ve örnek insan görseli.
 
-İş sonunda aşağıdaki başlıklarla rapor ver:
+9.png
+Sayfa: Workouts.html — İdmanlarım
+Konu: Üst menü, yeni idman ekleme modalı, üç nokta menüsü, idman geçmişi ve profil ikonu.
 
-1. **Tespit edilen kök nedenler:** Her hatanın gerçek kaynağı.
-2. **Değiştirilen dosyalar:** Dosya yolları ve yapılan değişiklikler.
-3. **Backend değişiklikleri:** Endpoint, DTO, servis ve veritabanı değişiklikleri.
-4. **Frontend değişiklikleri:** HTML, CSS ve JavaScript değişiklikleri.
-5. **E-posta kodu süresi analizi:** Sorunun frontend/backend/karma olduğuna ilişkin kanıt.
-6. **Test sonuçları:** Başarılı, başarısız ve test edilemeyen maddeler.
-7. **Açık kalan işler:** Tamamlanamayan her madde ve nedeni.
+ÖNEMLİ REFERANS KURALI:
 
-**Son şart:** Yalnızca kod değiştirerek görevi tamamlanmış sayma. İstenen işlevin gerçekten çalıştığını doğrula. Referans görselleri mevcut değilse görsel ayrıntıları uydurma; ilgili dosyaları incele ve eksik kanıtı raporla.
+2.png yalnızca Goals.html — Hedeflerim sayfasını, 9.png ise Workouts.html — İdmanlarım sayfasını temsil eder.
+
+Bu iki görselin görev eşleştirmesini değiştirme.
+
+============================================================
+10. SON KONTROL LİSTESİ
+============================================================
+
+GENEL TEMA:
+
+[ ] Renk Tema.pdf incelendi.
+[ ] Global tema dosyaları incelendi.
+[ ] Light tema renk sorunları giderildi.
+[ ] Dark tema görünümü korundu.
+[ ] Ortak bileşenlerde gereksiz kod tekrarı yapılmadı.
+
+INDEX.HTML:
+
+[ ] Üst menü Light temada doğru görünüyor.
+[ ] Dark tema görünümü korundu.
+
+GOALS.HTML:
+
+[ ] Hamburger menü Light temada doğru görünüyor.
+[ ] Dark tema görünümü korundu.
+[ ] Menü bağlantıları çalışıyor.
+
+BASVURULAR.HTML:
+
+[ ] Hamburger menü Light temada doğru görünüyor.
+[ ] Dark tema görünümü korundu.
+[ ] Menü bağlantıları çalışıyor.
+
+MESAJLAR.HTML:
+
+[ ] Okundu bilgisi renkleri düzenlendi.
+[ ] Başarı modalı kaldırıldı.
+[ ] Global bildirim sistemi kullanıldı.
+[ ] Hata bildirimleri çalışıyor.
+[ ] Mesaj gönderme işlevi korundu.
+
+ADMIN.HTML:
+
+[ ] Hızlı Sistem Anahtarı Light temada doğru görünüyor.
+[ ] Dark tema görünümü korundu.
+[ ] Anahtarın gerçek işlevi çalışıyor.
+[ ] Görsel durum ile gerçek sistem durumu tutarlı.
+
+PROGRESS.HTML:
+
+[ ] Üst menü Light/Dark temayla uyumlu.
+[ ] Profil ikonu görünüyor.
+[ ] Profil yönlendirmesi çalışıyor.
+[ ] Boy-kilo-yaş modalı açılıyor.
+[ ] Modalın birinci adımı çalışıyor.
+[ ] Modalın ikinci adımı çalışıyor.
+[ ] Alan doğrulamaları çalışıyor.
+[ ] Veriler gerçekten kaydediliyor.
+[ ] Tarih değerleri doğru gösteriliyor.
+[ ] Örnek insan görseli iki temada doğru görünüyor.
+
+WORKOUTS.HTML:
+
+[ ] Üst menü Light/Dark temayla uyumlu.
+[ ] Yeni idman ekleme modalı açılıyor.
+[ ] İdman formu doğrulamaları çalışıyor.
+[ ] İdman verileri gerçekten kaydediliyor.
+[ ] Üç nokta menüsü çalışıyor.
+[ ] İdman geçmişi gerçek verilerden geliyor.
+[ ] Profil ikonu görünüyor.
+[ ] Profil yönlendirmesi çalışıyor.
+
+SON TESTLER:
+
+[ ] Mobil görünüm kontrol edildi.
+[ ] Masaüstü görünümü kontrol edildi.
+[ ] Tarayıcı konsolu kontrol edildi.
+[ ] API yanıtları kontrol edildi.
+[ ] Yetkilendirme ve kullanıcı verileri korundu.
+[ ] Mevcut çalışan özellikler bozulmadı.
+[ ] Yeni JavaScript hataları oluşturulmadı.
+[ ] Gerçekleştirilen değişiklikler raporlandı.
+
+============================================================
+11. UYGULAMA SIRASI
+============================================================
+
+Görevleri aşağıdaki sırayla uygula:
+
+FAZ 1 — ANALİZ
+- Proje yapısını incele.
+- Global tema dosyalarını belirle.
+- Global modal ve bildirim sistemlerini belirle.
+- İlgili API uç noktalarını ve veri modellerini incele.
+- Renk Tema.pdf dosyasını oku.
+
+FAZ 2 — GLOBAL TEMA VE MENÜLER
+- Index.html
+- Goals.html
+- Basvurular.html
+- Progress.html
+- Workouts.html
+
+FAZ 3 — MESAJLAR VE YÖNETİM PANELİ
+- Mesajlar.html
+- Admin.html
+
+FAZ 4 — İLERLEME ÖZELLİKLERİ
+- Boy-kilo-yaş modalı
+- İki adımlı form
+- Backend veri güncellemesi
+- Tarih değerleri
+- Örnek insan görseli
+
+FAZ 5 — İDMAN ÖZELLİKLERİ
+- Yeni idman ekleme modalı
+- Form doğrulamaları
+- İdman kaydetme işlemi
+- Üç nokta menüsü
+- İdman geçmişi
+- Profil ikonu ve yönlendirme
+
+FAZ 6 — TEST VE RAPORLAMA
+- Her sayfayı ayrı ayrı test et.
+- Light/Dark tema geçişlerini doğrula.
+- API işlemlerini kontrol et.
+- Konsol hatalarını incele.
+- Mevcut özelliklerin bozulmadığını doğrula.
+- Tamamlanan ve tamamlanamayan görevleri raporla.
+
+============================================================
+12. SONUÇ VE RAPORLAMA
+============================================================
+
+Tüm görevler tamamlandığında aşağıdaki bilgileri raporla:
+
+1. Değiştirilen dosyalar.
+2. Her dosyada yapılan değişiklikler.
+3. Çözülen sorunlar.
+4. Yeni eklenen modal ve bildirimler.
+5. Backend tarafında değişiklik gerekip gerekmediği.
+6. Test edilen işlevler ve test sonuçları.
+7. Çözülemeyen sorunlar.
+8. Eksik API veya veri modeli desteği.
+9. Eksik referans görselleri veya tasarım dokümanları.
+10. Sonraki adımda yapılması gerekenler.
+
+TAMAMLANDI İFADESİNİ yalnızca gerçekten uygulanmış ve test edilmiş görevler için kullan.
+
+Çalışmayan bir özelliği çalışıyormuş gibi gösterme. Bir görev backend desteği, eksik görsel veya başka bir bağımlılık nedeniyle tamamlanamıyorsa bunu açıkça belirt.
+
+ANA HEDEF:
+
+Fitness Pro'nun mevcut mimarisini koruyarak tüm belirtilen sayfalardaki tema sorunlarını gidermek, eksik işlevleri çalışır hâle getirmek ve ortak bileşenleri global Light/Dark tema sistemiyle tutarlı biçimde entegre etmek.

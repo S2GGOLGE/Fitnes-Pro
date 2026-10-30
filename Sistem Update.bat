@@ -13,7 +13,11 @@ set "PROJECT_ROOT=%~dp0"
 if "%PROJECT_ROOT:~-1%"=="\" set "PROJECT_ROOT=%PROJECT_ROOT:~0,-1%"
 set "BACKEND_DIR=%PROJECT_ROOT%\Backend\Gym-Pro-Api\Gym-Pro-Api"
 set "FRONTEND_DIR=%PROJECT_ROOT%\Fronted"
-set "DOCKER_EXE=C:\Program Files\Docker\Docker\Docker Desktop.exe"
+set "DOCKER_EXE="
+if exist "%LOCALAPPDATA%\Programs\DockerDesktop\Docker Desktop.exe" set "DOCKER_EXE=%LOCALAPPDATA%\Programs\DockerDesktop\Docker Desktop.exe"
+if not defined DOCKER_EXE if exist "%ProgramFiles%\Docker\Docker\Docker Desktop.exe" set "DOCKER_EXE=%ProgramFiles%\Docker\Docker\Docker Desktop.exe"
+if not defined DOCKER_EXE if exist "C:\Program Files\Docker\Docker\Docker Desktop.exe" set "DOCKER_EXE=C:\Program Files\Docker\Docker\Docker Desktop.exe"
+if not defined DOCKER_EXE if exist "%ProgramW6432%\Docker\Docker\Docker Desktop.exe" set "DOCKER_EXE=%ProgramW6432%\Docker\Docker\Docker Desktop.exe"
 
 set "DB_CONTAINER=fitnesspro-db"
 set "API_CONTAINER=fitness-pro-api"
@@ -54,6 +58,12 @@ if not errorlevel 1 (
 )
 
 echo   Engine not running. Starting Docker Desktop...
+if not defined DOCKER_EXE (
+    echo   [ERROR] Docker Desktop executable not found in standard paths:
+    echo            - %LOCALAPPDATA%\Programs\DockerDesktop\Docker Desktop.exe
+    echo            - %ProgramFiles%\Docker\Docker\Docker Desktop.exe
+    goto :fatal
+)
 if not exist "%DOCKER_EXE%" (
     echo   [ERROR] Docker Desktop not found at: %DOCKER_EXE%
     goto :fatal
