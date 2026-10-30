@@ -107,6 +107,61 @@ document.addEventListener("DOMContentLoaded", () => {
             Object.assign(profileState.user, payload);
             return Promise.resolve({ success: true, message: "Profil başarıyla güncellendi." });
         },
+        async getBiography() {
+            if (!window.Auth || typeof window.Auth.authFetch !== "function") {
+                return {
+                    success: false,
+                    data: "",
+                    message: "Oturum bilgisi bulunamadı."
+                };
+            }
+            try {
+                const response = await window.Auth.authFetch("/api/profile/biography", {
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                });
+
+                let result = null;
+                try {
+                    result = await response.json();
+                } catch {
+                    result = null;
+                }
+
+                const success = response.ok && result && result.success === true;
+                let biography = "";
+                if (result) {
+                    if (typeof result.data === "string" && result.data.length > 0) {
+                        biography = result.data;
+                    } else if (result.data && typeof result.data === "object") {
+                        biography = result.data.biography || result.data.Biography || result.data.context || result.data.Context || "";
+                    } else if (typeof result.message === "string" && 
+                               result.message !== "İşlem Başarılı" && 
+                               result.message !== "Biyografi alındı." && 
+                               result.message !== "Kayıt Başarılı" &&
+                               result.message !== "Islem basarili." &&
+                               result.message.trim().length > 0) {
+                        biography = result.message;
+                    } else if (typeof result.data === "string") {
+                        biography = result.data;
+                    }
+                }
+                return {
+                    success,
+                    data: biography,
+                    message: (result && result.message) || (success ? "İşlem Başarılı" : "Biyografi alınamadı.")
+                };
+            } catch (err) {
+                console.error("[ProfileAPI] getBiography hatası:", err);
+                return {
+                    success: false,
+                    data: "",
+                    message: "Sunucuya bağlanılamadı. Lütfen backend servisinin çalıştığından emin olunuz."
+                };
+            }
+        },
         async saveBiography(bio) {
             if (!window.Auth || typeof window.Auth.authFetch !== "function") {
                 return {
@@ -1023,10 +1078,40 @@ document.addEventListener("DOMContentLoaded", () => {
        15. INITIALIZE RENDERING
        ========================================================= */
 
+    async function loadBiography() {
+        try {
+            const res = await ProfileAPI.getBiography();
+            if (res.success && typeof res.data === "string") {
+                if (res.data.trim().length > 0 || !profileState.user.bio) {
+                    profileState.user.bio = res.data;
+                }
+                if (res.data.trim().length > 0) {
+                    try {
+                        localStorage.setItem('fitness_pro_bio', res.data);
+                        const u = window.Auth ? window.Auth.getUser() : null;
+                        if (u) {
+                            u.bio = res.data;
+                            localStorage.setItem('fitness_pro_user', JSON.stringify(u));
+                        }
+                    } catch (e) {}
+                }
+                renderProfileHeader();
+
+                if (inputBio) {
+                    inputBio.value = profileState.user.bio || "";
+                    updateBioWordCount();
+                }
+            }
+        } catch (err) {
+            console.warn("[Profile] Biyografi yüklenemedi:", err);
+        }
+    }
+
     renderProfileHeader();
     renderStats();
     renderWorkouts();
     renderCoach();
     renderGoals();
+    loadBiography();
 
 });

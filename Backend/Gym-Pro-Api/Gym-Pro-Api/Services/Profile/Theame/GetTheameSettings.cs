@@ -1,5 +1,4 @@
 namespace Apı.Service;
-
 using Apı.Model;
 using Microsoft.Data.SqlClient;
 public partial class ProfileService

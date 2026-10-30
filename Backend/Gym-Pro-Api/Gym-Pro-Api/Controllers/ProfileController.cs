@@ -90,4 +90,18 @@ public class ProfileController : ControllerBase
             return Unauthorized();
         }
     }
+    [HttpGet("biography")]
+    public async Task<IActionResult> GetBiography()
+    {
+        try
+        {
+            var userId = GetUserId();
+            var response = await _service.GetBiography(userId);
+            return Ok(response);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Unauthorized();
+        }
+    }
 }
