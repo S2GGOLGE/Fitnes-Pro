@@ -44,13 +44,13 @@ public class ProfileController : ControllerBase
                     message = "Geçersiz istek Govdesi"
                 });
             }
-            var userId=GetUserId();
+            var userId = GetUserId();
             //Kullanıcı kimliği JWT üzerinden alınır
-            model.UserId=userId;
-            var response=await _service.TheameSettings(model);
-            return response.Success? Ok(response):BadRequest(response);
+            model.UserId = userId;
+            var response = await _service.TheameSettings(model);
+            return response.Success ? Ok(response) : BadRequest(response);
         }
-        catch(UnauthorizedAccessException)
+        catch (UnauthorizedAccessException)
         {
             return Unauthorized();
         }
@@ -67,6 +67,22 @@ public class ProfileController : ControllerBase
         {
             var userId = GetUserId();
             var response = await _service.GetTheameSettings(userId);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Unauthorized();
+        }
+    }
+    [HttpPost("biography")]
+    public async Task<IActionResult> SaveBiography([FromBody] BiographyModel model)
+    {
+        try
+        {
+            var userId = GetUserId();
+
+            model.UserId = userId;
+            var response = await _service.SaveBiographyAsync(model);
             return response.Success ? Ok(response) : BadRequest(response);
         }
         catch (UnauthorizedAccessException)

@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     --bg: #0B0F0D;
     --surface: #121815;
     --card: #18201B;
@@ -18,6 +18,41 @@
     --sidebar-collapsed: 76px;
 
     --transition: 0.25s ease;
+}
+
+/* ==========================================
+   LIGHT THEME SUPPORT
+========================================== */
+[data-theme="light"],
+.light-theme {
+    --bg: #F8FAFC;
+    --surface: #FFFFFF;
+    --card: #FFFFFF;
+    --card-hover: #F1F5F9;
+
+    --primary: #16A34A;
+    --primary-dark: #15803D;
+
+    --text: #0F172A;
+    --text-secondary: #475569;
+    --text-muted: #94A3B8;
+
+    --border: rgba(15, 23, 42, 0.08);
+    --border-green: rgba(22, 163, 74, 0.25);
+}
+
+[data-theme="light"] .sidebar,
+.light-theme .sidebar {
+    box-shadow: 2px 0 12px rgba(15, 23, 42, 0.03);
+}
+
+[data-theme="light"] .dashboard-card,
+.light-theme .dashboard-card,
+[data-theme="light"] .progress-card,
+.light-theme .progress-card,
+[data-theme="light"] .quick-actions a,
+.light-theme .quick-actions a {
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
 }
 
 

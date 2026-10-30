@@ -1,4 +1,4 @@
-/* =========================================================
+﻿/* =========================================================
    FITNESS PRO - FRIENDS PAGE STYLES
    =========================================================
    Bu dosya arkadaslik sayfasinin (Friends.html) CSS'ini icerir.
@@ -35,6 +35,36 @@ body.light {
 
     --text: #111827;
     --muted: #66736B;
+}
+
+/* =========================================================
+   LIGHT THEME SUPPORT
+   ========================================================= */
+[data-theme="light"],
+.light-theme {
+    --bg: #F5F7F6;
+    --sidebar: #FFFFFF;
+    --card: #FFFFFF;
+    --card-hover: #F1F5F3;
+    --border: #E2E8E4;
+
+    --primary: #16A34A;
+    --primary-hover: #15803D;
+
+    --text: #111827;
+    --muted: #66736B;
+}
+
+[data-theme="light"] .sidebar,
+.light-theme .sidebar {
+    box-shadow: 2px 0 12px rgba(15, 23, 42, 0.03);
+}
+
+[data-theme="light"] .friend-card,
+.light-theme .friend-card,
+[data-theme="light"] .panel-card,
+.light-theme .panel-card {
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
 }
 
 * {

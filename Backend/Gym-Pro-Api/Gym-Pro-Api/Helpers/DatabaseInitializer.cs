@@ -91,6 +91,8 @@ namespace Apı.Helpers
 
                 // ADIM 20: UserThemeSettings tablosu
                 await EnsureUserThemeSettingsTableAsync(connection);
+                // ADIM 21: UserBiographies tablosu
+                await UserBiographiesAsync(connection);
             }
         }
 
@@ -1900,7 +1902,10 @@ namespace Apı.Helpers
 
 
 
-
+        // -------------------------------------------------------------------
+        // 20) TheameSettings 
+        // Kullanıcının tema bilgilerini tutar.
+        // -------------------------------------------------------------------
         private static async Task EnsureUserThemeSettingsTableAsync(
             SqlConnection connection)
         {
@@ -1915,7 +1920,7 @@ namespace Apı.Helpers
                     CONSTRAINT [DF_UserThemeSettings_Thema]
                     DEFAULT N'Dark',
 
-                CONSTRAINT [PK_UserThemeSettings]$
+                CONSTRAINT [PK_UserThemeSettings]
                     PRIMARY KEY CLUSTERED ([UserId] ASC),
 
                 CONSTRAINT [FK_UserThemeSettings_Users_UserId]
@@ -1955,7 +1960,45 @@ namespace Apı.Helpers
             using var command = new SqlCommand(createSql, connection);
             await command.ExecuteNonQueryAsync();
         }
+        // -------------------------------------------------------------------
+        // 21) UserBiographies
+        // Kullanıcının biyografi bilgilerini tutar.
 
+        private static async Task UserBiographiesAsync(SqlConnection connection)
+        {
+            const string createSql = """
+        IF OBJECT_ID(N'dbo.UserBiographies', N'U') IS NULL
+        BEGIN
+            CREATE TABLE [dbo].[UserBiographies]
+            (
+                [Id] INT IDENTITY(1,1) PRIMARY KEY,
+
+                [UserId] INT NOT NULL UNIQUE,
+
+                [Biography] NVARCHAR(1000) NOT NULL
+                    CONSTRAINT [DF_UserBiographies_Biography]
+                    DEFAULT N'',
+
+                [CreatedAt] DATETIME2 NOT NULL
+                    CONSTRAINT [DF_UserBiographies_CreatedAt]
+                    DEFAULT SYSDATETIME(),
+
+                [UpdatedAt] DATETIME2 NOT NULL
+                    CONSTRAINT [DF_UserBiographies_UpdatedAt]
+                    DEFAULT SYSDATETIME(),
+
+                CONSTRAINT [FK_UserBiographies_Users]
+                    FOREIGN KEY ([UserId])
+                    REFERENCES [dbo].[Users]([Id])
+                    ON DELETE CASCADE
+            );
+        END;
+        """;
+
+            using var command = new SqlCommand(createSql, connection);
+            await command.ExecuteNonQueryAsync();
+        }
+        // -------------------------------------------------------------------
         // -------------------------------------------------------------------
         // CHECK CONSTRAINT VARLIK KONTROLÜ (yardımcı)
         // -------------------------------------------------------------------

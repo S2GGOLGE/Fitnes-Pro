@@ -1,4 +1,4 @@
-/* =========================================================
+﻿/* =========================================================
    FITNESS PRO - HARİTALAR SAYFASI STİLLERİ (Haritalar.css)
    Mevcut DesignSystem.css ve Goals.css mimarisi referans alınarak,
    Tasarım Şartnamesi (Açıklama.txt) ve Haritalar.png taslağına
@@ -36,6 +36,47 @@
     --radius-lg: 18px;
     --radius-full: 9999px;
     --transition: 200ms cubic-bezier(0.2, 0.75, 0.25, 1);
+}
+
+/* =========================================================
+   LIGHT THEME SUPPORT
+   ========================================================= */
+[data-theme="light"],
+.light-theme {
+    --bg: #F4F7F5;
+    --surface: #FFFFFF;
+    --surface-soft: #EEF3EF;
+    --card: #FFFFFF;
+    --card-hover: #E2ECE5;
+    --border: #DCE3DE;
+    --border-focus: rgba(22, 163, 74, 0.5);
+    --border-green: rgba(22, 163, 74, 0.28);
+    --primary: #16A34A;
+    --primary-hover: #15803D;
+    --primary-glow: rgba(22, 163, 74, 0.2);
+    --text: #0F172A;
+    --secondary: #475569;
+    --muted: #94A3B8;
+    --shadow: 0 16px 38px rgba(15, 23, 42, 0.08);
+}
+
+[data-theme="light"] body,
+.light-theme body {
+    background: radial-gradient(circle at 100% 0, rgba(22, 163, 74, 0.05), transparent 30rem), var(--bg);
+}
+
+[data-theme="light"] .haritalar-sidebar,
+.light-theme .haritalar-sidebar,
+[data-theme="light"] .map-card,
+.light-theme .map-card,
+[data-theme="light"] .map-control-btn,
+.light-theme .map-control-btn {
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+[data-theme="light"] .leaflet-tile-pane,
+.light-theme .leaflet-tile-pane {
+    filter: none;
 }
 
 * {

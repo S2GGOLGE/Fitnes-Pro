@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    FITNESS PRO - MESAJLAR SAYFASI STİLLERİ
    Tasarım Şablonları: Raporlar/Tasarım/Mesajlar (1.png, 2.png, 3.png)
    Kurallar: Raporlar/Tasarım/Mesajlar/Kurallar.txt
@@ -44,6 +44,49 @@
 /* ==========================================================================
    RESET & TEMEL TİPOGRAFİ
    ========================================================================== */
+/* ==========================================================================
+   LIGHT TEMA DESTEGI
+   ========================================================================== */
+[data-theme="light"],
+.light-theme {
+    /* --- LIGHT TEMA --- */
+    --msg-bg: #F7F9F8;
+    --msg-surface: #EEF2EF;
+    --msg-card: #FFFFFF;
+    --msg-card-hover: #F3F7F4;
+    --msg-primary: #16A34A;
+    --msg-primary-hover: #15803D;
+    --msg-text-main: #111814;
+    --msg-text-muted: #64706A;
+    --msg-border: #DCE3DE;
+    --msg-success: #16A34A;
+    --msg-warning: #D97706;
+    --msg-error: #DC2626;
+    --msg-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+
+    /* GlobalModal uyumu */
+    --bg: var(--msg-bg);
+    --surface: var(--msg-surface);
+    --card: var(--msg-card);
+    --card-hover: var(--msg-card-hover);
+    --primary: var(--msg-primary);
+    --primary-dark: var(--msg-primary-hover);
+    --text: var(--msg-text-main);
+    --text-muted: var(--msg-text-muted);
+    --border: var(--msg-border);
+}
+
+[data-theme="light"] .msg-sidebar,
+.light-theme .msg-sidebar,
+[data-theme="light"] .msg-content,
+.light-theme .msg-content,
+[data-theme="light"] .msg-search-input,
+.light-theme .msg-search-input,
+[data-theme="light"] .msg-input-field,
+.light-theme .msg-input-field {
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
 * {
     box-sizing: border-box;
     margin: 0;

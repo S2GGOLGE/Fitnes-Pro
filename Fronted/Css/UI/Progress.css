@@ -1,4 +1,4 @@
-/* =========================================================
+﻿/* =========================================================
    FITNESS PRO — PROGRESS (İLERLEMEM) PAGE STYLESHEET
    Built on top of index.css design tokens
    ========================================================= */
@@ -24,6 +24,65 @@
     --shadow-sm: 0 2px 8px  rgba(0,0,0,0.22);
     --shadow-md: 0 8px 24px rgba(0,0,0,0.38);
     --shadow-lg: 0 16px 48px rgba(0,0,0,0.52);
+}
+
+/* =========================================================
+   LIGHT THEME SUPPORT
+   ========================================================= */
+[data-theme="light"],
+.light-theme {
+    --bg: #F8FAFC;
+    --surface: #FFFFFF;
+    --surface-soft: #F1F5F9;
+    --card: #FFFFFF;
+    --card-hover: #F1F5F9;
+
+    --primary: #16A34A;
+    --primary-dark: #15803D;
+
+    --text: #0F172A;
+    --text-secondary: #475569;
+    --text-muted: #94A3B8;
+
+    --border: rgba(15, 23, 42, 0.08);
+    --border-green: rgba(22, 163, 74, 0.25);
+    --primary-glow: rgba(22, 163, 74, 0.2);
+    --primary-subtle: rgba(22, 163, 74, 0.1);
+    --primary-border: rgba(22, 163, 74, 0.3);
+
+    --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+    --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+    --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.1);
+}
+
+[data-theme="light"] .change-card,
+.light-theme .change-card,
+[data-theme="light"] .body-status-card,
+.light-theme .body-status-card,
+[data-theme="light"] .ba-card,
+.light-theme .ba-card {
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+[data-theme="light"] .measurement-tooltip,
+.light-theme .measurement-tooltip {
+    background: #FFFFFF;
+    color: #0F172A;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.1);
+}
+
+[data-theme="light"] .ba-photo-placeholder,
+.light-theme .ba-photo-placeholder {
+    background: #F8FAFC;
+    border-color: #CBD5E1;
+    color: #64748B;
+}
+
+[data-theme="light"] .ba-tag,
+.light-theme .ba-tag {
+    background: #F1F5F9;
+    border-color: #E2E8F0;
+    color: #475569;
 }
 
 /* ── Utility ─────────────────────────────────────────── */
