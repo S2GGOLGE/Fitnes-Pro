@@ -49,6 +49,25 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    function getStoredEmail() {
+        try {
+            const e = localStorage.getItem('fitness_pro_email');
+            if (e) return e;
+            const u = (window.Auth && window.Auth.getUser()) || {};
+            if (u && u.email) return u.email;
+            const token = window.Auth && typeof window.Auth.getToken === "function" ? window.Auth.getToken() : null;
+            if (token && window.Auth && typeof window.Auth.parseJwt === "function") {
+                const decoded = window.Auth.parseJwt(token);
+                if (decoded) {
+                    return decoded.email || decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"] || "";
+                }
+            }
+            return '';
+        } catch (e) {
+            return '';
+        }
+    }
+
     const storedGoals = getStoredGoals();
 
     const profileState = {
@@ -56,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
             firstName: (authUser && authUser.username) ? authUser.username : '',
             lastName: '',
             username: (authUser && authUser.username) ? authUser.username : '',
-            email: (authUser && authUser.email) ? authUser.email : '',
+            email: getStoredEmail(),
             bio: getStoredBio(),
             level: (authUser && authUser.role === 'Admin') ? 'Admin' : 'Başlangıç',
             levelNumber: 1,
@@ -106,6 +125,50 @@ document.addEventListener("DOMContentLoaded", () => {
         async updateProfile(payload) {
             Object.assign(profileState.user, payload);
             return Promise.resolve({ success: true, message: "Profil başarıyla güncellendi." });
+        },
+        async updateEmail(email) {
+            if (window.ProfileEndpoint && typeof window.ProfileEndpoint.updateEmail === "function") {
+                return await window.ProfileEndpoint.updateEmail(email);
+            }
+            if (!window.Auth || typeof window.Auth.authFetch !== "function") {
+                return {
+                    success: false,
+                    message: "Oturum bilgisi bulunamadı. Lütfen tekrar giriş yapınız."
+                };
+            }
+            try {
+                const response = await window.Auth.authFetch("/api/profile/email", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        Email: email
+                    })
+                });
+
+                let result = null;
+                try {
+                    result = await response.json();
+                } catch {
+                    result = null;
+                }
+
+                const success = response.ok && result && (result.success === true || result.Success === true);
+                const message = (result && (result.message || result.Message)) || 
+                                (success ? "E-posta adresi başarıyla güncellendi." : "E-posta adresi güncellenemedi.");
+                return {
+                    success,
+                    message
+                };
+            } catch (err) {
+                console.error("[ProfileAPI] updateEmail hatası:", err);
+                return {
+                    success: false,
+                    message: "Sunucuya bağlanılamadı. Lütfen backend servisinin çalıştığından emin olunuz."
+                };
+            }
         },
         async getBiography() {
             if (!window.Auth || typeof window.Auth.authFetch !== "function") {
@@ -917,7 +980,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
-                // 1. Backend Biyografi Kaydı
+                // 1. Backend E-posta Güncellemesi
+                const emailRes = await ProfileAPI.updateEmail(email);
+                if (!emailRes.success) {
+                    showModalAlert(emailRes.message || "E-posta adresi güncellenemedi.", "error");
+                    // Hata durumunda modal açık kalır, girilen bilgiler korunur
+                    return;
+                }
+                const emailSaveMessage = emailRes.message;
+
+                // 2. Backend Biyografi Kaydı
                 const bioRes = await ProfileAPI.saveBiography(bio);
                 if (!bioRes.success) {
                     showModalAlert(bioRes.message || "Biyografi kaydedilemedi.", "error");
@@ -926,20 +998,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 const bioSaveMessage = bioRes.message;
 
-                // 2. Diğer profil bilgilerini güncelle
+                // 3. Diğer profil bilgilerini güncelle ve yerel belleği senkronize et
                 const res = await ProfileAPI.updateProfile(payload);
                 if (res.success) {
+                    profileState.user.email = email;
                     profileState.user.bio = bio;
                     try {
+                        localStorage.setItem('fitness_pro_email', email);
                         localStorage.setItem('fitness_pro_bio', bio);
                         const authUser = window.Auth ? window.Auth.getUser() : null;
                         if (authUser) {
+                            authUser.email = email;
                             authUser.bio = bio;
                             localStorage.setItem('fitness_pro_user', JSON.stringify(authUser));
                         }
                     } catch (e) {}
                     renderProfileHeader();
-                    showToast(bioSaveMessage || "Profil bilgileriniz başarıyla güncellendi!");
+                    showToast(emailSaveMessage || bioSaveMessage || "Profil bilgileriniz başarıyla güncellendi!");
                     closeEditModal();
                 } else {
                     showModalAlert(res.message || "Güncelleme başarısız oldu.", "error");

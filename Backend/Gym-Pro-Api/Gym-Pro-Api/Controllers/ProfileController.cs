@@ -104,4 +104,19 @@ public class ProfileController : ControllerBase
             return Unauthorized();
         }
     }
+    [HttpPost("email")]
+    public async Task<IActionResult> UpdateEmail([FromBody] UpdateEmailModel Emodel)
+    {
+        try
+        {
+            var userId = GetUserId();
+            Emodel.UserId = userId;
+            var response = await _service.EmailUpdateAsync(Emodel);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Unauthorized();
+        }
+    }
 }

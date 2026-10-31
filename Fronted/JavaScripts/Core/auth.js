@@ -30,6 +30,17 @@
             localStorage.setItem(TOKEN_KEY, token);
 
             if (user) {
+                if (!user.email && token) {
+                    const decoded = this.parseJwt(token);
+                    if (decoded) {
+                        user.email =
+                            decoded.email ||
+                            decoded[
+                                "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+                            ] ||
+                            "";
+                    }
+                }
                 localStorage.setItem(USER_KEY, JSON.stringify(user));
             } else {
                 const decoded = this.parseJwt(token);
@@ -41,6 +52,12 @@
                             decoded.unique_name ||
                             decoded.name ||
                             "Kullanıcı",
+                        email:
+                            decoded.email ||
+                            decoded[
+                                "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+                            ] ||
+                            "",
                         role: decoded.role || "User"
                     };
 
@@ -73,7 +90,22 @@
 
             if (userStr) {
                 try {
-                    return JSON.parse(userStr);
+                    const parsed = JSON.parse(userStr);
+                    if (parsed && !parsed.email) {
+                        const token = this.getToken();
+                        if (token) {
+                            const decoded = this.parseJwt(token);
+                            if (decoded) {
+                                parsed.email =
+                                    decoded.email ||
+                                    decoded[
+                                        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+                                    ] ||
+                                    "";
+                            }
+                        }
+                    }
+                    return parsed;
                 } catch {
                     // Ignore invalid JSON
                 }
@@ -91,6 +123,12 @@
                             decoded.unique_name ||
                             decoded.name ||
                             "Kullanıcı",
+                        email:
+                            decoded.email ||
+                            decoded[
+                                "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+                            ] ||
+                            "",
                         role: decoded.role || "User"
                     };
                 }
